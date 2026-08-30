@@ -6,6 +6,28 @@ app = Flask(__name__)
 app.secret_key = "medoriva-mvp-secret-key"
 
 # ============================================================
+# MYMEMORY LANGUAGE CODE MAPPING
+# ============================================================
+
+MYMEMORY_LANG_MAP = {
+    "ta": "ta-IN",       # Tamil
+    "hi": "hi-IN",       # Hindi
+    "ml": "ml-IN",       # Malayalam
+    "bn": "bn-IN",       # Bengali
+    "ur": "ur-PK",       # Urdu
+    "ar": "ar-SA",       # Arabic
+    "pl": "pl-PL",       # Polish
+    "so": "so-SO",       # Somali
+    "ro": "ro-RO",       # Romanian
+}
+
+def get_mymemory_lang_code(lang_code):
+    """Convert short language code to MyMemory-supported code."""
+    if not lang_code:
+        return "en-GB"
+    return MYMEMORY_LANG_MAP.get(lang_code, lang_code)
+
+# ============================================================
 # SIMPLIFICATION RULES
 # ============================================================
 
@@ -48,40 +70,30 @@ URGENT_PHRASES = [
     "unconscious", "stroke", "seizure", "collapsed", "not breathing",
     "heart attack", "severe pain", "unbearable pain", "passing out",
     "faint", "fainting", "severe bleeding", "blood loss",
-    
     # Tamil / Thanglish
     "nenji vali", "moochu varadhu", "iratha", "padaippu",
     "nenjil vali", "maarbu vali", "moochu pidikuthu",
     "sugam illai", "romba vali", "enakku romba vali",
     "iratha kottum", "kaal vali", "thalai sutharuthu",
-    
     # Hindi
     "seene mein dard", "saans nahi", "khoon", "behosh",
     "chakkar aa raha hai", "saans lene mein takleef",
     "bahut dard", "dard seh nahi sakta", "khoon beh raha",
-    
     # Polish
     "bol klatki", "trudnosci z oddychaniem", "krwawienie",
     "bardzo boli", "nie moge oddychac", "bol w klatce piersiowej",
-    
     # Malayalam
     "nenjil vali", "shwasam muttunnu", "iratha", "bhodam illa",
-    "valiya vali", "shwasam pidikkunnu", 
+    "valiya vali", "shwasam pidikkunnu",
 ]
 
 NEGATION_WORDS = [
-    # Tamil
     "illai", "illa", "kidaiyathu", "varadhu", "varala", "ila", "mattum",
-    # Hindi
     "nahi", "nahin", "mat", "nhi", "na",
-    # Polish
     "nie", "brak", "bez",
-    # Arabic
     "la", "laysa", "mish", "ma",
-    # English
     "no", "not", "don't", "dont", "do not", "never", "none",
     "cannot", "can't", "cant", "doesn't", "doesnt", "does not",
-    # Malayalam
     "alla", "allatha", "ille", "illa",
 ]
 
@@ -94,25 +106,16 @@ def is_negative(text):
     return False
 
 URGENT_SYMPTOMS = [
-    # English
     "chest pain", "chest hurt", "heart pain", "cant breathe", "can't breathe",
     "difficulty breathing", "not breathing", "bleeding heavily", "unconscious",
     "stroke", "seizure", "collapsed", "severe pain", "very bad pain",
     "heart attack", "severe bleeding", "unbearable pain", "passing out",
-    
-    # Tamil / Thanglish
     "nenji vali", "moochu varadhu", "moochu pidikuthu", "iratha",
     "nenjil vali", "maarbu vali", "sugam illai", "romba vali",
     "iratha kottum", "thalai sutharuthu",
-    
-    # Hindi
     "seene mein dard", "saans nahi", "bahut dard", "behosh", "khoon",
     "chakkar aa raha hai", "saans lene mein takleef",
-    
-    # Polish
     "bol klatki", "trudnosci z oddychaniem", "krwawienie", "bardzo boli",
-    
-    # Malayalam
     "nenjil vali", "shwasam muttunnu", "shwasam pidikkunnu",
     "valiya vali", "iratha",
 ]
@@ -129,8 +132,6 @@ def needs_medical_consultation(text):
 
 TRANSLATION_DICT = {
     # ========== TAMIL / THANGHISH ==========
-    
-    # Pain related
     "enaku nenji vali irukku": "I have chest pain",
     "enaku nenji vali iruku": "I have chest pain",
     "ennaku nenji vali irukku": "I have chest pain",
@@ -140,16 +141,11 @@ TRANSLATION_DICT = {
     "en nenji valikuthu": "my chest is hurting",
     "nenji vali": "chest pain",
     "nenjil vali": "chest pain",
-    
-    # Breathing related
     "enaku moochu varadhu": "I cannot breathe properly",
     "moochu varadhu": "I cannot breathe properly",
     "moochu pidikuthu": "I am having difficulty breathing",
     "moochu pidikkuthu": "I am having difficulty breathing",
     "sugam illai": "I am not well",
-    "moochu": "breath",
-    
-    # Head related
     "enaku thalai vali irukku": "I have a headache",
     "thalai vali irukku": "I have a headache",
     "thalai vali iruku": "I have a headache",
@@ -157,47 +153,32 @@ TRANSLATION_DICT = {
     "enaku thalai vali": "I have a headache",
     "thalai sutharuthu": "I feel dizzy",
     "thalai sutru": "dizziness",
-    
-    # Fever related
     "enaku kaichal irukku": "I have a fever",
     "kaichal irukku": "I have a fever",
     "kaichal iruku": "I have a fever",
     "enaku kaichal": "I have a fever",
     "kaichal varuthu": "I have a fever",
-    
-    # Stomach related
     "enaku vayiru vali irukku": "I have stomach pain",
     "vayiru vali irukku": "I have stomach pain",
     "vayiru vali iruku": "I have stomach pain",
     "vayiru valikuthu": "my stomach is hurting",
-    "vayiru": "stomach",
-    
-    # Limb pain
     "kaal vali irukku": "I have leg pain",
     "kaal vali iruku": "I have leg pain",
     "kai vali irukku": "I have arm pain",
     "kai vali iruku": "I have arm pain",
-    
-    # Other symptoms
     "vanthi varuthu": "I feel like vomiting",
     "vanthi": "vomiting",
     "romba vali irukku": "I have severe pain",
     "vali irukku": "I have pain",
     "vali iruku": "I have pain",
     "theriyala": "I do not know",
-    
-    # Medication related
     "marundhu": "medicine",
     "enaku marundhu vendum": "I need medicine",
     "marundhu kudungga": "please give me medicine",
-    
-    # Emergency
     "ambulance": "ambulance",
     "ambulance kudungga": "please call ambulance",
     "doctor": "doctor",
     "doctorai paarpadhu": "I need to see a doctor",
-    
-    # General
     "aama": "yes",
     "illai": "no",
     "seri": "okay",
@@ -206,8 +187,6 @@ TRANSLATION_DICT = {
     "help pannunga": "please help me",
     "nalla irukken": "I am fine",
     "jolly ah irukken": "I am feeling well",
-    
-    # ========== TAMIL NEGATIVE ==========
     "enaku nenji vali illai": "I do not have chest pain",
     "nenji vali illai": "I do not have chest pain",
     "nenji vali illa": "I do not have chest pain",
@@ -221,51 +200,33 @@ TRANSLATION_DICT = {
     "vali illai": "I have no pain",
     "vali illa": "I have no pain",
     "sugam thaan": "I am fine",
-    
+
     # ========== HINDI ==========
-    
-    # Pain related
     "mujhe chest mein dard hai": "I have chest pain",
     "seene mein dard hai": "I have chest pain",
     "mujhe seene mein dard hai": "I have chest pain",
     "chest mein dard": "chest pain",
     "seena dard": "chest pain",
-    
-    # Head related
     "sar dard hai": "I have a headache",
     "mujhe sar dard hai": "I have a headache",
     "sar mein dard": "headache",
-    
-    # Fever
     "bukhar hai": "I have a fever",
     "mujhe bukhar hai": "I have a fever",
-    
-    # Stomach
     "pet mein dard hai": "I have stomach pain",
     "pet dard": "stomach pain",
-    
-    # Breathing
     "saans lene mein takleef hai": "I have difficulty breathing",
     "saans nahi aa rahi": "I cannot breathe",
-    
-    # Other symptoms
     "chakkar aa raha hai": "I feel dizzy",
     "ulti aa rahi hai": "I feel like vomiting",
     "bahut dard hai": "I have severe pain",
     "dard hai": "I have pain",
-    
-    # Medication
     "dawa": "medicine",
     "mujhe dawa chahiye": "I need medicine",
     "dawa do": "give me medicine",
-    
-    # Emergency
     "ambulance": "ambulance",
     "ambulance bulao": "call ambulance",
     "doctor": "doctor",
     "doctor ko dikhao": "see a doctor",
-    
-    # General
     "theek hoon": "I am fine",
     "haan": "yes",
     "nahi": "no",
@@ -273,8 +234,6 @@ TRANSLATION_DICT = {
     "samajh nahi aaya": "I do not understand",
     "samajh aa gaya": "I understand",
     "help karo": "help me",
-    
-    # ========== HINDI NEGATIVE ==========
     "chest mein dard nahi hai": "I do not have chest pain",
     "seene mein dard nahi": "I do not have chest pain",
     "sar dard nahi hai": "I do not have a headache",
@@ -283,45 +242,27 @@ TRANSLATION_DICT = {
     "dard nahi hai": "I have no pain",
     "mujhe dard nahi": "I have no pain",
     "saans nahi aa rahi": "I cannot breathe",
-    
+
     # ========== POLISH ==========
-    
-    # Pain related
     "mam bol w klatce piersiowej": "I have chest pain",
     "bol w klatce piersiowej": "chest pain",
     "bol w klatce": "chest pain",
-    
-    # Head related
     "bol glowy": "I have a headache",
     "mam bol glowy": "I have a headache",
-    
-    # Fever
     "mam goraczke": "I have a fever",
     "goraczka": "fever",
-    
-    # Stomach
     "mam bol brzucha": "I have stomach pain",
     "bol brzucha": "stomach pain",
-    
-    # Breathing
     "trudno mi oddychac": "I have difficulty breathing",
     "nie moge oddychac": "I cannot breathe",
-    
-    # Other symptoms
     "krecimi sie w glowie": "I feel dizzy",
     "bardzo boli": "it hurts a lot",
     "boli mnie": "I have pain",
-    
-    # Medication
     "lekarstwo": "medicine",
     "potrzebuje lekarstwa": "I need medicine",
-    
-    # Emergency
     "ambulans": "ambulance",
     "lekarz": "doctor",
     "potrzebuje lekarza": "I need a doctor",
-    
-    # General
     "tak": "yes",
     "nie": "no",
     "dobrze": "okay",
@@ -329,65 +270,43 @@ TRANSLATION_DICT = {
     "rozumiem": "I understand",
     "pomocy": "help me",
     "czuje sie dobrze": "I feel fine",
-    
-    # ========== POLISH NEGATIVE ==========
     "nie mam bolu w klatce": "I do not have chest pain",
     "nie mam bolu glowy": "I do not have a headache",
     "nie mam goraczki": "I do not have a fever",
     "nie boli": "it does not hurt",
     "nie mam bolu": "I have no pain",
-    
+
     # ========== MALAYALAM ==========
-    
-    # Pain related
     "എനിക്ക് നെഞ്ചുവേദന ഉണ്ട്": "I have chest pain",
     "nenjil vali undu": "I have chest pain",
     "nenjil vali und": "I have chest pain",
     "ente nenjil valikkunnu": "my chest is hurting",
     "eniku nenjil vali und": "I have chest pain",
     "nenjil vali": "chest pain",
-    
-    # Head related
     "eniku thalavalikkunnu": "I have a headache",
     "thalavalikkunnu": "I have a headache",
     "thala valikkunnu": "my head is hurting",
-    
-    # Fever
     "eniku pani undu": "I have a fever",
     "pani undu": "I have a fever",
-    
-    # Stomach
     "eniku vayaril vali": "I have stomach pain",
     "vayaril vali undu": "I have stomach pain",
-    
-    # Breathing
     "shwasam muttunnu": "I am having difficulty breathing",
     "shwasam pidikkunnu": "I am having difficulty breathing",
-    
-    # Other symptoms
     "thalayan thonum": "I feel dizzy",
     "otti varunnu": "I feel like vomiting",
     "valiya vali undu": "I have severe pain",
     "vali undu": "I have pain",
-    
-    # Medication
     "marunn": "medicine",
     "eniku marunn vendum": "I need medicine",
-    
-    # Emergency
     "ambulance": "ambulance",
     "doctor": "doctor",
     "eniku doctor nee vendum": "I need a doctor",
-    
-    # General
     "athe": "yes",
     "alla": "no",
     "saukaryamayi irikkunnu": "I am fine",
     "manasilayilla": "I do not understand",
     "manasilayi": "I understand",
     "sahayam": "help me",
-    
-    # ========== MALAYALAM NEGATIVE ==========
     "eniku nenjil vali illa": "I do not have chest pain",
     "nenjil vali illa": "I do not have chest pain",
     "thalavalikkunilla": "I do not have a headache",
@@ -395,7 +314,7 @@ TRANSLATION_DICT = {
     "eniku pani illa": "I do not have a fever",
     "vayaril vali illa": "I do not have stomach pain",
     "vali illa": "I have no pain",
-    
+
     # ========== ARABIC ==========
     "عندي ألم في الصدر": "I have chest pain",
     "عندي صداع": "I have a headache",
@@ -414,7 +333,7 @@ TRANSLATION_DICT = {
     "أفهم": "I understand",
     "ساعدني": "help me",
     "أنا بخير": "I am fine",
-    
+
     # ========== URDU ==========
     "میرے سینے میں درد ہے": "I have chest pain",
     "میرا سر درد ہے": "I have a headache",
@@ -431,7 +350,7 @@ TRANSLATION_DICT = {
     "مجھے سمجھ نہیں آیا": "I do not understand",
     "مجھے سمجھ آ گیا": "I understand",
     "مدد کرو": "help me",
-    
+
     # ========== BENGALI ==========
     "আমার বুকে ব্যথা": "I have chest pain",
     "আমার মাথা ব্যাথা": "I have a headache",
@@ -448,7 +367,7 @@ TRANSLATION_DICT = {
     "বুঝতে পারিনি": "I do not understand",
     "বুঝতে পেরেছি": "I understand",
     "সাহায্য করুন": "help me",
-    
+
     # ========== SOMALI ==========
     "xanuun laabta": "I have chest pain",
     "madax xanuun": "I have a headache",
@@ -465,7 +384,7 @@ TRANSLATION_DICT = {
     "ma fahmin": "I do not understand",
     "waan fahmay": "I understand",
     "i caawi": "help me",
-    
+
     # ========== ROMANIAN ==========
     "durere in piept": "I have chest pain",
     "durere de cap": "I have a headache",
@@ -670,7 +589,7 @@ GUIDED_PROMPTS = {
 }
 
 # ============================================================
-# TRANSLATION FUNCTIONS
+# TRANSLATION FUNCTIONS (FIXED)
 # ============================================================
 
 def translate_to_english(text, lang_code="auto"):
@@ -686,15 +605,17 @@ def translate_to_english(text, lang_code="auto"):
         except Exception:
             pass
         if lang_code and lang_code != "auto":
+            mymemory_lang = get_mymemory_lang_code(lang_code)
             try:
-                result = MyMemoryTranslator(source=lang_code, target="en-GB").translate(text)
+                result = MyMemoryTranslator(source=mymemory_lang, target="en-GB").translate(text)
                 if result and result.strip().lower() != text.strip().lower():
                     return result, None
             except Exception:
                 pass
         for src in ["ta", "hi", "pl", "ar", "ur", "bn", "so", "ro", "ml"]:
+            mymemory_src = get_mymemory_lang_code(src)
             try:
-                result = MyMemoryTranslator(source=src, target="en-GB").translate(text)
+                result = MyMemoryTranslator(source=mymemory_src, target="en-GB").translate(text)
                 if result and result.strip().lower() != text.strip().lower():
                     return result, None
             except Exception:
@@ -708,7 +629,8 @@ def translate_to_english(text, lang_code="auto"):
 def translate_to_language(text, target_lang_code):
     try:
         from deep_translator import MyMemoryTranslator
-        result = MyMemoryTranslator(source="en-GB", target=target_lang_code).translate(text)
+        mymemory_target = get_mymemory_lang_code(target_lang_code)
+        result = MyMemoryTranslator(source="en-GB", target=mymemory_target).translate(text)
         return result, None
     except Exception as e:
         return None, str(e)
@@ -719,7 +641,8 @@ def convert_to_native_script(text, lang_code):
         english, _ = translate_to_english(text, lang_code)
         if not english or english.strip().lower() == text.strip().lower():
             return text
-        native = MyMemoryTranslator(source="en-GB", target=lang_code).translate(english)
+        mymemory_target = get_mymemory_lang_code(lang_code)
+        native = MyMemoryTranslator(source="en-GB", target=mymemory_target).translate(english)
         if native and native.strip() != text.strip():
             return native
         return text
@@ -796,11 +719,13 @@ def translate_patient():
     try:
         from deep_translator import MyMemoryTranslator
         if english_text and english_text.strip().lower() != text.strip().lower():
-            converted = MyMemoryTranslator(source="en-GB", target=lang_code).translate(english_text)
+            mymemory_target = get_mymemory_lang_code(lang_code)
+            converted = MyMemoryTranslator(source="en-GB", target=mymemory_target).translate(english_text)
             if converted and converted.strip() != text.strip():
                 native_text = converted
         if native_text == text:
-            converted2 = MyMemoryTranslator(source="auto", target=lang_code).translate(text)
+            mymemory_target = get_mymemory_lang_code(lang_code)
+            converted2 = MyMemoryTranslator(source="auto", target=mymemory_target).translate(text)
             if converted2 and converted2.strip() != text.strip():
                 native_text = converted2
     except Exception:
