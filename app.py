@@ -3,7 +3,7 @@ import uuid
 import re
 import time
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='.')
 app.secret_key = "medoriva-mvp-secret-key"
 
 # ============================================================
