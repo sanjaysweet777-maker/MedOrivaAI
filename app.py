@@ -293,28 +293,32 @@ GUIDED_PROMPTS = {
     ],
 }
 
+# ============================================================
+# FIXED: Using MyMemoryTranslator instead of GoogleTranslator
+# ============================================================
+
 def translate_to_english(text, lang_code="auto"):
     builtin = lookup_translation(text)
     if builtin:
         return builtin, None
     try:
-        from deep_translator import GoogleTranslator
+        from deep_translator import MyMemoryTranslator
         try:
-            result = GoogleTranslator(source="auto", target="en").translate(text)
+            result = MyMemoryTranslator(source="auto", target="en").translate(text)
             if result and result.strip().lower() != text.strip().lower():
                 return result, None
         except Exception:
             pass
         if lang_code and lang_code != "auto":
             try:
-                result = GoogleTranslator(source=lang_code, target="en").translate(text)
+                result = MyMemoryTranslator(source=lang_code, target="en").translate(text)
                 if result and result.strip().lower() != text.strip().lower():
                     return result, None
             except Exception:
                 pass
         for src in ["ta", "hi", "pl", "ar", "ur", "bn", "so", "ro", "ml"]:
             try:
-                result = GoogleTranslator(source=src, target="en").translate(text)
+                result = MyMemoryTranslator(source=src, target="en").translate(text)
                 if result and result.strip().lower() != text.strip().lower():
                     return result, None
             except Exception:
@@ -327,24 +331,19 @@ def translate_to_english(text, lang_code="auto"):
 
 def translate_to_language(text, target_lang_code):
     try:
-        from deep_translator import GoogleTranslator
-        result = GoogleTranslator(source="en", target=target_lang_code).translate(text)
+        from deep_translator import MyMemoryTranslator
+        result = MyMemoryTranslator(source="en", target=target_lang_code).translate(text)
         return result, None
     except Exception as e:
         return None, str(e)
 
 def convert_to_native_script(text, lang_code):
-    """Convert romanised/phonetic input to proper native script."""
     try:
-        from deep_translator import GoogleTranslator
-        # Translate English meaning back to native script
-        # Strategy: translate the romanised text → English → native script
-        # First get English
+        from deep_translator import MyMemoryTranslator
         english, _ = translate_to_english(text, lang_code)
         if not english or english.strip().lower() == text.strip().lower():
             return text
-        # Now translate English → native language
-        native = GoogleTranslator(source="en", target=lang_code).translate(english)
+        native = MyMemoryTranslator(source="en", target=lang_code).translate(english)
         if native and native.strip() != text.strip():
             return native
         return text
@@ -415,18 +414,15 @@ def translate_patient():
         return jsonify({"error": error}), 500
 
     # 2. Convert patient input to proper native script
-    # e.g. "enaku nenji vali irukku" → "எனக்கு நெஞ்சு வலி இருக்கு"
-    native_text = text  # fallback
+    native_text = text
     try:
-        from deep_translator import GoogleTranslator
+        from deep_translator import MyMemoryTranslator
         if english_text and english_text.strip().lower() != text.strip().lower():
-            # Translate the English meaning into native script
-            converted = GoogleTranslator(source="en", target=lang_code).translate(english_text)
+            converted = MyMemoryTranslator(source="en", target=lang_code).translate(english_text)
             if converted and converted.strip() != text.strip():
                 native_text = converted
         if native_text == text:
-            # Direct attempt: auto-detect to native script
-            converted2 = GoogleTranslator(source="auto", target=lang_code).translate(text)
+            converted2 = MyMemoryTranslator(source="auto", target=lang_code).translate(text)
             if converted2 and converted2.strip() != text.strip():
                 native_text = converted2
     except Exception:
@@ -460,4 +456,4 @@ def session_status():
     })
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(debug=True, host="0.0.0.0", port=10000)
