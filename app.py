@@ -2,8 +2,17 @@ from flask import Flask, render_template, request, jsonify, session
 import uuid
 import re
 import time
+import os
 
-app = Flask(__name__, template_folder='.')
+# ============================================================
+# APP INITIALIZATION
+# ============================================================
+
+# Use absolute path for templates to avoid TemplateNotFound error
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+template_dir = os.path.join(BASE_DIR, 'templates')
+
+app = Flask(__name__, template_folder=template_dir)
 app.secret_key = "medoriva-mvp-secret-key"
 
 # ============================================================
@@ -229,7 +238,6 @@ def lookup_translation(text):
     lower = text.lower().strip()
     if lower in TRANSLATION_DICT:
         return TRANSLATION_DICT[lower]
-    # Partial match
     for phrase, translation in TRANSLATION_DICT.items():
         if phrase in lower:
             return translation
@@ -330,7 +338,7 @@ GUIDED_PROMPTS = {
 }
 
 # ============================================================
-# TRANSLATION FUNCTIONS (FIXED)
+# TRANSLATION FUNCTIONS
 # ============================================================
 
 def translate_to_english(text, lang_code="auto"):
@@ -420,26 +428,46 @@ def translate_to_language(text, target_lang_code):
 def index():
     return render_template("index.html")
 
+@app.route("/api/ping", methods=["GET"])
+def ping():
+    return jsonify({"status": "Flask is running", "session": dict(session)})
+
 @app.route("/api/start_session", methods=["POST"])
 def start_session():
-    data = request.json
-    session.clear()
-    session["session_id"] = str(uuid.uuid4())[:8]
-    session["context"] = data.get("context")
-    session["lang"] = data.get("lang")
-    session["lang_code"] = data.get("lang_code")
-    session["active"] = True
-    
-    # Return English prompts only (frontend translates on demand)
-    prompts = GUIDED_PROMPTS.get(session["context"], [])
-    
-    return jsonify({
-        "status": "ok",
-        "session_id": session["session_id"],
-        "prompts": prompts,
-        "context": session["context"],
-        "lang": session["lang"],
-    })
+    try:
+        data = request.get_json()
+        
+        # Handle empty or invalid JSON
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+        
+        # Clear any existing session data
+        session.clear()
+        
+        # Generate a unique session ID
+        session["session_id"] = str(uuid.uuid4())[:8]
+        session["context"] = data.get("context", "Reception")
+        session["lang"] = data.get("lang", "Tamil")
+        session["lang_code"] = data.get("lang_code", "ta")
+        session["active"] = True
+        
+        # Get the prompts for the selected context
+        prompts = GUIDED_PROMPTS.get(session["context"], [])
+        
+        return jsonify({
+            "status": "ok",
+            "session_id": session["session_id"],
+            "prompts": prompts,
+            "context": session["context"],
+            "lang": session["lang"],
+        })
+        
+    except Exception as e:
+        print(f"Error in start_session: {str(e)}")
+        return jsonify({
+            "status": "error",
+            "error": f"Could not start session: {str(e)}"
+        }), 500
 
 @app.route("/api/end_session", methods=["POST"])
 def end_session():
@@ -556,6 +584,10 @@ def session_status():
         "context": session.get("context"),
         "lang": session.get("lang"),
     })
+
+# ============================================================
+# RUN
+# ============================================================
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=10000)
