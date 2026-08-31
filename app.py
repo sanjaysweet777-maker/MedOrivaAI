@@ -80,10 +80,9 @@ def simplify_text(text):
     return simplified, changed
 
 # ============================================================
-# URGENT PHRASES & DETECTION (FIXED)
+# URGENT PHRASES & DETECTION
 # ============================================================
 
-# ONLY these trigger a medical alert (life-threatening)
 URGENT_SYMPTOMS = [
     # English
     "chest pain", "heart pain", "can't breathe", "cant breathe",
@@ -131,7 +130,6 @@ def is_negative(text, lang_code):
 def needs_medical_consultation(text, lang_code=None):
     lower = text.lower()
     has_urgent = any(phrase in lower for phrase in URGENT_SYMPTOMS)
-    # Check negation in the text (any language)
     has_negation = False
     for words in NEGATION_WORDS.values():
         for word in words:
@@ -147,15 +145,15 @@ def needs_medical_consultation(text, lang_code=None):
 # ============================================================
 
 translations = {
-    "ta": {},  # Tamil
-    "hi": {},  # Hindi
-    "ml": {},  # Malayalam
-    "pl": {},  # Polish
-    "ar": {},  # Arabic
-    "ur": {},  # Urdu
-    "bn": {},  # Bengali
-    "so": {},  # Somali
-    "ro": {},  # Romanian
+    "ta": {},
+    "hi": {},
+    "ml": {},
+    "pl": {},
+    "ar": {},
+    "ur": {},
+    "bn": {},
+    "so": {},
+    "ro": {},
 }
 
 # ========== TAMIL ==========
@@ -166,7 +164,6 @@ translations["ta"] = {
     "do you have an appointment": "உங்களுக்கு முன்பதிவு உள்ளதா?",
     "can i take your name and date of birth": "உங்கள் பெயரையும் பிறந்த தேதியையும் சொல்ல முடியுமா?",
     "please take a seat the doctor will see you shortly": "தயவு செய்து உட்காருங்கள். மருத்துவர் விரைவில் உங்களை பார்ப்பார்.",
-    "please take a seat. the doctor will see you shortly": "தயவு செய்து உட்காருங்கள். மருத்துவர் விரைவில் உங்களை பார்ப்பார்.",
     "do you need any assistance": "உங்களுக்கு உதவி தேவையா?",
     "is this your first visit": "இது உங்கள் முதல் வருகையா?",
     "do you have your nhs number": "உங்களிடம் என்.எச்.எஸ் எண் உள்ளதா?",
@@ -176,22 +173,12 @@ translations["ta"] = {
     "please wait the doctor will call you": "தயவு செய்து காத்திருக்கவும். மருத்துவர் உங்களை அழைப்பார்.",
     "your appointment is confirmed": "உங்கள் முன்பதிவு உறுதி செய்யப்பட்டுள்ளது.",
     "the doctor will see you now": "மருத்துவர் இப்போது உங்களை பார்ப்பார்.",
-    "do you have your appointment letter": "உங்களிடம் முன்பதிவு கடிதம் உள்ளதா?",
-    "please bring your medication list": "தயவு செய்து உங்கள் மருந்து பட்டியலை கொண்டு வாருங்கள்.",
-    "do you need an interpreter": "உங்களுக்கு மொழிபெயர்ப்பாளர் தேவையா?",
-    "is anyone with you today": "இன்று உங்களுடன் யாராவது இருக்கிறார்களா?",
-    "please wait in the waiting area": "தயவு செய்து காத்திருக்கும் பகுதியில் காத்திருக்கவும்.",
-    "the appointment will take about 15 minutes": "இந்த முன்பதிவு சுமார் 15 நிமிடங்கள் ஆகும்.",
-    "please follow me to the consultation room": "தயவு செய்து என்னை பின்பற்றி ஆலோசனை அறைக்கு வாருங்கள்.",
-    "your appointment is at time": "உங்கள் முன்பதிவு [நேரம்] அன்று உள்ளது.",
-    "please arrive 10 minutes early": "தயவு செய்து 10 நிமிடங்கள் முன்னதாக வந்து சேருங்கள்.",
     "where is your pain": "உங்கள் வலி எங்கே?",
     "how long have you had this": "இது உங்களுக்கு எவ்வளவு காலமாக உள்ளது?",
     "do you have a fever": "உங்களுக்கு காய்ச்சல் உள்ளதா?",
     "are you having difficulty breathing": "உங்களுக்கு மூச்சு விடுவதில் சிரமம் உள்ளதா?",
     "do you feel dizzy or faint": "நீங்கள் தலை சுற்றல் அல்லது மயக்கத்தை உணர்கிறீர்களா?",
     "do you have chest pain": "உங்களுக்கு மார்பு வலி உள்ளதா?",
-    "on a scale of 1 to 10 how severe is your pain": "1 முதல் 10 வரையிலான அளவில் உங்கள் வலி எவ்வளவு கடுமையானது?",
     "do you have any allergies": "உங்களுக்கு ஏதேனும் ஒவ்வாமை உள்ளதா?",
     "are you taking any medication": "நீங்கள் ஏதேனும் மருந்து எடுத்துக்கொள்கிறீர்களா?",
     "have you had this before": "இது உங்களுக்கு முன்பு ஏற்பட்டதா?",
@@ -203,7 +190,6 @@ translations["ta"] = {
     "enaku nenji vali irukku": "I have chest pain",
     "enaku nenji vali iruku": "I have chest pain",
     "nenji vali irukku": "I have chest pain",
-    "nenji vali iruku": "I have chest pain",
     "nenji vali": "chest pain",
     "enaku moochu varadhu": "I cannot breathe properly",
     "moochu varadhu": "I cannot breathe properly",
@@ -212,29 +198,23 @@ translations["ta"] = {
     "enaku thalai valikuthu": "I have a headache",
     "thalai vali irukku": "I have a headache",
     "thalai valikuthu": "my head is hurting",
-    "thalai vali": "headache",
-    "enaku kaichal irukku": "I have a fever",
     "kaichal irukku": "I have a fever",
+    "enaku kaichal irukku": "I have a fever",
     "enaku vayiru vali irukku": "I have stomach pain",
     "vayiru vali irukku": "I have stomach pain",
-    "vayiru vali": "stomach pain",
     "enaku kaal vali irukku": "I have leg pain",
     "kaal vali": "leg pain",
     "enaku kai vali irukku": "I have arm pain",
-    "kai vali": "arm pain",
     "thalai sutharuthu": "I feel dizzy",
-    "thalai sutru": "dizziness",
     "vanthi varuthu": "I feel like vomiting",
     "romba vali irukku": "I have severe pain",
     "enala moochu vida mudiyala": "I cannot breathe",
-    "moochu varala": "I cannot breathe",
     "enaku nenji vali illai": "I do not have chest pain",
     "nenji vali illai": "I do not have chest pain",
     "enaku thalai vali illai": "I do not have a headache",
     "thalai vali illai": "I do not have a headache",
     "kaichal illai": "I do not have a fever",
     "vali illai": "I have no pain",
-    "moochu varadhu illai": "I have no breathing difficulty",
     "aama": "yes",
     "illai": "no",
     "seri": "okay",
@@ -242,16 +222,9 @@ translations["ta"] = {
     "puriyala": "I do not understand",
     "help pannunga": "please help me",
     "nalla irukken": "I am fine",
-    "enakku romba vali": "I have severe pain",
-    "enakku thalaivali": "I have a headache",
-    "enakku kaichal": "I have a fever",
-    "enakku vayiru vali": "I have stomach pain",
-    "enakku kaal vali": "I have leg pain",
-    "enakku kai vali": "I have arm pain",
-    "enakku moochu pidikuthu": "I have breathing difficulty",
 }
 
-# ========== HINDI ==========
+# ========== HINDI (COMPLETE - FIXED) ==========
 translations["hi"] = {
     # Staff prompts
     "good morning how can i help you": "सुप्रभात। मैं आपकी कैसे मदद कर सकता हूँ?",
@@ -259,7 +232,6 @@ translations["hi"] = {
     "do you have an appointment": "क्या आपका कोई अपॉइंटमेंट है?",
     "can i take your name and date of birth": "क्या मैं आपका नाम और जन्मतिथि ले सकता हूँ?",
     "please take a seat the doctor will see you shortly": "कृपया बैठ जाइए। डॉक्टर जल्द ही आपसे मिलेंगे।",
-    "please take a seat. the doctor will see you shortly": "कृपया बैठ जाइए। डॉक्टर जल्द ही आपसे मिलेंगे।",
     "do you need any assistance": "क्या आपको किसी सहायता की आवश्यकता है?",
     "is this your first visit": "क्या यह आपकी पहली यात्रा है?",
     "do you have your nhs number": "क्या आपके पास एनएचएस नंबर है?",
@@ -269,22 +241,12 @@ translations["hi"] = {
     "please wait the doctor will call you": "कृपया प्रतीक्षा करें। डॉक्टर आपको बुलाएंगे।",
     "your appointment is confirmed": "आपका अपॉइंटमेंट पुष्टि हो गया है।",
     "the doctor will see you now": "डॉक्टर अब आपसे मिलेंगे।",
-    "do you have your appointment letter": "क्या आपके पास अपॉइंटमेंट पत्र है?",
-    "please bring your medication list": "कृपया अपनी दवाओं की सूची लाएँ।",
-    "do you need an interpreter": "क्या आपको अनुवादक की आवश्यकता है?",
-    "is anyone with you today": "क्या आज आपके साथ कोई है?",
-    "please wait in the waiting area": "कृपया प्रतीक्षा क्षेत्र में प्रतीक्षा करें।",
-    "the appointment will take about 15 minutes": "अपॉइंटमेंट में लगभग 15 मिनट लगेंगे।",
-    "please follow me to the consultation room": "कृपया मेरे पीछे परामर्श कक्ष में चलें।",
-    "your appointment is at time": "आपका अपॉइंटमेंट [समय] पर है।",
-    "please arrive 10 minutes early": "कृपया 10 मिनट पहले आ जाएँ।",
     "where is your pain": "आपको दर्द कहाँ हो रहा है?",
     "how long have you had this": "यह आपको कितने दिनों से है?",
     "do you have a fever": "क्या आपको बुखार है?",
     "are you having difficulty breathing": "क्या आपको सांस लेने में कठिनाई हो रही है?",
     "do you feel dizzy or faint": "क्या आपको चक्कर या बेहोशी महसूस हो रही है?",
     "do you have chest pain": "क्या आपको सीने में दर्द है?",
-    "on a scale of 1 to 10 how severe is your pain": "1 से 10 के पैमाने पर आपका दर्द कितना गंभीर है?",
     "do you have any allergies": "क्या आपको कोई एलर्जी है?",
     "are you taking any medication": "क्या आप कोई दवा ले रहे हैं?",
     "have you had this before": "क्या आपको यह पहले भी हुआ है?",
@@ -292,19 +254,22 @@ translations["hi"] = {
     "does anything make it better or worse": "क्या किसी चीज़ से यह बेहतर या बदतर होता है?",
     "is there any bleeding": "क्या कोई रक्तस्राव है?",
     "when did the symptoms start": "लक्षण कब शुरू हुए?",
-    # Patient responses
+
+    # Patient responses (Roman script)
     "mujhe chest mein dard hai": "I have chest pain",
     "seene mein dard hai": "I have chest pain",
     "mujhe seene mein dard hai": "I have chest pain",
     "chest mein dard": "I have chest pain",
     "sar dard hai": "I have a headache",
     "mujhe sar dard hai": "I have a headache",
-    "sar mein dard": "headache",
+    "sar mein dard": "I have a headache",
     "bukhar hai": "I have a fever",
     "mujhe bukhar hai": "I have a fever",
     "pet mein dard hai": "I have stomach pain",
     "mujhe pet mein dard hai": "I have stomach pain",
     "paaon mein dard hai": "I have leg pain",
+    "mere pair mein dard ho raha hai": "I have leg pain",
+    "pair mein dard": "I have leg pain",
     "haath mein dard hai": "I have arm pain",
     "saans lene mein takleef hai": "I have difficulty breathing",
     "saans nahi aa rahi": "I cannot breathe",
@@ -312,12 +277,46 @@ translations["hi"] = {
     "ulti aa rahi hai": "I feel like vomiting",
     "bahut dard hai": "I have severe pain",
     "dard hai": "I have pain",
+    "mujhe dard": "I have pain",
+
+    # Patient responses (Devanagari script)
+    "मुझे सीने में दर्द है": "I have chest pain",
+    "सीने में दर्द है": "I have chest pain",
+    "सर दर्द है": "I have a headache",
+    "मुझे सर दर्द है": "I have a headache",
+    "बुखार है": "I have a fever",
+    "मुझे बुखार है": "I have a fever",
+    "पेट में दर्द है": "I have stomach pain",
+    "मुझे पेट में दर्द है": "I have stomach pain",
+    "मेरे पैर में दर्द हो रहा है": "I have leg pain",
+    "पैर में दर्द": "I have leg pain",
+    "हाथ में दर्द है": "I have arm pain",
+    "सांस लेने में तकलीफ है": "I have difficulty breathing",
+    "सांस नहीं आ रही": "I cannot breathe",
+    "चक्कर आ रहा है": "I feel dizzy",
+    "उल्टी आ रही है": "I feel like vomiting",
+    "बहुत दर्द है": "I have severe pain",
+    "दर्द है": "I have pain",
+    "मुझे दर्द": "I have pain",
+
+    # Negatives (Roman script)
     "chest mein dard nahi hai": "I do not have chest pain",
     "seene mein dard nahi hai": "I do not have chest pain",
     "sar dard nahi hai": "I do not have a headache",
     "bukhar nahi hai": "I do not have a fever",
     "pet mein dard nahi hai": "I do not have stomach pain",
     "dard nahi hai": "I have no pain",
+    "pair mein dard nahi hai": "I do not have leg pain",
+
+    # Negatives (Devanagari script)
+    "सीने में दर्द नहीं है": "I do not have chest pain",
+    "सर दर्द नहीं है": "I do not have a headache",
+    "बुखार नहीं है": "I do not have a fever",
+    "पेट में दर्द नहीं है": "I do not have stomach pain",
+    "दर्द नहीं है": "I have no pain",
+    "पैर में दर्द नहीं है": "I do not have leg pain",
+
+    # General
     "theek hoon": "I am fine",
     "haan": "yes",
     "nahi": "no",
@@ -325,17 +324,12 @@ translations["hi"] = {
     "samajh nahi aaya": "I do not understand",
     "samajh aa gaya": "I understand",
     "meri madad karo": "please help me",
-    "mujhe dard": "I have pain",
-    "mujhe bukhar": "I have a fever",
-    "mujhe sar dard": "I have a headache",
-    "mujhe pet dard": "I have stomach pain",
 }
 
 # ========== MALAYALAM ==========
 translations["ml"] = {
     "good morning how can i help you": "സുപ്രഭാതം. എനിക്ക് നിങ്ങളെ എങ്ങനെ സഹായിക്കാനാകും?",
     "do you have an appointment": "നിങ്ങൾക്ക് ഒരു അപ്പോയിന്റ്മെന്റ് ഉണ്ടോ?",
-    "can i take your name and date of birth": "എനിക്ക് നിങ്ങളുടെ പേരും ജനനത്തീയതിയും എടുക്കാമോ?",
     "please take a seat the doctor will see you shortly": "ദയവായി ഇരിക്കുക. ഡോക്ടർ ഉടൻ നിങ്ങളെ കാണും.",
     "do you need any assistance": "നിങ്ങൾക്ക് എന്തെങ്കിലും സഹായം വേണോ?",
     "is this your first visit": "ഇത് നിങ്ങളുടെ ആദ്യ സന്ദർശനമാണോ?",
@@ -356,22 +350,16 @@ translations["ml"] = {
     "are you taking any medication": "നിങ്ങൾ എന്തെങ്കിലും മരുന്ന് കഴിക്കുന്നുണ്ടോ?",
     "have you had this before": "ഇത് നിങ്ങൾക്ക് മുമ്പ് ഉണ്ടായിട്ടുണ്ടോ?",
     "nenjil vali undu": "I have chest pain",
-    "nenjil vali und": "I have chest pain",
     "thalavalikkunnu": "I have a headache",
     "pani undu": "I have a fever",
     "vayaril vali undu": "I have stomach pain",
     "shwasam muttunnu": "I am having difficulty breathing",
-    "shwasam pidikkunnu": "I am having difficulty breathing",
     "valiya vali undu": "I have severe pain",
     "nenjil vali illa": "I do not have chest pain",
     "pani illa": "I do not have a fever",
     "vali illa": "I have no pain",
-    "saukaryamayi irikkunnu": "I am fine",
     "athe": "yes",
     "alla": "no",
-    "manasilayilla": "I do not understand",
-    "manasilayi": "I understand",
-    "sahayam": "help me",
 }
 
 # ========== POLISH ==========
@@ -403,16 +391,12 @@ translations["pl"] = {
     "mam bol brzucha": "I have stomach pain",
     "trudno mi oddychac": "I have difficulty breathing",
     "nie moge oddychac": "I cannot breathe",
-    "krecimi sie w glowie": "I feel dizzy",
     "bardzo boli": "I have severe pain",
     "nie mam bolu w klatce": "I do not have chest pain",
     "nie mam goraczki": "I do not have a fever",
     "czuje sie dobrze": "I am fine",
     "tak": "yes",
     "nie": "no",
-    "rozumiem": "I understand",
-    "nie rozumiem": "I do not understand",
-    "pomocy": "help me",
 }
 
 # ========== ARABIC ==========
@@ -444,7 +428,6 @@ translations["ar"] = {
     "عندي ألم في المعدة": "I have stomach pain",
     "لا استطيع التنفس": "I cannot breathe",
     "أشعر بالدوار": "I feel dizzy",
-    "أشعر بالغثيان": "I feel like vomiting",
     "لدي ألم شديد": "I have severe pain",
     "ليس لدي ألم في الصدر": "I do not have chest pain",
     "ليس لدي صداع": "I do not have a headache",
@@ -453,10 +436,6 @@ translations["ar"] = {
     "أنا بخير": "I am fine",
     "نعم": "yes",
     "لا": "no",
-    "حسنا": "okay",
-    "أفهم": "I understand",
-    "لا أفهم": "I do not understand",
-    "ساعدني": "help me",
 }
 
 # ========== URDU ==========
@@ -495,10 +474,6 @@ translations["ur"] = {
     "میں ٹھیک ہوں": "I am fine",
     "ہاں": "yes",
     "نہیں": "no",
-    "ٹھیک ہے": "okay",
-    "مجھے سمجھ آ گیا": "I understand",
-    "مجھے سمجھ نہیں آیا": "I do not understand",
-    "مدد کرو": "help me",
 }
 
 # ========== BENGALI ==========
@@ -537,10 +512,6 @@ translations["bn"] = {
     "আমি ভাল আছি": "I am fine",
     "হ্যাঁ": "yes",
     "না": "no",
-    "ঠিক আছে": "okay",
-    "বুঝতে পেরেছি": "I understand",
-    "বুঝতে পারিনি": "I do not understand",
-    "সাহায্য করুন": "help me",
 }
 
 # ========== SOMALI ==========
@@ -579,10 +550,6 @@ translations["so"] = {
     "waan fiicanahay": "I am fine",
     "haa": "yes",
     "maya": "no",
-    "waa hagaag": "okay",
-    "waan fahmay": "I understand",
-    "ma fahmin": "I do not understand",
-    "i caawi": "help me",
 }
 
 # ========== ROMANIAN ==========
@@ -621,10 +588,6 @@ translations["ro"] = {
     "sunt bine": "I am fine",
     "da": "yes",
     "nu": "no",
-    "bine": "okay",
-    "am inteles": "I understand",
-    "nu inteleg": "I do not understand",
-    "ajutor": "help me",
 }
 
 # ============================================================
@@ -632,17 +595,12 @@ translations["ro"] = {
 # ============================================================
 
 def lookup_translation(text, lang_code):
-    """Look up translation in the specific language dictionary."""
     if not lang_code or lang_code not in translations:
         return None
     lang_dict = translations[lang_code]
     text_lower = text.lower().strip()
-    
-    # Exact match
     if text_lower in lang_dict:
         return lang_dict[text_lower]
-    
-    # Partial match (longest phrase wins)
     best_match = None
     best_length = 0
     for phrase, translation in lang_dict.items():
@@ -663,7 +621,6 @@ SYMPTOM_MAP = {
         "kaichal": "fever",
         "vayiru vali": "stomach pain",
         "thalai sutharuthu": "dizziness",
-        "vanthi": "vomiting",
     },
     "hi": {
         "seene mein dard": "chest pain",
@@ -673,7 +630,7 @@ SYMPTOM_MAP = {
         "bukhar": "fever",
         "pet dard": "stomach pain",
         "chakkar": "dizziness",
-        "ulti": "vomiting",
+        "pair mein dard": "leg pain",
     },
     "ml": {
         "nenjil vali": "chest pain",
@@ -784,27 +741,21 @@ GUIDED_PROMPTS = {
 }
 
 # ============================================================
-# TRANSLATION FUNCTIONS (USING SESSION LANGUAGE)
+# TRANSLATION FUNCTIONS
 # ============================================================
 
 def translate_to_english(text, lang_code):
-    # 1. Look in the language-specific dictionary
     builtin = lookup_translation(text, lang_code)
     if builtin:
         return builtin, None
-    
-    # 2. Try MyMemory API with the specific language
     try:
         from deep_translator import MyMemoryTranslator
-        # Try auto detection
         try:
             result = MyMemoryTranslator(source="auto", target="en-GB").translate(text)
             if result and result.strip().lower() != text.strip().lower():
                 return result, None
         except:
             pass
-        
-        # Try with language code
         if lang_code and lang_code != "auto":
             try:
                 target = get_lang_code(lang_code)
@@ -813,8 +764,6 @@ def translate_to_english(text, lang_code):
                     return result, None
             except:
                 pass
-        
-        # Fallback: try all supported languages
         for src in ["ta", "hi", "ml", "pl", "ar", "ur", "bn", "so", "ro"]:
             try:
                 target = get_lang_code(src)
@@ -823,7 +772,6 @@ def translate_to_english(text, lang_code):
                     return result, None
             except:
                 continue
-        
         return text, None
     except:
         return text, "Translation service unavailable"
@@ -831,19 +779,13 @@ def translate_to_english(text, lang_code):
 def translate_to_language(text, target_lang_code):
     if not text:
         return text, None
-    
-    # 1. Check cache
     cached = get_cached_translation(text, target_lang_code)
     if cached:
         return cached, None
-    
-    # 2. Look in the language-specific dictionary
     builtin = lookup_translation(text, target_lang_code)
     if builtin:
         set_cached_translation(text, target_lang_code, builtin)
         return builtin, None
-    
-    # 3. Try MyMemory API
     try:
         from deep_translator import MyMemoryTranslator
         target = get_lang_code(target_lang_code)
@@ -913,7 +855,6 @@ def translate_staff():
     lang_code = session.get("lang_code", "ta")
     lang_name = session.get("lang", "Tamil")
 
-    # First, try to get translation from language-specific dictionary
     translation = lookup_translation(raw_text, lang_code)
     if translation:
         set_cached_translation(raw_text, lang_code, translation)
@@ -926,7 +867,6 @@ def translate_staff():
             "urgent": False,
         })
 
-    # If not in dictionary, simplify and use API
     simplified, was_simplified = simplify_text(raw_text)
     translated, error = translate_to_language(simplified, lang_code)
     if error:
@@ -951,20 +891,14 @@ def translate_patient():
     lang_code = session.get("lang_code", "ta")
     lang_name = session.get("lang", "Tamil")
 
-    # Look up translation from language-specific dictionary
     english_text = lookup_translation(text, lang_code)
     if not english_text:
-        # Fallback to API
         english_text, error = translate_to_english(text, lang_code)
         if error:
             return jsonify({"error": "Could not translate. Please try again."}), 500
 
-    # Detect symptom
     symptom = detect_symptom(text, lang_code)
-    # Medical alert
     medical_alert = needs_medical_consultation(text, lang_code) or needs_medical_consultation(english_text, lang_code)
-
-    # Generate native script (just return the original for now, can be enhanced)
     native_text = text
 
     return jsonify({
