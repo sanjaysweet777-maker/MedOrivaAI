@@ -342,16 +342,13 @@ GUIDED_PROMPTS = {
 # ============================================================
 
 def translate_to_english(text, lang_code="auto"):
-    # 1. Check dictionary first
     builtin = lookup_translation(text)
     if builtin:
         return builtin, None
     
-    # 2. Try MyMemory API (fallback)
     try:
         from deep_translator import MyMemoryTranslator
         
-        # Try auto detection
         try:
             result = MyMemoryTranslator(source="auto", target="en-GB").translate(text)
             if result and result.strip().lower() != text.strip().lower():
@@ -359,7 +356,6 @@ def translate_to_english(text, lang_code="auto"):
         except:
             pass
         
-        # Try with language code
         if lang_code and lang_code != "auto":
             try:
                 target = get_lang_code(lang_code)
@@ -369,7 +365,6 @@ def translate_to_english(text, lang_code="auto"):
             except:
                 pass
         
-        # Try common languages
         for src in ["ta", "hi", "pl", "ml", "ar", "ur", "bn", "so", "ro"]:
             try:
                 target = get_lang_code(src)
@@ -387,23 +382,19 @@ def translate_to_language(text, target_lang_code):
     if not text:
         return text, None
     
-    # 1. Check cache
     cached = get_cached_translation(text, target_lang_code)
     if cached:
         return cached, None
     
-    # 2. Check dictionary
     builtin = lookup_translation(text)
     if builtin:
         set_cached_translation(text, target_lang_code, builtin)
         return builtin, None
     
-    # 3. Try MyMemory API
     try:
         from deep_translator import MyMemoryTranslator
         target = get_lang_code(target_lang_code)
         
-        # Retry logic
         for attempt in range(3):
             try:
                 result = MyMemoryTranslator(source="en-GB", target=target).translate(text)
@@ -432,26 +423,26 @@ def index():
 def ping():
     return jsonify({"status": "Flask is running", "session": dict(session)})
 
+# ============================================================
+# ✅ FIXED: start_session — NO pre-translation!
+# ============================================================
+
 @app.route("/api/start_session", methods=["POST"])
 def start_session():
     try:
         data = request.get_json()
         
-        # Handle empty or invalid JSON
         if not data:
             return jsonify({"error": "No data provided"}), 400
         
-        # Clear any existing session data
         session.clear()
-        
-        # Generate a unique session ID
         session["session_id"] = str(uuid.uuid4())[:8]
         session["context"] = data.get("context", "Reception")
         session["lang"] = data.get("lang", "Tamil")
         session["lang_code"] = data.get("lang_code", "ta")
         session["active"] = True
         
-        # Get the prompts for the selected context
+        # ✅ ONLY return English prompts — no translation!
         prompts = GUIDED_PROMPTS.get(session["context"], [])
         
         return jsonify({
@@ -485,7 +476,6 @@ def translate_staff():
     lang_code = session.get("lang_code", "ta")
     lang_name = session.get("lang", "Tamil")
     
-    # 1. Check cache
     cached = get_cached_translation(raw_text, lang_code)
     if cached:
         return jsonify({
@@ -497,7 +487,6 @@ def translate_staff():
             "urgent": False,
         })
     
-    # 2. Check dictionary
     for phrase, translation in TRANSLATION_DICT.items():
         if raw_text.lower() == phrase.lower():
             set_cached_translation(raw_text, lang_code, translation)
@@ -510,7 +499,6 @@ def translate_staff():
                 "urgent": False,
             })
     
-    # 3. Simplify and translate
     simplified, was_simplified = simplify_text(raw_text)
     translated, error = translate_to_language(simplified, lang_code)
     
@@ -537,19 +525,14 @@ def translate_patient():
     lang_code = session.get("lang_code", "ta")
     lang_name = session.get("lang", "Tamil")
     
-    # 1. Translate to English
     english_text, error = translate_to_english(text, lang_code)
     
     if error:
         return jsonify({"error": "Could not translate. Please try again."}), 500
     
-    # 2. Detect symptom
     symptom = detect_symptom(text, lang_code)
-    
-    # 3. Check for urgent medical alert
     medical_alert = needs_medical_consultation(text) or needs_medical_consultation(english_text or "")
     
-    # 4. Convert to native script (if available)
     native_text = text
     if english_text and english_text != text:
         try:
@@ -584,10 +567,6 @@ def session_status():
         "context": session.get("context"),
         "lang": session.get("lang"),
     })
-
-# ============================================================
-# RUN
-# ============================================================
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=10000)
