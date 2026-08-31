@@ -23,6 +23,12 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = "Please log in to access MedOriva AI."
 
+@login_manager.unauthorized_handler
+def unauthorized():
+    if request.path.startswith('/api/'):
+        return jsonify({"error": "Unauthorized", "message": "Please log in."}), 401
+    return redirect(url_for('login', next=request.path))
+
 DEMO_EMAIL = "demo@medoriva.com"
 DEMO_PASSWORD = "medoriva2026"
 
@@ -44,7 +50,7 @@ def load_user(user_id):
 translation_cache = {}
 
 def normalize_text(text):
-    """Strips punctuation and extra spaces for reliable dictionary lookup."""
+    """Strips punctuation and excess spaces for clean dictionary matching."""
     if not text:
         return ""
     cleaned = re.sub(r'[^\w\s]', '', text.lower())
@@ -57,6 +63,12 @@ def get_cached_translation(text, target_lang):
 def set_cached_translation(text, target_lang, result):
     cache_key = f"{text.strip().lower()}_{target_lang}"
     translation_cache[cache_key] = result
+
+def reset_translation_session():
+    """Clears translation keys without logging the user out."""
+    keys_to_clear = ["session_id", "context", "lang", "lang_code", "active"]
+    for key in keys_to_clear:
+        session.pop(key, None)
 
 # ============================================================
 # LANGUAGE CODE MAPPING (Standard ISO 639-1)
@@ -435,7 +447,7 @@ translations = {
         "مجھے شدید درد ہے": "I have severe pain",
         "میرے سینے میں درد نہیں": "I do not have chest pain",
         "مجھے بخار نہیں": "I do not have a fever",
-        "मुझे दर्द नहीं": "I have no pain",
+        "مجھے درد نہیں": "I have no pain",
         "میں ٹھیک ہوں": "I am fine",
         "ہاں": "yes",
         "نہیں": "no",
@@ -665,24 +677,21 @@ GUIDED_PROMPTS = {
 }
 
 # ============================================================
-# ROBUST TRANSLATION ENGINES
+# TRANSLATION ENGINES
 # ============================================================
 
 def translate_to_english(text, lang_code="auto"):
     if not text:
         return "", None
     
-    # 1. Check curated phrasebook
     builtin = lookup_translation(text, lang_code)
     if builtin:
         return builtin, None
 
-    # 2. Check cache
     cached = get_cached_translation(text, "en")
     if cached:
         return cached, None
 
-    # 3. Use GoogleTranslator (fast and free)
     try:
         from deep_translator import GoogleTranslator
         src = get_clean_lang_code(lang_code) if lang_code and lang_code != "auto" else "auto"
@@ -690,10 +699,9 @@ def translate_to_english(text, lang_code="auto"):
         if result:
             set_cached_translation(text, "en", result)
             return result, None
-    except Exception as e:
+    except Exception:
         pass
 
-    # 4. Fallback: MyMemoryTranslator
     try:
         from deep_translator import MyMemoryTranslator
         src = get_clean_lang_code(lang_code) if lang_code and lang_code != "auto" else "auto"
@@ -710,30 +718,26 @@ def translate_to_language(text, target_lang_code):
     if not text:
         return text, None
         
-    # 1. Check curated phrasebook
     builtin = lookup_translation(text, target_lang_code)
     if builtin:
         set_cached_translation(text, target_lang_code, builtin)
         return builtin, None
 
-    # 2. Check cache
     cached = get_cached_translation(text, target_lang_code)
     if cached:
         return cached, None
 
     target = get_clean_lang_code(target_lang_code)
 
-    # 3. Use GoogleTranslator
     try:
         from deep_translator import GoogleTranslator
         result = GoogleTranslator(source="en", target=target).translate(text)
         if result:
             set_cached_translation(text, target_lang_code, result)
             return result, None
-    except Exception as e:
+    except Exception:
         pass
 
-    # 4. Fallback: MyMemoryTranslator
     try:
         from deep_translator import MyMemoryTranslator
         result = MyMemoryTranslator(source="en", target=target).translate(text)
@@ -765,6 +769,7 @@ def login():
 @login_required
 def logout():
     logout_user()
+    reset_translation_session()
     return redirect(url_for('login'))
 
 @app.route("/")
@@ -782,7 +787,7 @@ def ping():
 def start_session():
     try:
         data = request.get_json() or {}
-        session.clear()
+        reset_translation_session()
         session["session_id"] = str(uuid.uuid4())[:8]
         session["context"] = data.get("context", "Reception")
         session["lang"] = data.get("lang", "Tamil")
@@ -802,7 +807,7 @@ def start_session():
 @app.route("/api/end_session", methods=["POST"])
 @login_required
 def end_session():
-    session.clear()
+    reset_translation_session()
     return jsonify({"status": "ok"})
 
 @app.route("/api/translate_staff", methods=["POST"])
@@ -816,7 +821,6 @@ def translate_staff():
     lang_code = session.get("lang_code", "ta")
     lang_name = session.get("lang", "Tamil")
 
-    # 1. Try phrasebook dictionary first
     translation = lookup_translation(raw_text, lang_code)
     if translation:
         set_cached_translation(raw_text, lang_code, translation)
@@ -829,7 +833,6 @@ def translate_staff():
             "urgent": False,
         })
 
-    # 2. Simplify and translate dynamically
     simplified, was_simplified = simplify_text(raw_text)
     translated, error = translate_to_language(simplified, lang_code)
     
@@ -857,7 +860,6 @@ def translate_patient():
     lang_code = session.get("lang_code", "ta")
     lang_name = session.get("lang", "Tamil")
 
-    # Check phrasebook dictionary, then dynamic translation
     english_text, error = translate_to_english(text, lang_code)
     if not english_text:
         english_text = text
