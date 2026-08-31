@@ -44,35 +44,38 @@ def load_user(user_id):
     return None
 
 # ============================================================
-# TRANSLATION CACHE & TEXT NORMALIZATION
+# CACHE & NORMALIZATION HELPERS
 # ============================================================
 
 translation_cache = {}
 
 def normalize_text(text):
-    """Strips punctuation and excess spaces for clean dictionary matching."""
+    """Normalizes text by removing punctuation and collapsing whitespace."""
     if not text:
         return ""
-    cleaned = re.sub(r'[^\w\s]', '', text.lower())
+    cleaned = re.sub(r'[^\w\s]', '', str(text).lower())
     return " ".join(cleaned.split())
 
+def is_native_script(text, lang_code):
+    """Detects if text is already in non-Latin native script."""
+    if not text:
+        return False
+    # If text contains non-ASCII characters outside standard latin diacritics
+    return any(ord(char) > 0x0590 for char in text)
+
 def get_cached_translation(text, target_lang):
-    cache_key = f"{text.strip().lower()}_{target_lang}"
+    cache_key = f"{normalize_text(text)}_{target_lang}"
     return translation_cache.get(cache_key)
 
 def set_cached_translation(text, target_lang, result):
-    cache_key = f"{text.strip().lower()}_{target_lang}"
+    cache_key = f"{normalize_text(text)}_{target_lang}"
     translation_cache[cache_key] = result
 
 def reset_translation_session():
-    """Clears translation keys without logging the user out."""
+    """Clears translation session variables without logging out."""
     keys_to_clear = ["session_id", "context", "lang", "lang_code", "active"]
     for key in keys_to_clear:
         session.pop(key, None)
-
-# ============================================================
-# LANGUAGE CODE MAPPING (Standard ISO 639-1)
-# ============================================================
 
 LANG_MAP = {
     "ta": "ta", "hi": "hi", "ml": "ml", "bn": "bn",
@@ -117,515 +120,319 @@ def simplify_text(text):
     return simplified, changed
 
 # ============================================================
-# URGENT PHRASES & DETECTION
+# NEGATION & URGENT SYMPTOM DETECTION (ALL LANGUAGES)
 # ============================================================
 
-URGENT_SYMPTOMS = [
-    "chest pain", "heart pain", "can't breathe", "cant breathe",
-    "difficulty breathing", "not breathing", "bleeding", "unconscious",
-    "stroke", "seizure", "collapsed", "heart attack",
-    "nenji vali", "moochu varadhu", "moochu pidikuthu", "iratha",
-    "seene mein dard", "saans nahi", "saans lene mein takleef", "khoon",
-    "nenjil vali", "shwasam muttunnu", "shwasam pidikkunnu",
-    "bol klatki", "trudnosci z oddychaniem", "krwawienie",
-    "ألم في الصدر", "صعوبة في التنفس", "نزيف",
-    "سینے میں درد", "سانس لینے میں دشواری", "خون",
-    "বুকে ব্যথা", "শ্বাস নিতে কষ্ট", "রক্তপাত",
-    "xanuun laabta", "neefsasho dhib", "dhiig",
-    "durere in piept", "dificultate de respiratie", "sângerare",
-]
-
-NEGATION_WORDS = {
-    "ta": ["illai", "illa", "varadhu", "varala", "ila"],
-    "hi": ["nahi", "nahin", "nhi", "mat", "na"],
-    "ml": ["illa", "alla", "illathe"],
-    "pl": ["nie", "brak", "bez"],
-    "ar": ["la", "laysa", "mish", "ma"],
-    "ur": ["nahi", "nahin", "na"],
-    "bn": ["na", "ni", "nay"],
-    "so": ["ma", "maya"],
-    "ro": ["nu", "nici"],
+NEGATION_PATTERNS = {
+    "ta": ["illai", "illa", "varadhu", "varala", "ila", "kidayathu", "illamal", "இல்லை", "இல்ல", "கிடையாது", "வராது"],
+    "hi": ["nahi", "nahin", "nhi", "mat", "na", "bina", "नहीं", "ना", "मत"],
+    "ml": ["illa", "alla", "illathe", "illaatha", "ഇല്ല", "അല്ല", "ഇല്ലാതെ"],
+    "pl": ["nie", "brak", "bez", "nie ma"],
+    "ar": ["la", "laysa", "mish", "ma", "bidun", "لا", "ليس", "ما", "مش", "بدون"],
+    "ur": ["nahi", "nahin", "na", "bina", "نہیں", "نہ", "بغیر"],
+    "bn": ["na", "ni", "nay", "chara", "না", "নেই", "নয়", "ছাড়া"],
+    "so": ["ma", "maya", "ma jiro", "ma qabo", "aan"],
+    "ro": ["nu", "nici", "fara", "n-am", "nu am"],
+    "en": ["no", "not", "dont", "don't", "doesnt", "doesn't", "denies", "denied", "without", "never", "didnt", "didn't", "free of", "negative"]
 }
 
-def needs_medical_consultation(text, lang_code=None):
-    lower = text.lower()
-    has_urgent = any(phrase in lower for phrase in URGENT_SYMPTOMS)
-    has_negation = False
-    for words in NEGATION_WORDS.values():
-        for word in words:
-            if word in lower:
-                has_negation = True
+URGENT_SYMPTOMS_CONFIG = {
+    "chest pain": ["chest pain", "heart pain", "heart attack", "nenji vali", "seene mein dard", "nenjil vali", "bol klatki", "ألم في الصدر", "سینے میں درد", "বুকে ব্যথা", "xanuun laabta", "durere in piept", "நெஞ்சு வலி", "सीने में दर्द"],
+    "breathing difficulty": ["can't breathe", "cant breathe", "difficulty breathing", "trouble breathing", "shortness of breath", "moochu varadhu", "moochu pidikuthu", "saans nahi", "saans lene mein takleef", "shwasam muttunnu", "trudnosci z oddychaniem", "صعوبة في التنفس", "سانس لینے میں دشواری", "শ্বাস নিতে কষ্ট", "neefsasho dhib", "dificultate de respiratie", "மூச்சு திணறல்", "सांस फूलना"],
+    "bleeding": ["bleeding", "severe blood", "loss of blood", "iratham", "khoon", "krwawienie", "نزيف", "خون", "রক্তপাত", "dhiig", "sângerare", "இரத்தப்போக்கு", "रक्तस्राव"],
+    "unconscious": ["unconscious", "passed out", "collapsed", "fainted", "seizure", "stroke", "mayakkam", "behosh", "omdlenie", "إغماء", "بے ہوشی", "অজ্ঞান", "miyir beel", "leșin", "மயக்கம்", "बेहोश"],
+}
+
+def detect_negation(text, lang_code=None):
+    """Detects if text contains negative indicators in the target language or English."""
+    norm = f" {normalize_text(text)} "
+    tokens = norm.split()
+    
+    # Check language specific negative tokens
+    if lang_code and lang_code in NEGATION_PATTERNS:
+        for word in NEGATION_PATTERNS[lang_code]:
+            if f" {normalize_text(word)} " in norm or word in tokens:
+                return True
+
+    # Check universal English negation
+    for word in NEGATION_PATTERNS["en"]:
+        if f" {word} " in norm or word in tokens:
+            return True
+
+    return False
+
+def evaluate_medical_triage(original_text, english_text, lang_code):
+    """Accurately checks for symptoms and positive/negative status."""
+    combined_text = f"{normalize_text(original_text)} {normalize_text(english_text)}"
+    
+    is_neg = detect_negation(original_text, lang_code) or detect_negation(english_text, "en")
+    
+    detected_symptom = None
+    is_urgent = False
+    
+    for symptom_name, phrase_list in URGENT_SYMPTOMS_CONFIG.items():
+        for phrase in phrase_list:
+            if normalize_text(phrase) in combined_text:
+                detected_symptom = symptom_name
+                is_urgent = True
                 break
-        if has_negation:
+        if is_urgent:
             break
-    return has_urgent and not has_negation
+            
+    # Positive alert ONLY if urgent symptom is present AND negation is FALSE
+    medical_alert = bool(is_urgent and not is_neg)
+    
+    return {
+        "symptom_detected": detected_symptom,
+        "is_negative": is_neg,
+        "medical_alert": medical_alert
+    }
 
 # ============================================================
-# TRANSLATION DICTIONARIES
+# MASTER BILINGUAL CLINICAL PHRASEBOOK
+# Format: { lang: { normalized_key: (English, NativeScript, is_negative, symptom) } }
 # ============================================================
 
-translations = {
+CLINICAL_DICTIONARY = {
     "ta": {
-        "good morning how can i help you": "காலை வணக்கம். நான் உங்களுக்கு எப்படி உதவ முடியும்?",
-        "do you have an appointment": "உங்களுக்கு முன்பதிவு உள்ளதா?",
-        "can i take your name and date of birth": "உங்கள் பெயரையும் பிறந்த தேதியையும் சொல்ல முடியுமா?",
-        "please take a seat the doctor will see you shortly": "தயவு செய்து உட்காருங்கள். மருத்துவர் விரைவில் உங்களை பார்ப்பார்.",
-        "do you need any assistance": "உங்களுக்கு உதவி தேவையா?",
-        "is this your first visit": "இது உங்கள் முதல் வருகையா?",
-        "do you have your nhs number": "உங்களிடம் என்.எச்.எஸ் எண் உள்ளதா?",
-        "would you like to speak to someone": "நீங்கள் யாரிடமாவது பேச விரும்புகிறீர்களா?",
-        "please fill in this form": "தயவு செய்து இந்த படிவத்தை நிரப்பவும்.",
-        "have you been here before": "நீங்கள் இங்கு முன்பு வந்திருக்கிறீர்களா?",
-        "please wait the doctor will call you": "தயவு செய்து காத்திருக்கவும். மருத்துவர் உங்களை அழைப்பார்.",
-        "your appointment is confirmed": "உங்கள் முன்பதிவு உறுதி செய்யப்பட்டுள்ளது.",
-        "the doctor will see you now": "மருத்துவர் இப்போது உங்களை பார்ப்பார்.",
-        "where is your pain": "உங்கள் வலி எங்கே?",
-        "how long have you had this": "இது உங்களுக்கு எவ்வளவு காலமாக உள்ளது?",
-        "do you have a fever": "உங்களுக்கு காய்ச்சல் உள்ளதா?",
-        "are you having difficulty breathing": "உங்களுக்கு மூச்சு விடுவதில் சிரமம் உள்ளதா?",
-        "do you feel dizzy or faint": "நீங்கள் தலை சுற்றல் அல்லது மயக்கத்தை உணர்கிறீர்களா?",
-        "do you have chest pain": "உங்களுக்கு மார்பு வலி உள்ளதா?",
-        "do you have any allergies": "உங்களுக்கு ஏதேனும் ஒவ்வாமை உள்ளதா?",
-        "are you taking any medication": "நீங்கள் ஏதேனும் மருந்து எடுத்துக்கொள்கிறீர்களா?",
-        "have you had this before": "இது உங்களுக்கு முன்பு ஏற்பட்டதா?",
-        "do you have any other symptoms": "உங்களுக்கு வேறு ஏதேனும் அறிகுறிகள் உள்ளனவா?",
-        "does anything make it better or worse": "ஏதாவது அதை சிறப்பாக அல்லது மோசமாக்குகிறதா?",
-        "is there any bleeding": "ஏதேனும் இரத்தப்போக்கு உள்ளதா?",
-        "when did the symptoms start": "அறிகுறிகள் எப்போது தொடங்கின?",
-        "enaku nenji vali irukku": "I have chest pain",
-        "enaku nenji vali iruku": "I have chest pain",
-        "nenji vali irukku": "I have chest pain",
-        "nenji vali": "chest pain",
-        "enaku moochu varadhu": "I cannot breathe properly",
-        "moochu varadhu": "I cannot breathe properly",
-        "moochu pidikuthu": "I am having difficulty breathing",
-        "enaku thalai vali irukku": "I have a headache",
-        "enaku thalai valikuthu": "I have a headache",
-        "thalai vali irukku": "I have a headache",
-        "thalai valikuthu": "my head is hurting",
-        "enaku kaichal irukku": "I have a fever",
-        "kaichal irukku": "I have a fever",
-        "enaku vayiru vali irukku": "I have stomach pain",
-        "vayiru vali irukku": "I have stomach pain",
-        "enaku kaal vali irukku": "I have leg pain",
-        "kaal vali": "leg pain",
-        "enaku kai vali irukku": "I have arm pain",
-        "thalai sutharuthu": "I feel dizzy",
-        "vanthi varuthu": "I feel like vomiting",
-        "romba vali irukku": "I have severe pain",
-        "enala moochu vida mudiyala": "I cannot breathe",
-        "enaku nenji vali illai": "I do not have chest pain",
-        "nenji vali illai": "I do not have chest pain",
-        "enaku thalai vali illai": "I do not have a headache",
-        "thalai vali illai": "I do not have a headache",
-        "kaichal illai": "I do not have a fever",
-        "vali illai": "I have no pain",
-        "aama": "yes",
-        "illai": "no",
-        "seri": "okay",
-        "puriyuthu": "I understand",
-        "puriyala": "I do not understand",
-        "help pannunga": "please help me",
-        "nalla irukken": "I am fine",
+        # Staff prompts -> Tamil Native Script
+        "good morning how can i help you": ("Good morning. How can I help you?", "காலை வணக்கம். நான் உங்களுக்கு எப்படி உதவ முடியும்?", False, None),
+        "do you have an appointment": ("Do you have an appointment?", "உங்களுக்கு முன்பதிவு உள்ளதா?", False, None),
+        "can i take your name and date of birth": ("Can I take your name and date of birth?", "உங்கள் பெயரையும் பிறந்த தேதியையும் சொல்ல முடியுமா?", False, None),
+        "please take a seat the doctor will see you shortly": ("Please take a seat. The doctor will see you shortly.", "தயவு செய்து உட்காருங்கள். மருத்துவர் விரைவில் உங்களை பார்ப்பார்.", False, None),
+        "do you need any assistance": ("Do you need any assistance?", "உங்களுக்கு உதவி தேவையா?", False, None),
+        "is this your first visit": ("Is this your first visit?", "இது உங்கள் முதல் வருகையா?", False, None),
+        "do you have your nhs number": ("Do you have your NHS number?", "உங்களிடம் என்.எச்.எஸ் எண் உள்ளதா?", False, None),
+        "would you like to speak to someone": ("Would you like to speak to someone?", "நீங்கள் யாரிடமாவது பேச விரும்புகிறீர்களா?", False, None),
+        "please fill in this form": ("Please fill in this form.", "தயவு செய்து இந்த படிவத்தை நிரப்பவும்.", False, None),
+        "have you been here before": ("Have you been here before?", "நீங்கள் இங்கு முன்பு வந்திருக்கிறீர்களா?", False, None),
+        "please wait the doctor will call you": ("Please wait. The doctor will call you.", "தயவு செய்து காத்திருக்கவும். மருத்துவர் உங்களை அழைப்பார்.", False, None),
+        "your appointment is confirmed": ("Your appointment is confirmed.", "உங்கள் முன்பதிவு உறுதி செய்யப்பட்டுள்ளது.", False, None),
+        "the doctor will see you now": ("The doctor will see you now.", "மருத்துவர் இப்போது உங்களை பார்ப்பார்.", False, None),
+        "where is your pain": ("Where is your pain?", "உங்கள் வலி எங்கே இருக்கிறது?", False, None),
+        "how long have you had this": ("How long have you had this?", "இது உங்களுக்கு எவ்வளவு காலமாக உள்ளது?", False, None),
+        "do you have a fever": ("Do you have a fever?", "உங்களுக்கு காய்ச்சல் உள்ளதா?", False, None),
+        "are you having difficulty breathing": ("Are you having difficulty breathing?", "உங்களுக்கு மூச்சு விடுவதில் சிரமம் உள்ளதா?", False, "breathing difficulty"),
+        "do you feel dizzy or faint": ("Do you feel dizzy or faint?", "நீங்கள் தலை சுற்றல் அல்லது மயக்கத்தை உணர்கிறீர்களா?", False, "unconscious"),
+        "do you have chest pain": ("Do you have chest pain?", "உங்களுக்கு நெஞ்சு வலி உள்ளதா?", False, "chest pain"),
+        "do you have any allergies": ("Do you have any allergies?", "உங்களுக்கு ஏதேனும் ஒவ்வாமை உள்ளதா?", False, None),
+        "are you taking any medication": ("Are you taking any medication?", "நீங்கள் ஏதேனும் மருந்து உட்கொள்கிறீர்களா?", False, None),
+        "have you had this before": ("Have you had this before?", "இது உங்களுக்கு முன்பு ஏற்பட்டதா?", False, None),
+
+        # Patient Positive Expressions (Romanized & Native -> English & Native Script)
+        "enaku nenji vali irukku": ("I have chest pain", "எனக்கு நெஞ்சு வலி இருக்கிறது", False, "chest pain"),
+        "enaku nenji vali iruku": ("I have chest pain", "எனக்கு நெஞ்சு வலி இருக்கிறது", False, "chest pain"),
+        "nenji vali irukku": ("I have chest pain", "நெஞ்சு வலி இருக்கிறது", False, "chest pain"),
+        "nenji vali": ("Chest pain", "நெஞ்சு வலி", False, "chest pain"),
+        "எனக்கு நெஞ்சு வலி இருக்கிறது": ("I have chest pain", "எனக்கு நெஞ்சு வலி இருக்கிறது", False, "chest pain"),
+        "நெஞ்சு வலி": ("Chest pain", "நெஞ்சு வலி", False, "chest pain"),
+        
+        "enaku moochu varadhu": ("I cannot breathe properly", "எனக்கு மூச்சு திணறல் உள்ளது", False, "breathing difficulty"),
+        "moochu varadhu": ("I cannot breathe properly", "மூச்சு திணறல் உள்ளது", False, "breathing difficulty"),
+        "moochu pidikuthu": ("I am having difficulty breathing", "எனக்கு மூச்சு விடுவதில் சிரமம் உள்ளது", False, "breathing difficulty"),
+        "enala moochu vida mudiyala": ("I cannot breathe", "என்னால் மூச்சு விட முடியவில்லை", False, "breathing difficulty"),
+        "மூச்சு திணறல்": ("Difficulty breathing", "மூச்சு திணறல்", False, "breathing difficulty"),
+
+        "enaku thalai vali irukku": ("I have a headache", "எனக்கு தலைவலி இருக்கிறது", False, None),
+        "thalai vali irukku": ("I have a headache", "தலைவலி இருக்கிறது", False, None),
+        "thalai valikuthu": ("My head hurts", "தலை வலிக்கிறது", False, None),
+        "தலைவலி": ("Headache", "தலைவலி", False, None),
+
+        "enaku kaichal irukku": ("I have a fever", "எனக்கு காய்ச்சல் இருக்கிறது", False, None),
+        "kaichal irukku": ("I have a fever", "காய்ச்சல் இருக்கிறது", False, None),
+        "காய்ச்சல்": ("Fever", "காய்ச்சல்", False, None),
+
+        "enaku vayiru vali irukku": ("I have stomach pain", "எனக்கு வயிற்று வலி இருக்கிறது", False, None),
+        "vayiru vali": ("Stomach pain", "வயிற்று வலி", False, None),
+        "thalai sutharuthu": ("I feel dizzy", "எனக்கு தலை சுற்றுகிறது", False, "unconscious"),
+        "vanthi varuthu": ("I feel like vomiting", "எனக்கு வாந்தி வருகிறது", False, None),
+        "romba vali irukku": ("I have severe pain", "எனக்கு அதிக வலி இருக்கிறது", False, None),
+        "iratham varuthu": ("I am bleeding", "எனக்கு இரத்தப்போக்கு உள்ளது", False, "bleeding"),
+
+        # Patient Negations (Romanized & Native)
+        "enaku nenji vali illai": ("I do not have chest pain", "எனக்கு நெஞ்சு வலி இல்லை", True, "chest pain"),
+        "nenji vali illai": ("I do not have chest pain", "நெஞ்சு வலி இல்லை", True, "chest pain"),
+        "nenju vali illa": ("I do not have chest pain", "நெஞ்சு வலி இல்லை", True, "chest pain"),
+        "எனக்கு நெஞ்சு வலி இல்லை": ("I do not have chest pain", "எனக்கு நெஞ்சு வலி இல்லை", True, "chest pain"),
+        
+        "enaku thalai vali illai": ("I do not have a headache", "எனக்கு தலைவலி இல்லை", True, None),
+        "thalai vali illai": ("I do not have a headache", "தலைவலி இல்லை", True, None),
+        "kaichal illai": ("I do not have a fever", "காய்ச்சல் இல்லை", True, None),
+        "vali illai": ("I have no pain", "வலி இல்லை", True, None),
+        "moochu thinaral illai": ("I have no difficulty breathing", "மூச்சு திணறல் இல்லை", True, "breathing difficulty"),
+        
+        "aama": ("Yes", "ஆம்", False, None),
+        "illai": ("No", "இல்லை", True, None),
+        "seri": ("Okay", "சரி", False, None),
+        "puriyuthu": ("I understand", "புரிகிறது", False, None),
+        "puriyala": ("I do not understand", "புரியவில்லை", True, None),
+        "help pannunga": ("Please help me", "தயவு செய்து எனக்கு உதவுங்கள்", False, None),
+        "nalla irukken": ("I am fine", "நான் நலமாக இருக்கிறேன்", False, None),
     },
+
     "hi": {
-        "good morning how can i help you": "सुप्रभात। मैं आपकी कैसे मदद कर सकता हूँ?",
-        "do you have an appointment": "क्या आपका कोई अपॉइंटमेंट है?",
-        "can i take your name and date of birth": "क्या मैं आपका नाम और जन्मतिथि ले सकता हूँ?",
-        "please take a seat the doctor will see you shortly": "कृपया बैठ जाइए। डॉक्टर जल्द ही आपसे मिलेंगे।",
-        "do you need any assistance": "क्या आपको किसी सहायता की आवश्यकता है?",
-        "is this your first visit": "क्या यह आपकी पहली यात्रा है?",
-        "do you have your nhs number": "क्या आपके पास एनएचएस नंबर है?",
-        "would you like to speak to someone": "क्या आप किसी से बात करना चाहेंगे?",
-        "please fill in this form": "कृपया यह फॉर्म भरें।",
-        "have you been here before": "क्या आप पहले यहाँ आ चुके हैं?",
-        "please wait the doctor will call you": "कृपया प्रतीक्षा करें। डॉक्टर आपको बुलाएंगे।",
-        "your appointment is confirmed": "आपका अपॉइंटमेंट पुष्टि हो गया है।",
-        "the doctor will see you now": "डॉक्टर अब आपसे मिलेंगे।",
-        "where is your pain": "आपको दर्द कहाँ हो रहा है?",
-        "how long have you had this": "यह आपको कितने दिनों से है?",
-        "do you have a fever": "क्या आपको बुखार है?",
-        "are you having difficulty breathing": "क्या आपको सांस लेने में कठिनाई हो रही है?",
-        "do you feel dizzy or faint": "क्या आपको चक्कर या बेहोशी महसूस हो रही है?",
-        "do you have chest pain": "क्या आपको सीने में दर्द है?",
-        "do you have any allergies": "क्या आपको कोई एलर्जी है?",
-        "are you taking any medication": "क्या आप कोई दवा ले रहे हैं?",
-        "have you had this before": "क्या आपको यह पहले भी हुआ है?",
-        "mujhe chest mein dard hai": "I have chest pain",
-        "seene mein dard hai": "I have chest pain",
-        "sar dard hai": "I have a headache",
-        "mujhe sar dard hai": "I have a headache",
-        "bukhar hai": "I have a fever",
-        "mujhe bukhar hai": "I have a fever",
-        "pet mein dard hai": "I have stomach pain",
-        "mujhe pet mein dard hai": "I have stomach pain",
-        "paaon mein dard hai": "I have leg pain",
-        "mere pair mein dard ho raha hai": "I have leg pain",
-        "haath mein dard hai": "I have arm pain",
-        "saans lene mein takleef hai": "I have difficulty breathing",
-        "saans nahi aa rahi": "I cannot breathe",
-        "chakkar aa raha hai": "I feel dizzy",
-        "ulti aa rahi hai": "I feel like vomiting",
-        "bahut dard hai": "I have severe pain",
-        "dard hai": "I have pain",
-        "मुझे सीने में दर्द है": "I have chest pain",
-        "सीने में दर्द है": "I have chest pain",
-        "सर दर्द है": "I have a headache",
-        "मुझे सर दर्द है": "I have a headache",
-        "बुखार है": "I have a fever",
-        "मुझे बुखार है": "I have a fever",
-        "पेट में दर्द है": "I have stomach pain",
-        "मुझे पेट में दर्द है": "I have stomach pain",
-        "मेरे पैर में दर्द हो रहा है": "I have leg pain",
-        "हाथ में दर्द है": "I have arm pain",
-        "सांस लेने में तकलीफ है": "I have difficulty breathing",
-        "सांस नहीं आ रही": "I cannot breathe",
-        "चक्कर आ रहा है": "I feel dizzy",
-        "उल्टी आ रही है": "I feel like vomiting",
-        "बहुत दर्द है": "I have severe pain",
-        "दर्द है": "I have pain",
-        "chest mein dard nahi hai": "I do not have chest pain",
-        "seene mein dard nahi hai": "I do not have chest pain",
-        "sar dard nahi hai": "I do not have a headache",
-        "bukhar nahi hai": "I do not have a fever",
-        "pet mein dard nahi hai": "I do not have stomach pain",
-        "dard nahi hai": "I have no pain",
-        "theek hoon": "I am fine",
-        "haan": "yes",
-        "nahi": "no",
-        "theek hai": "okay",
-        "samajh nahi aaya": "I do not understand",
-        "samajh aa gaya": "I understand",
-        "meri madad karo": "please help me",
+        # Staff prompts -> Hindi Native Script
+        "good morning how can i help you": ("Good morning. How can I help you?", "सुप्रभात। मैं आपकी कैसे मदद कर सकता हूँ?", False, None),
+        "do you have an appointment": ("Do you have an appointment?", "क्या आपका कोई अपॉइंटमेंट है?", False, None),
+        "can i take your name and date of birth": ("Can I take your name and date of birth?", "क्या मैं आपका नाम और जन्मतिथि ले सकता हूँ?", False, None),
+        "please take a seat the doctor will see you shortly": ("Please take a seat. The doctor will see you shortly.", "कृपया बैठ जाइए। डॉक्टर जल्द ही आपसे मिलेंगे।", False, None),
+        "do you have chest pain": ("Do you have chest pain?", "क्या आपको सीने में दर्द है?", False, "chest pain"),
+        "are you having difficulty breathing": ("Are you having difficulty breathing?", "क्या आपको सांस लेने में कठिनाई हो रही है?", False, "breathing difficulty"),
+        "do you have a fever": ("Do you have a fever?", "क्या आपको बुखार है?", False, None),
+
+        # Patient Positive (Romanized & Devanagari)
+        "mujhe chest mein dard hai": ("I have chest pain", "मुझे सीने में दर्द है", False, "chest pain"),
+        "seene mein dard hai": ("I have chest pain", "सीने में दर्द है", False, "chest pain"),
+        "seene mein dard": ("Chest pain", "सीने में दर्द", False, "chest pain"),
+        "मुझे सीने में दर्द है": ("I have chest pain", "मुझे सीने में दर्द है", False, "chest pain"),
+        "सीने में दर्द": ("Chest pain", "सीने में दर्द", False, "chest pain"),
+        
+        "saans lene mein takleef hai": ("I have difficulty breathing", "मुझे सांस लेने में तकलीफ है", False, "breathing difficulty"),
+        "saans nahi aa rahi": ("I cannot breathe", "सांस नहीं आ रही है", False, "breathing difficulty"),
+        "सांस लेने में तकलीफ": ("Difficulty breathing", "सांस लेने में तकलीफ", False, "breathing difficulty"),
+
+        "sar dard hai": ("I have a headache", "मुझे सिरदर्द है", False, None),
+        "mujhe sar dard hai": ("I have a headache", "मुझे सिरदर्द है", False, None),
+        "bukhar hai": ("I have a fever", "मुझे बुखार है", False, None),
+        "mujhe bukhar hai": ("I have a fever", "मुझे बुखार है", False, None),
+        "pet mein dard hai": ("I have stomach pain", "मुझे पेट में दर्द है", False, None),
+        "chakkar aa raha hai": ("I feel dizzy", "मुझे चक्कर आ रहा है", False, "unconscious"),
+        "khoon nikal raha hai": ("I am bleeding", "खून बह रहा है", False, "bleeding"),
+
+        # Patient Negations
+        "chest mein dard nahi hai": ("I do not have chest pain", "सीने में दर्द नहीं है", True, "chest pain"),
+        "seene mein dard nahi hai": ("I do not have chest pain", "सीने में दर्द नहीं है", True, "chest pain"),
+        "सीने में दर्द नहीं है": ("I do not have chest pain", "सीने में दर्द नहीं है", True, "chest pain"),
+        "sar dard nahi hai": ("I do not have a headache", "सिरदर्द नहीं है", True, None),
+        "bukhar nahi hai": ("I do not have a fever", "बुखार नहीं है", True, None),
+        "dard nahi hai": ("I have no pain", "दर्द नहीं है", True, None),
+        "saans lene mein koi takleef nahi": ("I have no difficulty breathing", "सांस लेने में कोई तकलीफ नहीं है", True, "breathing difficulty"),
+
+        "haan": ("Yes", "हाँ", False, None),
+        "nahi": ("No", "नहीं", True, None),
+        "theek hoon": ("I am fine", "मैं ठीक हूँ", False, None),
+        "samajh aa gaya": ("I understand", "समझ आ गया", False, None),
+        "samajh nahi aaya": ("I do not understand", "समझ नहीं आया", True, None),
     },
+
     "ml": {
-        "good morning how can i help you": "സുപ്രഭാതം. എനിക്ക് നിങ്ങളെ എങ്ങനെ സഹായിക്കാനാകും?",
-        "do you have an appointment": "നിങ്ങൾക്ക് ഒരു അപ്പോയിന്റ്മെന്റ് ഉണ്ടോ?",
-        "please take a seat the doctor will see you shortly": "ദയവായി ഇരിക്കുക. ഡോക്ടർ ഉടൻ നിങ്ങളെ കാണും.",
-        "do you need any assistance": "നിങ്ങൾക്ക് എന്തെങ്കിലും സഹായം വേണോ?",
-        "is this your first visit": "ഇത് നിങ്ങളുടെ ആദ്യ സന്ദർശനമാണോ?",
-        "do you have your nhs number": "നിങ്ങൾക്ക് എൻഎച്ച്എസ് നമ്പർ ഉണ്ടോ?",
-        "would you like to speak to someone": "നിങ്ങൾക്ക് ആരോടെങ്കിലും സംസാരിക്കാൻ ആഗ്രഹമുണ്ടോ?",
-        "please fill in this form": "ദയവായി ഈ ഫോം പൂരിപ്പിക്കുക.",
-        "have you been here before": "നിങ്ങൾ മുമ്പ് ഇവിടെ വന്നിട്ടുണ്ടോ?",
-        "please wait the doctor will call you": "ദയവായി കാത്തിരിക്കുക. ഡോക്ടർ നിങ്ങളെ വിളിക്കും.",
-        "your appointment is confirmed": "നിങ്ങളുടെ അപ്പോയിന്റ്മെന്റ് സ്ഥിരീകരിച്ചു.",
-        "the doctor will see you now": "ഡോക്ടർ ഇപ്പോൾ നിങ്ങളെ കാണും.",
-        "where is your pain": "നിങ്ങളുടെ വേദന എവിടെയാണ്?",
-        "how long have you had this": "ഇത് നിങ്ങൾക്ക് എത്രകാലമായി?",
-        "do you have a fever": "നിങ്ങൾക്ക് പനി ഉണ്ടോ?",
-        "are you having difficulty breathing": "നിങ്ങൾക്ക് ശ്വസിക്കാൻ ബുദ്ധിമുട്ട് ഉണ്ടോ?",
-        "do you feel dizzy or faint": "നിങ്ങൾക്ക് തലകറക്കമോ ബോധക്ഷയമോ തോന്നുന്നുണ്ടോ?",
-        "do you have chest pain": "നിങ്ങൾക്ക് നെഞ്ചുവേദന ഉണ്ടോ?",
-        "do you have any allergies": "നിങ്ങൾക്ക് എന്തെങ്കിലും അലർജി ഉണ്ടോ?",
-        "are you taking any medication": "നിങ്ങൾ എന്തെങ്കിലും മരുന്ന് കഴിക്കുന്നുണ്ടോ?",
-        "have you had this before": "ഇത് നിങ്ങൾക്ക് മുമ്പ് ഉണ്ടായിട്ടുണ്ടോ?",
-        "nenjil vali undu": "I have chest pain",
-        "thalavalikkunnu": "I have a headache",
-        "pani undu": "I have a fever",
-        "vayaril vali undu": "I have stomach pain",
-        "shwasam muttunnu": "I am having difficulty breathing",
-        "valiya vali undu": "I have severe pain",
-        "nenjil vali illa": "I do not have chest pain",
-        "pani illa": "I do not have a fever",
-        "vali illa": "I have no pain",
-        "athe": "yes",
-        "alla": "no",
-        "saukaryamayi irikkunnu": "I am fine",
-        "manasilayilla": "I do not understand",
-        "manasilayi": "I understand",
-        "sahayam": "help me",
+        "good morning how can i help you": ("Good morning. How can I help you?", "സുപ്രഭാതം. എനിക്ക് നിങ്ങളെ എങ്ങനെ സഹായിക്കാനാകും?", False, None),
+        "do you have chest pain": ("Do you have chest pain?", "നിങ്ങൾക്ക് നെഞ്ചുവേദന ഉണ്ടോ?", False, "chest pain"),
+        "nenjil vali undu": ("I have chest pain", "നെഞ്ചിൽ വേദനയുണ്ട്", False, "chest pain"),
+        "നെഞ്ചിൽ വേദനയുണ്ട്": ("I have chest pain", "നെഞ്ചിൽ വേദനയുണ്ട്", False, "chest pain"),
+        "shwasam muttunnu": ("I have difficulty breathing", "ശ്വാസം മുട്ടുന്നു", False, "breathing difficulty"),
+        "thalavalikkunnu": ("I have a headache", "തലവേദനയുണ്ട്", False, None),
+        "pani undu": ("I have a fever", "പനിയുണ്ട്", False, None),
+        "vayaril vali undu": ("I have stomach pain", "വയറുവേദനയുണ്ട്", False, None),
+        
+        "nenjil vali illa": ("I do not have chest pain", "നെഞ്ചിൽ വേദനയില്ല", True, "chest pain"),
+        "നെഞ്ചിൽ വേദനയില്ല": ("I do not have chest pain", "നെഞ്ചിൽ വേദനയില്ല", True, "chest pain"),
+        "pani illa": ("I do not have a fever", "പനിയില്ല", True, None),
+        "vali illa": ("I have no pain", "വേദനയില്ല", True, None),
+        "athe": ("Yes", "അതെ", False, None),
+        "alla": ("No", "അല്ല", True, None),
     },
+
     "pl": {
-        "good morning how can i help you": "Dzień dobry. Jak mogę pomóc?",
-        "do you have an appointment": "Czy ma pan umówioną wizytę?",
-        "please take a seat the doctor will see you shortly": "Proszę usiąść. Lekarz wkrótce pana przyjmie.",
-        "do you need any assistance": "Czy potrzebuje pan pomocy?",
-        "is this your first visit": "Czy to pana pierwsza wizyta?",
-        "do you have your nhs number": "Czy ma pan numer NHS?",
-        "would you like to speak to someone": "Czy chciałby pan z kimś porozmawiać?",
-        "please fill in this form": "Proszę wypełnić ten formularz.",
-        "have you been here before": "Czy był pan tu wcześniej?",
-        "please wait the doctor will call you": "Proszę czekać. Lekarz pana zawoła.",
-        "your appointment is confirmed": "Pana wizyta jest potwierdzona.",
-        "the doctor will see you now": "Lekarz teraz pana przyjmie.",
-        "where is your pain": "Gdzie pan odczuwa ból?",
-        "how long have you had this": "Jak długo ma pan ten problem?",
-        "do you have a fever": "Czy ma pan gorączkę?",
-        "are you having difficulty breathing": "Czy ma pan trudności z oddychaniem?",
-        "do you feel dizzy or faint": "Czy czuje pan zawroty głowy lub omdlenia?",
-        "do you have chest pain": "Czy ma pan ból w klatce piersiowej?",
-        "do you have any allergies": "Czy ma pan alergie?",
-        "are you taking any medication": "Czy przyjmuje pan leki?",
-        "have you had this before": "Czy miał pan to wcześniej?",
-        "mam bol w klatce piersiowej": "I have chest pain",
-        "bol glowy": "I have a headache",
-        "mam goraczke": "I have a fever",
-        "mam bol brzucha": "I have stomach pain",
-        "trudno mi oddychac": "I have difficulty breathing",
-        "nie moge oddychac": "I cannot breathe",
-        "bardzo boli": "I have severe pain",
-        "nie mam bolu w klatce": "I do not have chest pain",
-        "nie mam goraczki": "I do not have a fever",
-        "czuje sie dobrze": "I am fine",
-        "tak": "yes",
-        "nie": "no",
-        "rozumiem": "I understand",
-        "nie rozumiem": "I do not understand",
-        "pomocy": "help me",
+        "good morning how can i help you": ("Good morning. How can I help you?", "Dzień dobry. Jak mogę pomóc?", False, None),
+        "do you have chest pain": ("Do you have chest pain?", "Czy ma pan ból w klatce piersiowej?", False, "chest pain"),
+        "mam bol w klatce piersiowej": ("I have chest pain", "Mam ból w klatce piersiowej", False, "chest pain"),
+        "trudno mi oddychac": ("I have difficulty breathing", "Trudno mi oddychać", False, "breathing difficulty"),
+        "bol glowy": ("I have a headache", "Boli mnie głowa", False, None),
+        "mam goraczke": ("I have a fever", "Mam gorączkę", False, None),
+        "nie mam bolu w klatce": ("I do not have chest pain", "Nie mam bólu w klatce piersiowej", True, "chest pain"),
+        "nie mam goraczki": ("I do not have a fever", "Nie mam gorączki", True, None),
+        "tak": ("Yes", "Tak", False, None),
+        "nie": ("No", "Nie", True, None),
     },
+
     "ar": {
-        "good morning how can i help you": "صباح الخير. كيف يمكنني مساعدتك؟",
-        "do you have an appointment": "هل لديك موعد؟",
-        "please take a seat the doctor will see you shortly": "يرجى الجلوس. سيراك الطبيب قريباً.",
-        "do you need any assistance": "هل تحتاج إلى أي مساعدة؟",
-        "is this your first visit": "هل هذه زيارتك الأولى؟",
-        "do you have your nhs number": "هل لديك رقم NHS الخاص بك؟",
-        "would you like to speak to someone": "هل ترغب في التحدث إلى شخص ما؟",
-        "please fill in this form": "يرجى ملء هذا النموذج.",
-        "have you been here before": "هل أتيت إلى هنا من قبل؟",
-        "please wait the doctor will call you": "يرجى الانتظار. سيتصل بك الطبيب.",
-        "your appointment is confirmed": "تم تأكيد موعدك.",
-        "the doctor will see you now": "سيراك الطبيب الآن.",
-        "where is your pain": "أين الألم؟",
-        "how long have you had this": "منذ متى وأنت تعاني من هذا؟",
-        "do you have a fever": "هل لديك حمى؟",
-        "are you having difficulty breathing": "هل تواجه صعوبة في التنفس؟",
-        "do you feel dizzy or faint": "هل تشعر بالدوار أو الإغماء؟",
-        "do you have chest pain": "هل تعاني من ألم في الصدر؟",
-        "do you have any allergies": "هل لديك أي حساسية؟",
-        "are you taking any medication": "هل تتناول أي دواء؟",
-        "have you had this before": "هل حدث لك هذا من قبل؟",
-        "عندي ألم في الصدر": "I have chest pain",
-        "عندي صداع": "I have a headache",
-        "عندي حمى": "I have a fever",
-        "عندي ألم في المعدة": "I have stomach pain",
-        "لا استطيع التنفس": "I cannot breathe",
-        "أشعر بالدوار": "I feel dizzy",
-        "أشعر بالغثيان": "I feel like vomiting",
-        "لدي ألم شديد": "I have severe pain",
-        "ليس لدي ألم في الصدر": "I do not have chest pain",
-        "ليس لدي صداع": "I do not have a headache",
-        "ليس لدي حمى": "I do not have a fever",
-        "ليس لدي ألم": "I have no pain",
-        "أنا بخير": "I am fine",
-        "نعم": "yes",
-        "لا": "no",
-        "حسنا": "okay",
-        "أفهم": "I understand",
-        "لا أفهم": "I do not understand",
-        "ساعدني": "help me",
+        "good morning how can i help you": ("Good morning. How can I help you?", "صباح الخير. كيف يمكنني مساعدتك؟", False, None),
+        "do you have chest pain": ("Do you have chest pain?", "هل تعاني من ألم في الصدر؟", False, "chest pain"),
+        "عندي ألم في الصدر": ("I have chest pain", "عندي ألم في الصدر", False, "chest pain"),
+        "لا استطيع التنفس": ("I cannot breathe", "لا أستطيع التنفس", False, "breathing difficulty"),
+        "عندي صداع": ("I have a headache", "عندي صداع", False, None),
+        "عندي حمى": ("I have a fever", "عندي حمى", False, None),
+        "ليس لدي ألم في الصدر": ("I do not have chest pain", "ليس لدي ألم في الصدر", True, "chest pain"),
+        "ليس لدي حمى": ("I do not have a fever", "ليس لدي حمى", True, None),
+        "نعم": ("Yes", "نعم", False, None),
+        "لا": ("No", "لا", True, None),
     },
+
     "ur": {
-        "good morning how can i help you": "صبح بخیر۔ میں آپ کی کیسے مدد کر سکتا ہوں؟",
-        "do you have an appointment": "کیا آپ کا کوئی اپوائنٹمنٹ ہے؟",
-        "please take a seat the doctor will see you shortly": "براہ کرم بیٹھ جائیں۔ ڈاکٹر جلد آپ سے ملیں گے۔",
-        "do you need any assistance": "کیا آپ کو کسی مدد کی ضرورت ہے؟",
-        "is this your first visit": "کیا یہ آپ کا پہلا دورہ ہے؟",
-        "do you have your nhs number": "کیا آپ کے پاس این ایچ ایس نمبر ہے؟",
-        "would you like to speak to someone": "کیا آپ کسی سے بات کرنا چاہیں گے؟",
-        "please fill in this form": "براہ کرم یہ فارم پُر کریں۔",
-        "have you been here before": "کیا آپ پہلے یہاں آ چکے ہیں؟",
-        "please wait the doctor will call you": "براہ کرم انتظار کریں۔ ڈاکٹر آپ کو بلائیں گے۔",
-        "your appointment is confirmed": "آپ کا اپوائنٹمنٹ تصدیق ہو گیا ہے۔",
-        "the doctor will see you now": "ڈاکٹر اب آپ سے ملیں گے۔",
-        "where is your pain": "آپ کو درد کہاں ہے؟",
-        "how long have you had this": "یہ آپ کو کب سے ہے؟",
-        "do you have a fever": "کیا آپ کو بخار ہے؟",
-        "are you having difficulty breathing": "کیا آپ کو سانس لینے میں دشواری ہے؟",
-        "do you feel dizzy or faint": "کیا آپ کو چکر یا بے ہوشی محسوس ہو رہی ہے؟",
-        "do you have chest pain": "کیا آپ کو سینے میں درد ہے؟",
-        "do you have any allergies": "کیا آپ کو کوئی الرجی ہے؟",
-        "are you taking any medication": "کیا آپ کوئی دوا لے رہے ہیں؟",
-        "have you had this before": "کیا آپ کو یہ پہلے بھی ہوا ہے؟",
-        "میرے سینے میں درد ہے": "I have chest pain",
-        "میرا سر درد ہے": "I have a headache",
-        "مجھے بخار ہے": "I have a fever",
-        "میرے پیٹ میں درد ہے": "I have stomach pain",
-        "سانس لینے میں دشواری": "I have difficulty breathing",
-        "چکر آ رہا ہے": "I feel dizzy",
-        "مجھے شدید درد ہے": "I have severe pain",
-        "میرے سینے میں درد نہیں": "I do not have chest pain",
-        "مجھے بخار نہیں": "I do not have a fever",
-        "مجھے درد نہیں": "I have no pain",
-        "میں ٹھیک ہوں": "I am fine",
-        "ہاں": "yes",
-        "نہیں": "no",
-        "ٹھیک ہے": "okay",
-        "مجھے سمجھ آ گیا": "I understand",
-        "مجھے سمجھ نہیں آیا": "I do not understand",
-        "مدد کرو": "help me",
+        "good morning how can i help you": ("Good morning. How can I help you?", "صبح بخیر۔ میں آپ کی کیسے مدد کر سکتا ہوں؟", False, None),
+        "do you have chest pain": ("Do you have chest pain?", "کیا آپ کو سینے میں درد ہے؟", False, "chest pain"),
+        "میرے سینے میں درد ہے": ("I have chest pain", "میرے سینے میں درد ہے", False, "chest pain"),
+        "سانس لینے میں دشواری": ("I have difficulty breathing", "سانس لینے میں دشواری ہے", False, "breathing difficulty"),
+        "میرا سر درد ہے": ("I have a headache", "میرا سر درد ہے", False, None),
+        "مجھے بخار ہے": ("I have a fever", "مجھے بخار ہے", False, None),
+        "میرے سینے میں درد نہیں": ("I do not have chest pain", "میرے سینے میں درد نہیں ہے", True, "chest pain"),
+        "مجھے بخار نہیں": ("I do not have a fever", "مجھے بخار نہیں ہے", True, None),
+        "ہاں": ("Yes", "ہاں", False, None),
+        "نہیں": ("No", "نہیں", True, None),
     },
+
     "bn": {
-        "good morning how can i help you": "সুপ্রভাত। আমি আপনাকে কীভাবে সাহায্য করতে পারি?",
-        "do you have an appointment": "আপনার কি কোনো অ্যাপয়েন্টমেন্ট আছে?",
-        "please take a seat the doctor will see you shortly": "দয়া করে বসুন। ডাক্তার শীঘ্রই আপনাকে দেখবেন।",
-        "do you need any assistance": "আপনার কি কোনো সাহায্যের প্রয়োজন?",
-        "is this your first visit": "এটি কি আপনার প্রথম দর্শন?",
-        "do you have your nhs number": "আপনার কি এনএইচএস নম্বর আছে?",
-        "would you like to speak to someone": "আপনি কি কারও সাথে কথা বলতে চান?",
-        "please fill in this form": "দয়া করে এই ফর্মটি পূরণ করুন।",
-        "have you been here before": "আপনি কি আগে এখানে এসেছেন?",
-        "please wait the doctor will call you": "দয়া করে অপেক্ষা করুন। ডাক্তার আপনাকে ডাকবেন।",
-        "your appointment is confirmed": "আপনার অ্যাপয়েন্টমেন্ট নিশ্চিত করা হয়েছে।",
-        "the doctor will see you now": "ডাক্তার এখন আপনাকে দেখবেন।",
-        "where is your pain": "আপনার ব্যথা কোথায়?",
-        "how long have you had this": "আপনার কতদিন ধরে এই সমস্যা?",
-        "do you have a fever": "আপনার কি জ্বর আছে?",
-        "are you having difficulty breathing": "আপনার কি শ্বাস নিতে কষ্ট হচ্ছে?",
-        "do you feel dizzy or faint": "আপনার কি মাথা ঘোরা বা অজ্ঞান হওয়ার অনুভূতি হচ্ছে?",
-        "do you have chest pain": "আপনার কি বুকে ব্যথা আছে?",
-        "do you have any allergies": "আপনার কি কোনো অ্যালার্জি আছে?",
-        "are you taking any medication": "আপনি কি কোনো ওষুধ খাচ্ছেন?",
-        "have you had this before": "আপনার কি আগেও এই সমস্যা হয়েছিল?",
-        "আমার বুকে ব্যথা": "I have chest pain",
-        "আমার মাথা ব্যাথা": "I have a headache",
-        "আমার জ্বর": "I have a fever",
-        "আমার পেটে ব্যথা": "I have stomach pain",
-        "শ্বাস নিতে কষ্ট": "I have difficulty breathing",
-        "মাথা ঘোরা": "I feel dizzy",
-        "আমার তীব্র ব্যথা": "I have severe pain",
-        "আমার বুকে ব্যথা নেই": "I do not have chest pain",
-        "আমার জ্বর নেই": "I do not have a fever",
-        "আমার ব্যথা নেই": "I have no pain",
-        "আমি ভাল আছি": "I am fine",
-        "হ্যাঁ": "yes",
-        "না": "no",
-        "ঠিক আছে": "okay",
-        "বুঝতে পেরেছি": "I understand",
-        "বুঝতে পারিনি": "I do not understand",
-        "সাহায্য করুন": "help me",
+        "good morning how can i help you": ("Good morning. How can I help you?", "সুপ্রভাত। আমি আপনাকে কীভাবে সাহায্য করতে পারি?", False, None),
+        "do you have chest pain": ("Do you have chest pain?", "আপনার কি বুকে ব্যথা আছে?", False, "chest pain"),
+        "আমার বুকে ব্যথা": ("I have chest pain", "আমার বুকে ব্যথা আছে", False, "chest pain"),
+        "শ্বাস নিতে কষ্ট": ("I have difficulty breathing", "আমার শ্বাস নিতে কষ্ট হচ্ছে", False, "breathing difficulty"),
+        "আমার মাথা ব্যাথা": ("I have a headache", "আমার মাথা ব্যাথা করছে", False, None),
+        "আমার জ্বর": ("I have a fever", "আমার জ্বর আছে", False, None),
+        "আমার বুকে ব্যথা নেই": ("I do not have chest pain", "আমার বুকে ব্যথা নেই", True, "chest pain"),
+        "আমার জ্বর নেই": ("I do not have a fever", "আমার জ্বর নেই", True, None),
+        "হ্যাঁ": ("Yes", "হ্যাঁ", False, None),
+        "না": ("No", "না", True, None),
     },
+
     "so": {
-        "good morning how can i help you": "Subax wanaagsan. Sideen ku caawin karaa?",
-        "do you have an appointment": "Ma qabataa ballan?",
-        "please take a seat the doctor will see you shortly": "Fadlan fadhiiso. Dhakhtarka ayaa si dhaar ku arki doona.",
-        "do you need any assistance": "Ma u baahan tahay caawimaad?",
-        "is this your first visit": "Kani ma booqashadaada koowaad?",
-        "do you have your nhs number": "Ma haysataa lambarka NHS?",
-        "would you like to speak to someone": "Ma jeceshahay inaad qof la hadasho?",
-        "please fill in this form": "Fadlan buuxi foomkan.",
-        "have you been here before": "Ma horay u timid halkan?",
-        "please wait the doctor will call you": "Fadlan sug. Dhakhtarka ayaa kuu yeedhi doona.",
-        "your appointment is confirmed": "Ballaankaaga waa la xaqiijiyay.",
-        "the doctor will see you now": "Dhakhtarka ayaa hadda ku arki doona.",
-        "where is your pain": "Xanuunkaagu xaggee kuu jiraa?",
-        "how long have you had this": "Muddo intee leeg ayaad tan qabtaa?",
-        "do you have a fever": "Ma qabtaa qandho?",
-        "are you having difficulty breathing": "Ma adag tahay neefsashada?",
-        "do you feel dizzy or faint": "Ma dareemaysaa miyir beel ama dawakhaad?",
-        "do you have chest pain": "Ma qabtaa xanuun laabta?",
-        "do you have any allergies": "Ma qabtaa xasaasiyad?",
-        "are you taking any medication": "Ma qaadataa daawo?",
-        "have you had this before": "Ma horay kuu dhacday tan?",
-        "xanuun laabta": "I have chest pain",
-        "madax xanuun": "I have a headache",
-        "qandho": "I have a fever",
-        "xanuun calool": "I have stomach pain",
-        "neefsasho dhib": "I have difficulty breathing",
-        "madhax wareeg": "I feel dizzy",
-        "xanuun daran": "I have severe pain",
-        "ma laha xanuun laabta": "I do not have chest pain",
-        "ma qabo qandho": "I do not have a fever",
-        "ma laha xanuun": "I have no pain",
-        "waan fiicanahay": "I am fine",
-        "haa": "yes",
-        "maya": "no",
-        "waa hagaag": "okay",
-        "waan fahmay": "I understand",
-        "ma fahmin": "I do not understand",
-        "i caawi": "help me",
+        "good morning how can i help you": ("Good morning. How can I help you?", "Subax wanaagsan. Sideen ku caawin karaa?", False, None),
+        "do you have chest pain": ("Do you have chest pain?", "Ma qabtaa xanuun laabta?", False, "chest pain"),
+        "xanuun laabta": ("I have chest pain", "Waxaan qabaa xanuun laabta ah", False, "chest pain"),
+        "neefsasho dhib": ("I have difficulty breathing", "Waxaan qabaa dhibaatada neefsashada", False, "breathing difficulty"),
+        "madax xanuun": ("I have a headache", "Waxaan qabaa madax xanuun", False, None),
+        "qandho": ("I have a fever", "Waxaan qabaa qandho", False, None),
+        "ma laha xanuun laabta": ("I do not have chest pain", "Ma qabo xanuun laabta ah", True, "chest pain"),
+        "ma qabo qandho": ("I do not have a fever", "Ma qabo qandho", True, None),
+        "haa": ("Yes", "Haa", False, None),
+        "maya": ("No", "Maya", True, None),
     },
+
     "ro": {
-        "good morning how can i help you": "Bună dimineața. Cum vă pot ajuta?",
-        "do you have an appointment": "Aveți o programare?",
-        "please take a seat the doctor will see you shortly": "Vă rog să luați loc. Medicul vă va vedea în curând.",
-        "do you need any assistance": "Aveți nevoie de ajutor?",
-        "is this your first visit": "Este prima dvs. vizită?",
-        "do you have your nhs number": "Aveți numărul NHS?",
-        "would you like to speak to someone": "Doriți să vorbiți cu cineva?",
-        "please fill in this form": "Vă rugăm să completați acest formular.",
-        "have you been here before": "Ați mai fost aici înainte?",
-        "please wait the doctor will call you": "Vă rugăm să așteptați. Medicul vă va chema.",
-        "your appointment is confirmed": "Programarea dvs. este confirmată.",
-        "the doctor will see you now": "Medicul vă vede acum.",
-        "where is your pain": "Unde vă doare?",
-        "how long have you had this": "De cât timp aveți această problemă?",
-        "do you have a fever": "Aveți febră?",
-        "are you having difficulty breathing": "Aveți dificultăți de respirație?",
-        "do you feel dizzy or faint": "Vă simțiți amețit sau leșinat?",
-        "do you have chest pain": "Aveți durere în piept?",
-        "do you have any allergies": "Aveți alergii?",
-        "are you taking any medication": "Luați vreun medicament?",
-        "have you had this before": "Ați mai avut asta înainte?",
-        "durere in piept": "I have chest pain",
-        "durere de cap": "I have a headache",
-        "febra": "I have a fever",
-        "durere de stomac": "I have stomach pain",
-        "dificultate de respiratie": "I have difficulty breathing",
-        "amețeală": "I feel dizzy",
-        "durere severă": "I have severe pain",
-        "nu am durere in piept": "I do not have chest pain",
-        "nu am febra": "I do not have a fever",
-        "nu am durere": "I have no pain",
-        "sunt bine": "I am fine",
-        "da": "yes",
-        "nu": "no",
-        "bine": "okay",
-        "am inteles": "I understand",
-        "nu inteleg": "I do not understand",
-        "ajutor": "help me",
-    },
+        "good morning how can i help you": ("Good morning. How can I help you?", "Bună dimineața. Cum vă pot ajuta?", False, None),
+        "do you have chest pain": ("Do you have chest pain?", "Aveți durere în piept?", False, "chest pain"),
+        "durere in piept": ("I have chest pain", "Am dureri în piept", False, "chest pain"),
+        "dificultate de respiratie": ("I have difficulty breathing", "Am dificultăți de respirație", False, "breathing difficulty"),
+        "durere de cap": ("I have a headache", "Am o durere de cap", False, None),
+        "febra": ("I have a fever", "Am febră", False, None),
+        "nu am durere in piept": ("I do not have chest pain", "Nu am dureri în piept", True, "chest pain"),
+        "nu am febra": ("I do not have a fever", "Nu am febră", True, None),
+        "da": ("Yes", "Da", False, None),
+        "nu": ("No", "Nu", True, None),
+    }
 }
 
-# ============================================================
-# HELPER: Normalized Lookup
-# ============================================================
-
-def lookup_translation(text, lang_code):
-    if not lang_code or lang_code not in translations:
+def lookup_clinical_phrase(text, lang_code):
+    """Looks up matching phrase and returns (English, NativeScript, is_neg, symptom)."""
+    if not lang_code or lang_code not in CLINICAL_DICTIONARY:
         return None
-    lang_dict = translations[lang_code]
-    normalized_input = normalize_text(text)
     
-    # 1. Exact normalized match
-    if normalized_input in lang_dict:
-        return lang_dict[normalized_input]
+    lang_dict = CLINICAL_DICTIONARY[lang_code]
+    norm_input = normalize_text(text)
     
-    # 2. Substring matching
+    if norm_input in lang_dict:
+        return lang_dict[norm_input]
+    
     best_match = None
-    best_length = 0
-    for phrase, translation in lang_dict.items():
-        norm_phrase = normalize_text(phrase)
-        if norm_phrase and (norm_phrase in normalized_input or normalized_input in norm_phrase):
-            if len(norm_phrase) > best_length:
-                best_match = translation
-                best_length = len(norm_phrase)
+    best_len = 0
+    for phrase_key, data in lang_dict.items():
+        norm_key = normalize_text(phrase_key)
+        if norm_key in norm_input or norm_input in norm_key:
+            if len(norm_key) > best_len:
+                best_match = data
+                best_len = len(norm_key)
+                
     return best_match
-
-# ============================================================
-# SYMPTOM MAP
-# ============================================================
-
-SYMPTOM_MAP = {
-    "ta": {"nenji vali": "chest pain", "moochu varadhu": "breathing difficulty", "thalai vali": "headache", "kaichal": "fever", "vayiru vali": "stomach pain"},
-    "hi": {"seene mein dard": "chest pain", "saans lene mein takleef": "breathing difficulty", "sar dard": "headache", "bukhar": "fever", "pet dard": "stomach pain"},
-    "ml": {"nenjil vali": "chest pain", "shwasam muttunnu": "breathing difficulty", "thalavalikkunnu": "headache", "pani undu": "fever", "vayaril vali": "stomach pain"},
-    "pl": {"bol klatki": "chest pain", "trudnosci z oddychaniem": "breathing difficulty", "bol glowy": "headache", "goraczka": "fever", "bol brzucha": "stomach pain"},
-    "ar": {"ألم في الصدر": "chest pain", "صعوبة في التنفس": "breathing difficulty", "صداع": "headache", "حمى": "fever", "ألم في المعدة": "stomach pain"},
-    "ur": {"سینے میں درد": "chest pain", "سانس لینے میں دشواری": "breathing difficulty", "سر درد": "headache", "بخار": "fever", "پیٹ میں درد": "stomach pain"},
-    "bn": {"বুকে ব্যথা": "chest pain", "শ্বাস নিতে কষ্ট": "breathing difficulty", "মাথা ব্যাথা": "headache", "জ্বর": "fever", "পেটে ব্যথা": "stomach pain"},
-    "so": {"xanuun laabta": "chest pain", "neefsasho dhib": "breathing difficulty", "madax xanuun": "headache", "qandho": "fever", "xanuun calool": "stomach pain"},
-    "ro": {"durere in piept": "chest pain", "dificultate de respiratie": "breathing difficulty", "durere de cap": "headache", "febra": "fever", "durere de stomac": "stomach pain"},
-}
-
-def detect_symptom(text, lang_code):
-    symptoms = SYMPTOM_MAP.get(lang_code, {})
-    lower = text.lower().strip()
-    for phrase, meaning in symptoms.items():
-        if phrase in lower:
-            return meaning
-    return None
 
 # ============================================================
 # GUIDED PROMPTS
@@ -680,74 +487,85 @@ GUIDED_PROMPTS = {
 # TRANSLATION ENGINES
 # ============================================================
 
-def translate_to_english(text, lang_code="auto"):
+def execute_online_translation(text, src, target):
+    """Executes dynamic translation using GoogleTranslator with fallback."""
     if not text:
-        return "", None
-    
-    builtin = lookup_translation(text, lang_code)
-    if builtin:
-        return builtin, None
-
-    cached = get_cached_translation(text, "en")
-    if cached:
-        return cached, None
-
+        return ""
     try:
         from deep_translator import GoogleTranslator
-        src = get_clean_lang_code(lang_code) if lang_code and lang_code != "auto" else "auto"
-        result = GoogleTranslator(source=src, target="en").translate(text)
-        if result:
-            set_cached_translation(text, "en", result)
-            return result, None
+        res = GoogleTranslator(source=src, target=target).translate(text)
+        if res:
+            return res
     except Exception:
         pass
 
     try:
         from deep_translator import MyMemoryTranslator
-        src = get_clean_lang_code(lang_code) if lang_code and lang_code != "auto" else "auto"
-        result = MyMemoryTranslator(source=src, target="en").translate(text)
-        if result:
-            set_cached_translation(text, "en", result)
-            return result, None
-    except Exception as e:
-        return text, f"Translation error: {str(e)}"
+        res = MyMemoryTranslator(source=src, target=target).translate(text)
+        if res:
+            return res
+    except Exception:
+        pass
 
-    return text, None
+    return text
 
-def translate_to_language(text, target_lang_code):
+def translate_staff_to_native(text, target_lang_code):
+    """Translates staff English text into pure Native Script."""
     if not text:
-        return text, None
-        
-    builtin = lookup_translation(text, target_lang_code)
-    if builtin:
-        set_cached_translation(text, target_lang_code, builtin)
-        return builtin, None
+        return "", None
 
+    # 1. Lookup in curated phrasebook
+    lookup = lookup_clinical_phrase(text, target_lang_code)
+    if lookup:
+        return lookup[1], None
+
+    # 2. Check Cache
     cached = get_cached_translation(text, target_lang_code)
     if cached:
         return cached, None
 
+    # 3. Dynamic Translate English -> Target Native Script
     target = get_clean_lang_code(target_lang_code)
+    translated = execute_online_translation(text, "en", target)
+    
+    if translated:
+        set_cached_translation(text, target_lang_code, translated)
+        return translated, None
 
-    try:
-        from deep_translator import GoogleTranslator
-        result = GoogleTranslator(source="en", target=target).translate(text)
-        if result:
-            set_cached_translation(text, target_lang_code, result)
-            return result, None
-    except Exception:
-        pass
+    return text, "Translation unavailable"
 
-    try:
-        from deep_translator import MyMemoryTranslator
-        result = MyMemoryTranslator(source="en", target=target).translate(text)
-        if result:
-            set_cached_translation(text, target_lang_code, result)
-            return result, None
-    except Exception as e:
-        return text, f"Translation error: {str(e)}"
+def translate_patient_input(text, lang_code):
+    """
+    Translates Patient input (Romanized or Native) into:
+    1. English for Staff
+    2. Pure Native Script for display
+    """
+    if not text:
+        return "", "", None
 
-    return text, None
+    # 1. Check Phrasebook (Matches both Romanized and Native Script)
+    lookup = lookup_clinical_phrase(text, lang_code)
+    if lookup:
+        english_trans = lookup[0]
+        native_trans = lookup[1]
+        return english_trans, native_trans, None
+
+    # 2. If input is already in Native Script
+    if is_native_script(text, lang_code):
+        native_trans = text
+        target_src = get_clean_lang_code(lang_code)
+        english_trans = execute_online_translation(text, target_src, "en")
+        return english_trans, native_trans, None
+
+    # 3. If input is Romanized / Phonetic text
+    # Translate Romanized text to English first
+    english_trans = execute_online_translation(text, "auto", "en")
+    
+    # Reconstruct pure Native Script from English to ensure no Thanglish/Hinglish is shown
+    target_clean = get_clean_lang_code(lang_code)
+    native_trans = execute_online_translation(english_trans, "en", target_clean)
+    
+    return english_trans, native_trans, None
 
 # ============================================================
 # ROUTES
@@ -821,60 +639,49 @@ def translate_staff():
     lang_code = session.get("lang_code", "ta")
     lang_name = session.get("lang", "Tamil")
 
-    translation = lookup_translation(raw_text, lang_code)
-    if translation:
-        set_cached_translation(raw_text, lang_code, translation)
-        return jsonify({
-            "original": raw_text,
-            "simplified": raw_text,
-            "was_simplified": False,
-            "translated": translation,
-            "lang": lang_name,
-            "urgent": False,
-        })
-
     simplified, was_simplified = simplify_text(raw_text)
-    translated, error = translate_to_language(simplified, lang_code)
     
-    if not translated:
-        translated = raw_text
+    # Translates strictly to pure Native Script
+    translated_native, error = translate_staff_to_native(simplified, lang_code)
+    if not translated_native:
+        translated_native = raw_text
 
     return jsonify({
         "original": raw_text,
         "simplified": simplified,
         "was_simplified": was_simplified,
-        "translated": translated,
+        "translated": translated_native,
         "lang": lang_name,
         "urgent": False,
-        "warning": error if error else None
+        "warning": error
     })
 
 @app.route("/api/translate_patient", methods=["POST"])
 @login_required
 def translate_patient():
     data = request.get_json() or {}
-    text = data.get("text", "").strip()
-    if not text:
+    raw_text = data.get("text", "").strip()
+    if not raw_text:
         return jsonify({"error": "No text provided"}), 400
 
     lang_code = session.get("lang_code", "ta")
     lang_name = session.get("lang", "Tamil")
 
-    english_text, error = translate_to_english(text, lang_code)
-    if not english_text:
-        english_text = text
-
-    symptom = detect_symptom(text, lang_code)
-    medical_alert = needs_medical_consultation(text, lang_code) or needs_medical_consultation(english_text, lang_code)
+    # Get English for Staff + Pure Native Script for patient display
+    english_translation, native_script, error = translate_patient_input(raw_text, lang_code)
+    
+    # Accurate triage evaluation
+    triage = evaluate_medical_triage(raw_text, english_translation, lang_code)
 
     return jsonify({
-        "original": text,
-        "native": text,
-        "translated": english_text,
+        "original": raw_text,
+        "native": native_script,
+        "translated": english_translation,
         "lang": lang_name,
-        "symptom_detected": symptom,
-        "medical_alert": medical_alert,
-        "warning": error if error else None
+        "symptom_detected": triage["symptom_detected"],
+        "is_negative": triage["is_negative"],
+        "medical_alert": triage["medical_alert"],
+        "warning": error
     })
 
 @app.route("/api/simplify", methods=["POST"])
