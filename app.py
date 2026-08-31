@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, jsonify, session, redirect, u
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import uuid
 import re
-import time
 import os
 
 # ============================================================
@@ -39,30 +38,39 @@ def load_user(user_id):
     return None
 
 # ============================================================
-# TRANSLATION CACHE
+# TRANSLATION CACHE & TEXT NORMALIZATION
 # ============================================================
 
 translation_cache = {}
 
+def normalize_text(text):
+    """Strips punctuation and extra spaces for reliable dictionary lookup."""
+    if not text:
+        return ""
+    cleaned = re.sub(r'[^\w\s]', '', text.lower())
+    return " ".join(cleaned.split())
+
 def get_cached_translation(text, target_lang):
-    cache_key = f"{text}_{target_lang}"
+    cache_key = f"{text.strip().lower()}_{target_lang}"
     return translation_cache.get(cache_key)
 
 def set_cached_translation(text, target_lang, result):
-    cache_key = f"{text}_{target_lang}"
+    cache_key = f"{text.strip().lower()}_{target_lang}"
     translation_cache[cache_key] = result
 
 # ============================================================
-# LANGUAGE CODE MAPPING
+# LANGUAGE CODE MAPPING (Standard ISO 639-1)
 # ============================================================
 
 LANG_MAP = {
-    "ta": "ta-IN", "hi": "hi-IN", "ml": "ml-IN", "bn": "bn-IN",
-    "ur": "ur-PK", "ar": "ar-SA", "pl": "pl-PL", "so": "so-SO", "ro": "ro-RO",
+    "ta": "ta", "hi": "hi", "ml": "ml", "bn": "bn",
+    "ur": "ur", "ar": "ar", "pl": "pl", "so": "so", "ro": "ro",
 }
 
-def get_lang_code(lang_code):
-    return LANG_MAP.get(lang_code, "en-GB")
+def get_clean_lang_code(lang_code):
+    if not lang_code:
+        return "en"
+    return LANG_MAP.get(lang_code.lower()[:2], lang_code.lower()[:2])
 
 # ============================================================
 # SIMPLIFICATION RULES
@@ -106,7 +114,7 @@ URGENT_SYMPTOMS = [
     "stroke", "seizure", "collapsed", "heart attack",
     "nenji vali", "moochu varadhu", "moochu pidikuthu", "iratha",
     "seene mein dard", "saans nahi", "saans lene mein takleef", "khoon",
-    "nenjil vali", "shwasam muttunnu", "shwasam pidikkunnu", "iratha",
+    "nenjil vali", "shwasam muttunnu", "shwasam pidikkunnu",
     "bol klatki", "trudnosci z oddychaniem", "krwawienie",
     "ألم في الصدر", "صعوبة في التنفس", "نزيف",
     "سینے میں درد", "سانس لینے میں دشواری", "خون",
@@ -127,13 +135,6 @@ NEGATION_WORDS = {
     "ro": ["nu", "nici"],
 }
 
-def is_negative(text, lang_code):
-    lower = text.lower()
-    for word in NEGATION_WORDS.get(lang_code, []):
-        if word in lower:
-            return True
-    return False
-
 def needs_medical_consultation(text, lang_code=None):
     lower = text.lower()
     has_urgent = any(phrase in lower for phrase in URGENT_SYMPTOMS)
@@ -148,12 +149,11 @@ def needs_medical_consultation(text, lang_code=None):
     return has_urgent and not has_negation
 
 # ============================================================
-# TRANSLATION DICTIONARY — TAMIL
+# TRANSLATION DICTIONARIES
 # ============================================================
 
 translations = {
     "ta": {
-        # Staff prompts
         "good morning how can i help you": "காலை வணக்கம். நான் உங்களுக்கு எப்படி உதவ முடியும்?",
         "do you have an appointment": "உங்களுக்கு முன்பதிவு உள்ளதா?",
         "can i take your name and date of birth": "உங்கள் பெயரையும் பிறந்த தேதியையும் சொல்ல முடியுமா?",
@@ -180,7 +180,6 @@ translations = {
         "does anything make it better or worse": "ஏதாவது அதை சிறப்பாக அல்லது மோசமாக்குகிறதா?",
         "is there any bleeding": "ஏதேனும் இரத்தப்போக்கு உள்ளதா?",
         "when did the symptoms start": "அறிகுறிகள் எப்போது தொடங்கின?",
-        # Tamil patient responses
         "enaku nenji vali irukku": "I have chest pain",
         "enaku nenji vali iruku": "I have chest pain",
         "nenji vali irukku": "I have chest pain",
@@ -217,7 +216,6 @@ translations = {
         "help pannunga": "please help me",
         "nalla irukken": "I am fine",
     },
-    # ========== HINDI ==========
     "hi": {
         "good morning how can i help you": "सुप्रभात। मैं आपकी कैसे मदद कर सकता हूँ?",
         "do you have an appointment": "क्या आपका कोई अपॉइंटमेंट है?",
@@ -241,7 +239,6 @@ translations = {
         "do you have any allergies": "क्या आपको कोई एलर्जी है?",
         "are you taking any medication": "क्या आप कोई दवा ले रहे हैं?",
         "have you had this before": "क्या आपको यह पहले भी हुआ है?",
-        # Hindi patient responses (Roman script)
         "mujhe chest mein dard hai": "I have chest pain",
         "seene mein dard hai": "I have chest pain",
         "sar dard hai": "I have a headache",
@@ -259,7 +256,6 @@ translations = {
         "ulti aa rahi hai": "I feel like vomiting",
         "bahut dard hai": "I have severe pain",
         "dard hai": "I have pain",
-        # Hindi patient responses (Devanagari script)
         "मुझे सीने में दर्द है": "I have chest pain",
         "सीने में दर्द है": "I have chest pain",
         "सर दर्द है": "I have a headache",
@@ -276,18 +272,12 @@ translations = {
         "उल्टी आ रही है": "I feel like vomiting",
         "बहुत दर्द है": "I have severe pain",
         "दर्द है": "I have pain",
-        # Hindi negatives
         "chest mein dard nahi hai": "I do not have chest pain",
         "seene mein dard nahi hai": "I do not have chest pain",
         "sar dard nahi hai": "I do not have a headache",
         "bukhar nahi hai": "I do not have a fever",
         "pet mein dard nahi hai": "I do not have stomach pain",
         "dard nahi hai": "I have no pain",
-        "सीने में दर्द नहीं है": "I do not have chest pain",
-        "सर दर्द नहीं है": "I do not have a headache",
-        "बुखार नहीं है": "I do not have a fever",
-        "पेट में दर्द नहीं है": "I do not have stomach pain",
-        "दर्द नहीं है": "I have no pain",
         "theek hoon": "I am fine",
         "haan": "yes",
         "nahi": "no",
@@ -296,7 +286,6 @@ translations = {
         "samajh aa gaya": "I understand",
         "meri madad karo": "please help me",
     },
-    # ========== MALAYALAM ==========
     "ml": {
         "good morning how can i help you": "സുപ്രഭാതം. എനിക്ക് നിങ്ങളെ എങ്ങനെ സഹായിക്കാനാകും?",
         "do you have an appointment": "നിങ്ങൾക്ക് ഒരു അപ്പോയിന്റ്മെന്റ് ഉണ്ടോ?",
@@ -335,7 +324,6 @@ translations = {
         "manasilayi": "I understand",
         "sahayam": "help me",
     },
-    # ========== POLISH ==========
     "pl": {
         "good morning how can i help you": "Dzień dobry. Jak mogę pomóc?",
         "do you have an appointment": "Czy ma pan umówioną wizytę?",
@@ -374,7 +362,6 @@ translations = {
         "nie rozumiem": "I do not understand",
         "pomocy": "help me",
     },
-    # ========== ARABIC ==========
     "ar": {
         "good morning how can i help you": "صباح الخير. كيف يمكنني مساعدتك؟",
         "do you have an appointment": "هل لديك موعد؟",
@@ -417,7 +404,6 @@ translations = {
         "لا أفهم": "I do not understand",
         "ساعدني": "help me",
     },
-    # ========== URDU ==========
     "ur": {
         "good morning how can i help you": "صبح بخیر۔ میں آپ کی کیسے مدد کر سکتا ہوں؟",
         "do you have an appointment": "کیا آپ کا کوئی اپوائنٹمنٹ ہے؟",
@@ -449,7 +435,7 @@ translations = {
         "مجھے شدید درد ہے": "I have severe pain",
         "میرے سینے میں درد نہیں": "I do not have chest pain",
         "مجھے بخار نہیں": "I do not have a fever",
-        "مجھے درد نہیں": "I have no pain",
+        "मुझे दर्द नहीं": "I have no pain",
         "میں ٹھیک ہوں": "I am fine",
         "ہاں": "yes",
         "نہیں": "no",
@@ -458,7 +444,6 @@ translations = {
         "مجھے سمجھ نہیں آیا": "I do not understand",
         "مدد کرو": "help me",
     },
-    # ========== BENGALI ==========
     "bn": {
         "good morning how can i help you": "সুপ্রভাত। আমি আপনাকে কীভাবে সাহায্য করতে পারি?",
         "do you have an appointment": "আপনার কি কোনো অ্যাপয়েন্টমেন্ট আছে?",
@@ -499,7 +484,6 @@ translations = {
         "বুঝতে পারিনি": "I do not understand",
         "সাহায্য করুন": "help me",
     },
-    # ========== SOMALI ==========
     "so": {
         "good morning how can i help you": "Subax wanaagsan. Sideen ku caawin karaa?",
         "do you have an appointment": "Ma qabataa ballan?",
@@ -540,7 +524,6 @@ translations = {
         "ma fahmin": "I do not understand",
         "i caawi": "help me",
     },
-    # ========== ROMANIAN ==========
     "ro": {
         "good morning how can i help you": "Bună dimineața. Cum vă pot ajuta?",
         "do you have an appointment": "Aveți o programare?",
@@ -584,22 +567,28 @@ translations = {
 }
 
 # ============================================================
-# HELPER: Lookup translation
+# HELPER: Normalized Lookup
 # ============================================================
 
 def lookup_translation(text, lang_code):
     if not lang_code or lang_code not in translations:
         return None
     lang_dict = translations[lang_code]
-    text_lower = text.lower().strip()
-    if text_lower in lang_dict:
-        return lang_dict[text_lower]
+    normalized_input = normalize_text(text)
+    
+    # 1. Exact normalized match
+    if normalized_input in lang_dict:
+        return lang_dict[normalized_input]
+    
+    # 2. Substring matching
     best_match = None
     best_length = 0
     for phrase, translation in lang_dict.items():
-        if phrase in text_lower and len(phrase) > best_length:
-            best_match = translation
-            best_length = len(phrase)
+        norm_phrase = normalize_text(phrase)
+        if norm_phrase and (norm_phrase in normalized_input or normalized_input in norm_phrase):
+            if len(norm_phrase) > best_length:
+                best_match = translation
+                best_length = len(norm_phrase)
     return best_match
 
 # ============================================================
@@ -676,68 +665,85 @@ GUIDED_PROMPTS = {
 }
 
 # ============================================================
-# TRANSLATION FUNCTIONS
+# ROBUST TRANSLATION ENGINES
 # ============================================================
 
-def translate_to_english(text, lang_code):
+def translate_to_english(text, lang_code="auto"):
+    if not text:
+        return "", None
+    
+    # 1. Check curated phrasebook
     builtin = lookup_translation(text, lang_code)
     if builtin:
         return builtin, None
+
+    # 2. Check cache
+    cached = get_cached_translation(text, "en")
+    if cached:
+        return cached, None
+
+    # 3. Use GoogleTranslator (fast and free)
+    try:
+        from deep_translator import GoogleTranslator
+        src = get_clean_lang_code(lang_code) if lang_code and lang_code != "auto" else "auto"
+        result = GoogleTranslator(source=src, target="en").translate(text)
+        if result:
+            set_cached_translation(text, "en", result)
+            return result, None
+    except Exception as e:
+        pass
+
+    # 4. Fallback: MyMemoryTranslator
     try:
         from deep_translator import MyMemoryTranslator
-        try:
-            result = MyMemoryTranslator(source="auto", target="en-GB").translate(text)
-            if result and result.strip().lower() != text.strip().lower():
-                return result, None
-        except:
-            pass
-        if lang_code and lang_code != "auto":
-            try:
-                target = get_lang_code(lang_code)
-                result = MyMemoryTranslator(source=target, target="en-GB").translate(text)
-                if result and result.strip().lower() != text.strip().lower():
-                    return result, None
-            except:
-                pass
-        for src in ["ta", "hi", "ml", "pl", "ar", "ur", "bn", "so", "ro"]:
-            try:
-                target = get_lang_code(src)
-                result = MyMemoryTranslator(source=target, target="en-GB").translate(text)
-                if result and result.strip().lower() != text.strip().lower():
-                    return result, None
-            except:
-                continue
-        return text, None
-    except:
-        return text, "Translation service unavailable"
+        src = get_clean_lang_code(lang_code) if lang_code and lang_code != "auto" else "auto"
+        result = MyMemoryTranslator(source=src, target="en").translate(text)
+        if result:
+            set_cached_translation(text, "en", result)
+            return result, None
+    except Exception as e:
+        return text, f"Translation error: {str(e)}"
+
+    return text, None
 
 def translate_to_language(text, target_lang_code):
     if not text:
         return text, None
-    cached = get_cached_translation(text, target_lang_code)
-    if cached:
-        return cached, None
+        
+    # 1. Check curated phrasebook
     builtin = lookup_translation(text, target_lang_code)
     if builtin:
         set_cached_translation(text, target_lang_code, builtin)
         return builtin, None
+
+    # 2. Check cache
+    cached = get_cached_translation(text, target_lang_code)
+    if cached:
+        return cached, None
+
+    target = get_clean_lang_code(target_lang_code)
+
+    # 3. Use GoogleTranslator
+    try:
+        from deep_translator import GoogleTranslator
+        result = GoogleTranslator(source="en", target=target).translate(text)
+        if result:
+            set_cached_translation(text, target_lang_code, result)
+            return result, None
+    except Exception as e:
+        pass
+
+    # 4. Fallback: MyMemoryTranslator
     try:
         from deep_translator import MyMemoryTranslator
-        target = get_lang_code(target_lang_code)
-        for attempt in range(3):
-            try:
-                result = MyMemoryTranslator(source="en-GB", target=target).translate(text)
-                if result:
-                    set_cached_translation(text, target_lang_code, result)
-                    return result, None
-            except Exception as e:
-                if "too many requests" in str(e).lower():
-                    time.sleep((attempt + 1) * 2)
-                    continue
-                return None, str(e)
-        return text, None
-    except:
-        return text, "Translation service unavailable"
+        result = MyMemoryTranslator(source="en", target=target).translate(text)
+        if result:
+            set_cached_translation(text, target_lang_code, result)
+            return result, None
+    except Exception as e:
+        return text, f"Translation error: {str(e)}"
+
+    return text, None
 
 # ============================================================
 # ROUTES
@@ -775,9 +781,7 @@ def ping():
 @login_required
 def start_session():
     try:
-        data = request.get_json()
-        if not data:
-            return jsonify({"error": "No data provided"}), 400
+        data = request.get_json() or {}
         session.clear()
         session["session_id"] = str(uuid.uuid4())[:8]
         session["context"] = data.get("context", "Reception")
@@ -793,7 +797,6 @@ def start_session():
             "lang": session["lang"],
         })
     except Exception as e:
-        print(f"Error in start_session: {str(e)}")
         return jsonify({"status": "error", "error": f"Could not start session: {str(e)}"}), 500
 
 @app.route("/api/end_session", methods=["POST"])
@@ -805,7 +808,7 @@ def end_session():
 @app.route("/api/translate_staff", methods=["POST"])
 @login_required
 def translate_staff():
-    data = request.json
+    data = request.get_json() or {}
     raw_text = data.get("text", "").strip()
     if not raw_text:
         return jsonify({"error": "No text provided"}), 400
@@ -813,6 +816,7 @@ def translate_staff():
     lang_code = session.get("lang_code", "ta")
     lang_name = session.get("lang", "Tamil")
 
+    # 1. Try phrasebook dictionary first
     translation = lookup_translation(raw_text, lang_code)
     if translation:
         set_cached_translation(raw_text, lang_code, translation)
@@ -825,10 +829,12 @@ def translate_staff():
             "urgent": False,
         })
 
+    # 2. Simplify and translate dynamically
     simplified, was_simplified = simplify_text(raw_text)
     translated, error = translate_to_language(simplified, lang_code)
-    if error:
-        return jsonify({"error": "Could not translate. Please try again."}), 500
+    
+    if not translated:
+        translated = raw_text
 
     return jsonify({
         "original": raw_text,
@@ -837,12 +843,13 @@ def translate_staff():
         "translated": translated,
         "lang": lang_name,
         "urgent": False,
+        "warning": error if error else None
     })
 
 @app.route("/api/translate_patient", methods=["POST"])
 @login_required
 def translate_patient():
-    data = request.json
+    data = request.get_json() or {}
     text = data.get("text", "").strip()
     if not text:
         return jsonify({"error": "No text provided"}), 400
@@ -850,29 +857,28 @@ def translate_patient():
     lang_code = session.get("lang_code", "ta")
     lang_name = session.get("lang", "Tamil")
 
-    english_text = lookup_translation(text, lang_code)
+    # Check phrasebook dictionary, then dynamic translation
+    english_text, error = translate_to_english(text, lang_code)
     if not english_text:
-        english_text, error = translate_to_english(text, lang_code)
-        if error:
-            return jsonify({"error": "Could not translate. Please try again."}), 500
+        english_text = text
 
     symptom = detect_symptom(text, lang_code)
     medical_alert = needs_medical_consultation(text, lang_code) or needs_medical_consultation(english_text, lang_code)
-    native_text = text
 
     return jsonify({
         "original": text,
-        "native": native_text,
+        "native": text,
         "translated": english_text,
         "lang": lang_name,
         "symptom_detected": symptom,
         "medical_alert": medical_alert,
+        "warning": error if error else None
     })
 
 @app.route("/api/simplify", methods=["POST"])
 @login_required
 def simplify_endpoint():
-    data = request.json
+    data = request.get_json() or {}
     text = data.get("text", "")
     simplified, changed = simplify_text(text)
     return jsonify({"simplified": simplified, "changed": changed})
