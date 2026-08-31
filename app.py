@@ -115,16 +115,17 @@ def needs_medical_consultation(text):
     return has_urgent and not has_negation
 
 # ============================================================
-# TRANSLATION DICTIONARY (All prompts pre-translated)
+# TRANSLATION DICTIONARY (COMPLETE WITH ALL STAFF PROMPTS)
 # ============================================================
 
 TRANSLATION_DICT = {
-    # ======== TAMIL ========
-    # Reception
+    # ======== STAFF PROMPTS - RECEPTION (EXACT MATCH) ========
     "good morning how can i help you": "காலை வணக்கம். நான் உங்களுக்கு எப்படி உதவ முடியும்?",
+    "good morning. how can i help you": "காலை வணக்கம். நான் உங்களுக்கு எப்படி உதவ முடியும்?",
     "do you have an appointment": "உங்களுக்கு முன்பதிவு உள்ளதா?",
     "can i take your name and date of birth": "உங்கள் பெயரையும் பிறந்த தேதியையும் சொல்ல முடியுமா?",
     "please take a seat the doctor will see you shortly": "தயவு செய்து உட்காருங்கள். மருத்துவர் விரைவில் உங்களை பார்ப்பார்.",
+    "please take a seat. the doctor will see you shortly": "தயவு செய்து உட்காருங்கள். மருத்துவர் விரைவில் உங்களை பார்ப்பார்.",
     "do you need any assistance": "உங்களுக்கு உதவி தேவையா?",
     "is this your first visit": "இது உங்கள் முதல் வருகையா?",
     "do you have your nhs number": "உங்களிடம் என்.எச்.எஸ் எண் உள்ளதா?",
@@ -132,8 +133,9 @@ TRANSLATION_DICT = {
     "please fill in this form": "தயவு செய்து இந்த படிவத்தை நிரப்பவும்.",
     "have you been here before": "நீங்கள் இங்கு முன்பு வந்திருக்கிறீர்களா?",
     "please wait the doctor will call you": "தயவு செய்து காத்திருக்கவும். மருத்துவர் உங்களை அழைப்பார்.",
+    "please wait. the doctor will call you": "தயவு செய்து காத்திருக்கவும். மருத்துவர் உங்களை அழைப்பார்.",
     
-    # Appointment
+    # ======== STAFF PROMPTS - APPOINTMENT ========
     "your appointment is confirmed": "உங்கள் முன்பதிவு உறுதி செய்யப்பட்டுள்ளது.",
     "the doctor will see you now": "மருத்துவர் இப்போது உங்களை பார்ப்பார்.",
     "do you have your appointment letter": "உங்களிடம் முன்பதிவு கடிதம் உள்ளதா?",
@@ -146,7 +148,7 @@ TRANSLATION_DICT = {
     "your appointment is at time": "உங்கள் முன்பதிவு [நேரம்] அன்று உள்ளது.",
     "please arrive 10 minutes early": "தயவு செய்து 10 நிமிடங்கள் முன்னதாக வந்து சேருங்கள்.",
     
-    # Basic Symptoms
+    # ======== STAFF PROMPTS - BASIC SYMPTOMS ========
     "where is your pain": "உங்கள் வலி எங்கே?",
     "how long have you had this": "இது உங்களுக்கு எவ்வளவு காலமாக உள்ளது?",
     "do you have a fever": "உங்களுக்கு காய்ச்சல் உள்ளதா?",
@@ -161,8 +163,8 @@ TRANSLATION_DICT = {
     "does anything make it better or worse": "ஏதாவது அதை சிறப்பாக அல்லது மோசமாக்குகிறதா?",
     "is there any bleeding": "ஏதேனும் இரத்தப்போக்கு உள்ளதா?",
     "when did the symptoms start": "அறிகுறிகள் எப்போது தொடங்கின?",
-    
-    # Tamil/Thanglish patient responses
+
+    # ======== TAMIL PATIENT RESPONSES ========
     "enaku nenji vali irukku": "I have chest pain",
     "enaku nenji vali iruku": "I have chest pain",
     "nenji vali irukku": "I have chest pain",
@@ -171,18 +173,28 @@ TRANSLATION_DICT = {
     "enaku moochu varadhu": "I cannot breathe properly",
     "moochu varadhu": "I cannot breathe properly",
     "enaku thalai vali irukku": "I have a headache",
+    "enaku thalai valikuthu": "I have a headache",
     "thalai vali irukku": "I have a headache",
+    "thalai valikuthu": "my head is hurting",
+    "thalai vali": "headache",
     "enaku kaichal irukku": "I have a fever",
     "kaichal irukku": "I have a fever",
     "enaku vayiru vali irukku": "I have stomach pain",
     "vayiru vali irukku": "I have stomach pain",
     "thalai sutharuthu": "I feel dizzy",
+    "thalai sutru": "dizziness",
     "vanthi varuthu": "I feel like vomiting",
     "romba vali irukku": "I have severe pain",
+    
+    # TAMIL NEGATIVE
     "enaku nenji vali illai": "I do not have chest pain",
     "nenji vali illai": "I do not have chest pain",
+    "enaku thalai vali illai": "I do not have a headache",
+    "thalai vali illai": "I do not have a headache",
     "kaichal illai": "I do not have a fever",
     "vali illai": "I have no pain",
+    
+    # TAMIL GENERAL
     "aama": "yes",
     "illai": "no",
     "seri": "okay",
@@ -190,8 +202,8 @@ TRANSLATION_DICT = {
     "puriyala": "I do not understand",
     "help pannunga": "please help me",
     "nalla irukken": "I am fine",
-    
-    # Hindi patient responses
+
+    # ======== HINDI PATIENT RESPONSES ========
     "mujhe chest mein dard hai": "I have chest pain",
     "seene mein dard hai": "I have chest pain",
     "sar dard hai": "I have a headache",
@@ -206,8 +218,8 @@ TRANSLATION_DICT = {
     "theek hoon": "I am fine",
     "haan": "yes",
     "nahi": "no",
-    
-    # Polish patient responses
+
+    # ======== POLISH PATIENT RESPONSES ========
     "mam bol w klatce piersiowej": "I have chest pain",
     "bol glowy": "I have a headache",
     "mam goraczke": "I have a fever",
@@ -219,9 +231,10 @@ TRANSLATION_DICT = {
     "czuje sie dobrze": "I feel fine",
     "tak": "yes",
     "nie": "no",
-    
-    # Malayalam patient responses
+
+    # ======== MALAYALAM PATIENT RESPONSES ========
     "nenjil vali undu": "I have chest pain",
+    "nenjil vali und": "I have chest pain",
     "thalavalikkunnu": "I have a headache",
     "pani undu": "I have a fever",
     "vayaril vali undu": "I have stomach pain",
@@ -235,13 +248,22 @@ TRANSLATION_DICT = {
 }
 
 def lookup_translation(text):
-    lower = text.lower().strip()
-    if lower in TRANSLATION_DICT:
-        return TRANSLATION_DICT[lower]
+    """Find translation in dictionary with exact and partial matching."""
+    text_lower = text.lower().strip()
+    
+    # Exact match (highest priority)
+    if text_lower in TRANSLATION_DICT:
+        return TRANSLATION_DICT[text_lower]
+    
+    # Partial match (longest phrase wins)
+    best_match = None
+    best_length = 0
     for phrase, translation in TRANSLATION_DICT.items():
-        if phrase in lower:
-            return translation
-    return None
+        if phrase in text_lower and len(phrase) > best_length:
+            best_match = translation
+            best_length = len(phrase)
+    
+    return best_match
 
 # ============================================================
 # SYMPTOM DETECTION
@@ -423,10 +445,6 @@ def index():
 def ping():
     return jsonify({"status": "Flask is running", "session": dict(session)})
 
-# ============================================================
-# ✅ FIXED: start_session — NO pre-translation!
-# ============================================================
-
 @app.route("/api/start_session", methods=["POST"])
 def start_session():
     try:
@@ -442,7 +460,6 @@ def start_session():
         session["lang_code"] = data.get("lang_code", "ta")
         session["active"] = True
         
-        # ✅ ONLY return English prompts — no translation!
         prompts = GUIDED_PROMPTS.get(session["context"], [])
         
         return jsonify({
@@ -476,8 +493,13 @@ def translate_staff():
     lang_code = session.get("lang_code", "ta")
     lang_name = session.get("lang", "Tamil")
     
+    # Debug
+    print(f"DEBUG: Translating staff: '{raw_text}'")
+    
+    # 1. Check cache
     cached = get_cached_translation(raw_text, lang_code)
     if cached:
+        print(f"DEBUG: Cache hit: '{cached}'")
         return jsonify({
             "original": raw_text,
             "simplified": raw_text,
@@ -487,9 +509,11 @@ def translate_staff():
             "urgent": False,
         })
     
+    # 2. Check dictionary
     for phrase, translation in TRANSLATION_DICT.items():
         if raw_text.lower() == phrase.lower():
             set_cached_translation(raw_text, lang_code, translation)
+            print(f"DEBUG: Dictionary hit: '{translation}'")
             return jsonify({
                 "original": raw_text,
                 "simplified": raw_text,
@@ -499,12 +523,15 @@ def translate_staff():
                 "urgent": False,
             })
     
+    # 3. Simplify and translate
     simplified, was_simplified = simplify_text(raw_text)
     translated, error = translate_to_language(simplified, lang_code)
     
     if error:
+        print(f"DEBUG: Translation error: {error}")
         return jsonify({"error": "Could not translate. Please try again."}), 500
     
+    print(f"DEBUG: API translation: '{translated}'")
     return jsonify({
         "original": raw_text,
         "simplified": simplified,
@@ -525,14 +552,25 @@ def translate_patient():
     lang_code = session.get("lang_code", "ta")
     lang_name = session.get("lang", "Tamil")
     
+    print(f"DEBUG: Translating patient: '{text}' (lang: {lang_code})")
+    
+    # 1. Translate to English
     english_text, error = translate_to_english(text, lang_code)
     
     if error:
         return jsonify({"error": "Could not translate. Please try again."}), 500
     
+    print(f"DEBUG: Patient → English: '{english_text}'")
+    
+    # 2. Detect symptom
     symptom = detect_symptom(text, lang_code)
+    
+    # 3. Check for urgent medical alert
     medical_alert = needs_medical_consultation(text) or needs_medical_consultation(english_text or "")
     
+    print(f"DEBUG: Symptom: {symptom}, Medical alert: {medical_alert}")
+    
+    # 4. Convert to native script (if available)
     native_text = text
     if english_text and english_text != text:
         try:
@@ -541,6 +579,7 @@ def translate_patient():
             converted = MyMemoryTranslator(source="en-GB", target=target).translate(english_text)
             if converted:
                 native_text = converted
+                print(f"DEBUG: Native script: '{native_text}'")
         except:
             pass
     
