@@ -29,7 +29,7 @@ def set_cached_translation(text, target_lang, result):
     translation_cache[cache_key] = result
 
 # ============================================================
-# LANGUAGE CODE MAPPING
+# LANGUAGE CODE MAPPING (for MyMemory API)
 # ============================================================
 
 LANG_MAP = {
@@ -80,18 +80,19 @@ def simplify_text(text):
     return simplified, changed
 
 # ============================================================
-# URGENT PHRASES & DETECTION
+# URGENT PHRASES & DETECTION (FIXED)
 # ============================================================
 
+# ONLY these trigger a medical alert (life-threatening)
 URGENT_SYMPTOMS = [
     # English
     "chest pain", "heart pain", "can't breathe", "cant breathe",
     "difficulty breathing", "not breathing", "bleeding",
     "unconscious", "stroke", "seizure", "collapsed", "heart attack",
     # Tamil
-    "nenji vali", "moochu varadhu", "iratha", "moochu pidikuthu",
+    "nenji vali", "moochu varadhu", "moochu pidikuthu", "iratha",
     # Hindi
-    "seene mein dard", "saans nahi", "khoon", "saans lene mein takleef",
+    "seene mein dard", "saans nahi", "saans lene mein takleef", "khoon",
     # Malayalam
     "nenjil vali", "shwasam muttunnu", "shwasam pidikkunnu", "iratha",
     # Polish
@@ -108,43 +109,64 @@ URGENT_SYMPTOMS = [
     "durere in piept", "dificultate de respiratie", "sângerare",
 ]
 
-NEGATION_WORDS = [
-    "illai", "illa", "varadhu", "varala", "ila",
-    "nahi", "nahin", "nhi", "mat", "na",
-    "nie", "brak", "bez", "no", "not", "don't", "dont",
-    "la", "laysa", "mish", "ma", "na",
-    "alla", "ill",
-]
+NEGATION_WORDS = {
+    "ta": ["illai", "illa", "varadhu", "varala", "ila"],
+    "hi": ["nahi", "nahin", "nhi", "mat", "na"],
+    "ml": ["illa", "alla", "illathe"],
+    "pl": ["nie", "brak", "bez"],
+    "ar": ["la", "laysa", "mish", "ma"],
+    "ur": ["nahi", "nahin", "na"],
+    "bn": ["na", "ni", "nay"],
+    "so": ["ma", "maya"],
+    "ro": ["nu", "nici"],
+}
 
-def is_negative(text):
+def is_negative(text, lang_code):
     lower = text.lower()
-    for word in NEGATION_WORDS:
+    for word in NEGATION_WORDS.get(lang_code, []):
         if word in lower:
             return True
     return False
 
-def needs_medical_consultation(text):
+def needs_medical_consultation(text, lang_code=None):
     lower = text.lower()
     has_urgent = any(phrase in lower for phrase in URGENT_SYMPTOMS)
-    has_negation = is_negative(text)
+    # Check negation in the text (any language)
+    has_negation = False
+    for words in NEGATION_WORDS.values():
+        for word in words:
+            if word in lower:
+                has_negation = True
+                break
+        if has_negation:
+            break
     return has_urgent and not has_negation
 
 # ============================================================
-# COMPLETE TRANSLATION DICTIONARY — ALL 9 LANGUAGES
+# TRANSLATION DICTIONARY (Nested per language)
 # ============================================================
 
-TRANSLATION_DICT = {}
+translations = {
+    "ta": {},  # Tamil
+    "hi": {},  # Hindi
+    "ml": {},  # Malayalam
+    "pl": {},  # Polish
+    "ar": {},  # Arabic
+    "ur": {},  # Urdu
+    "bn": {},  # Bengali
+    "so": {},  # Somali
+    "ro": {},  # Romanian
+}
 
-# ============================================================
-# STAFF PROMPTS — TAMIL
-# ============================================================
-
-STAFF_TAMIL = {
+# ========== TAMIL ==========
+translations["ta"] = {
+    # Staff prompts
     "good morning how can i help you": "காலை வணக்கம். நான் உங்களுக்கு எப்படி உதவ முடியும்?",
     "good morning. how can i help you": "காலை வணக்கம். நான் உங்களுக்கு எப்படி உதவ முடியும்?",
     "do you have an appointment": "உங்களுக்கு முன்பதிவு உள்ளதா?",
     "can i take your name and date of birth": "உங்கள் பெயரையும் பிறந்த தேதியையும் சொல்ல முடியுமா?",
     "please take a seat the doctor will see you shortly": "தயவு செய்து உட்காருங்கள். மருத்துவர் விரைவில் உங்களை பார்ப்பார்.",
+    "please take a seat. the doctor will see you shortly": "தயவு செய்து உட்காருங்கள். மருத்துவர் விரைவில் உங்களை பார்ப்பார்.",
     "do you need any assistance": "உங்களுக்கு உதவி தேவையா?",
     "is this your first visit": "இது உங்கள் முதல் வருகையா?",
     "do you have your nhs number": "உங்களிடம் என்.எச்.எஸ் எண் உள்ளதா?",
@@ -161,6 +183,8 @@ STAFF_TAMIL = {
     "please wait in the waiting area": "தயவு செய்து காத்திருக்கும் பகுதியில் காத்திருக்கவும்.",
     "the appointment will take about 15 minutes": "இந்த முன்பதிவு சுமார் 15 நிமிடங்கள் ஆகும்.",
     "please follow me to the consultation room": "தயவு செய்து என்னை பின்பற்றி ஆலோசனை அறைக்கு வாருங்கள்.",
+    "your appointment is at time": "உங்கள் முன்பதிவு [நேரம்] அன்று உள்ளது.",
+    "please arrive 10 minutes early": "தயவு செய்து 10 நிமிடங்கள் முன்னதாக வந்து சேருங்கள்.",
     "where is your pain": "உங்கள் வலி எங்கே?",
     "how long have you had this": "இது உங்களுக்கு எவ்வளவு காலமாக உள்ளது?",
     "do you have a fever": "உங்களுக்கு காய்ச்சல் உள்ளதா?",
@@ -175,263 +199,7 @@ STAFF_TAMIL = {
     "does anything make it better or worse": "ஏதாவது அதை சிறப்பாக அல்லது மோசமாக்குகிறதா?",
     "is there any bleeding": "ஏதேனும் இரத்தப்போக்கு உள்ளதா?",
     "when did the symptoms start": "அறிகுறிகள் எப்போது தொடங்கின?",
-}
-
-# ============================================================
-# STAFF PROMPTS — HINDI
-# ============================================================
-
-STAFF_HINDI = {
-    "good morning how can i help you": "सुप्रभात। मैं आपकी कैसे मदद कर सकता हूँ?",
-    "good morning. how can i help you": "सुप्रभात। मैं आपकी कैसे मदद कर सकता हूँ?",
-    "do you have an appointment": "क्या आपका कोई अपॉइंटमेंट है?",
-    "can i take your name and date of birth": "क्या मैं आपका नाम और जन्मतिथि ले सकता हूँ?",
-    "please take a seat the doctor will see you shortly": "कृपया बैठ जाइए। डॉक्टर जल्द ही आपसे मिलेंगे।",
-    "do you need any assistance": "क्या आपको किसी सहायता की आवश्यकता है?",
-    "is this your first visit": "क्या यह आपकी पहली यात्रा है?",
-    "do you have your nhs number": "क्या आपके पास एनएचएस नंबर है?",
-    "would you like to speak to someone": "क्या आप किसी से बात करना चाहेंगे?",
-    "please fill in this form": "कृपया यह फॉर्म भरें।",
-    "have you been here before": "क्या आप पहले यहाँ आ चुके हैं?",
-    "please wait the doctor will call you": "कृपया प्रतीक्षा करें। डॉक्टर आपको बुलाएंगे।",
-    "your appointment is confirmed": "आपका अपॉइंटमेंट पुष्टि हो गया है।",
-    "the doctor will see you now": "डॉक्टर अब आपसे मिलेंगे।",
-    "do you have your appointment letter": "क्या आपके पास अपॉइंटमेंट पत्र है?",
-    "please bring your medication list": "कृपया अपनी दवाओं की सूची लाएँ।",
-    "do you need an interpreter": "क्या आपको अनुवादक की आवश्यकता है?",
-    "is anyone with you today": "क्या आज आपके साथ कोई है?",
-    "please wait in the waiting area": "कृपया प्रतीक्षा क्षेत्र में प्रतीक्षा करें।",
-    "the appointment will take about 15 minutes": "अपॉइंटमेंट में लगभग 15 मिनट लगेंगे।",
-    "please follow me to the consultation room": "कृपया मेरे पीछे परामर्श कक्ष में चलें।",
-    "where is your pain": "आपको दर्द कहाँ हो रहा है?",
-    "how long have you had this": "यह आपको कितने दिनों से है?",
-    "do you have a fever": "क्या आपको बुखार है?",
-    "are you having difficulty breathing": "क्या आपको सांस लेने में कठिनाई हो रही है?",
-    "do you feel dizzy or faint": "क्या आपको चक्कर या बेहोशी महसूस हो रही है?",
-    "do you have chest pain": "क्या आपको सीने में दर्द है?",
-    "on a scale of 1 to 10 how severe is your pain": "1 से 10 के पैमाने पर आपका दर्द कितना गंभीर है?",
-    "do you have any allergies": "क्या आपको कोई एलर्जी है?",
-    "are you taking any medication": "क्या आप कोई दवा ले रहे हैं?",
-    "have you had this before": "क्या आपको यह पहले भी हुआ है?",
-    "do you have any other symptoms": "क्या आपको कोई अन्य लक्षण हैं?",
-    "does anything make it better or worse": "क्या किसी चीज़ से यह बेहतर या बदतर होता है?",
-    "is there any bleeding": "क्या कोई रक्तस्राव है?",
-    "when did the symptoms start": "लक्षण कब शुरू हुए?",
-}
-
-# ============================================================
-# STAFF PROMPTS — MALAYALAM
-# ============================================================
-
-STAFF_MALAYALAM = {
-    "good morning how can i help you": "സുപ്രഭാതം. എനിക്ക് നിങ്ങളെ എങ്ങനെ സഹായിക്കാനാകും?",
-    "do you have an appointment": "നിങ്ങൾക്ക് ഒരു അപ്പോയിന്റ്മെന്റ് ഉണ്ടോ?",
-    "can i take your name and date of birth": "എനിക്ക് നിങ്ങളുടെ പേരും ജനനത്തീയതിയും എടുക്കാമോ?",
-    "please take a seat the doctor will see you shortly": "ദയവായി ഇരിക്കുക. ഡോക്ടർ ഉടൻ നിങ്ങളെ കാണും.",
-    "do you need any assistance": "നിങ്ങൾക്ക് എന്തെങ്കിലും സഹായം വേണോ?",
-    "is this your first visit": "ഇത് നിങ്ങളുടെ ആദ്യ സന്ദർശനമാണോ?",
-    "do you have your nhs number": "നിങ്ങൾക്ക് എൻഎച്ച്എസ് നമ്പർ ഉണ്ടോ?",
-    "would you like to speak to someone": "നിങ്ങൾക്ക് ആരോടെങ്കിലും സംസാരിക്കാൻ ആഗ്രഹമുണ്ടോ?",
-    "please fill in this form": "ദയവായി ഈ ഫോം പൂരിപ്പിക്കുക.",
-    "have you been here before": "നിങ്ങൾ മുമ്പ് ഇവിടെ വന്നിട്ടുണ്ടോ?",
-    "please wait the doctor will call you": "ദയവായി കാത്തിരിക്കുക. ഡോക്ടർ നിങ്ങളെ വിളിക്കും.",
-    "your appointment is confirmed": "നിങ്ങളുടെ അപ്പോയിന്റ്മെന്റ് സ്ഥിരീകരിച്ചു.",
-    "the doctor will see you now": "ഡോക്ടർ ഇപ്പോൾ നിങ്ങളെ കാണും.",
-    "do you have your appointment letter": "നിങ്ങൾക്ക് അപ്പോയിന്റ്മെന്റ് കത്ത് ഉണ്ടോ?",
-    "please bring your medication list": "ദയവായി നിങ്ങളുടെ മരുന്നുകളുടെ പട്ടിക കൊണ്ടുവരിക.",
-    "do you need an interpreter": "നിങ്ങൾക്ക് ഒരു വ്യാഖ്യാതാവ് ആവശ്യമുണ്ടോ?",
-    "is anyone with you today": "ഇന്ന് നിങ്ങളോടൊപ്പം ആരെങ്കിലും ഉണ്ടോ?",
-    "please wait in the waiting area": "ദയവായി കാത്തിരിപ്പ് മേഖലയിൽ കാത്തിരിക്കുക.",
-    "where is your pain": "നിങ്ങളുടെ വേദന എവിടെയാണ്?",
-    "how long have you had this": "ഇത് നിങ്ങൾക്ക് എത്രകാലമായി?",
-    "do you have a fever": "നിങ്ങൾക്ക് പനി ഉണ്ടോ?",
-    "are you having difficulty breathing": "നിങ്ങൾക്ക് ശ്വസിക്കാൻ ബുദ്ധിമുട്ട് ഉണ്ടോ?",
-    "do you feel dizzy or faint": "നിങ്ങൾക്ക് തലകറക്കമോ ബോധക്ഷയമോ തോന്നുന്നുണ്ടോ?",
-    "do you have chest pain": "നിങ്ങൾക്ക് നെഞ്ചുവേദന ഉണ്ടോ?",
-    "do you have any allergies": "നിങ്ങൾക്ക് എന്തെങ്കിലും അലർജി ഉണ്ടോ?",
-    "are you taking any medication": "നിങ്ങൾ എന്തെങ്കിലും മരുന്ന് കഴിക്കുന്നുണ്ടോ?",
-    "have you had this before": "ഇത് നിങ്ങൾക്ക് മുമ്പ് ഉണ്ടായിട്ടുണ്ടോ?",
-}
-
-# ============================================================
-# STAFF PROMPTS — POLISH
-# ============================================================
-
-STAFF_POLISH = {
-    "good morning how can i help you": "Dzień dobry. Jak mogę pomóc?",
-    "do you have an appointment": "Czy ma pan umówioną wizytę?",
-    "can i take your name and date of birth": "Czy mogę prosić o imię i datę urodzenia?",
-    "please take a seat the doctor will see you shortly": "Proszę usiąść. Lekarz wkrótce pana przyjmie.",
-    "do you need any assistance": "Czy potrzebuje pan pomocy?",
-    "is this your first visit": "Czy to pana pierwsza wizyta?",
-    "do you have your nhs number": "Czy ma pan numer NHS?",
-    "would you like to speak to someone": "Czy chciałby pan z kimś porozmawiać?",
-    "please fill in this form": "Proszę wypełnić ten formularz.",
-    "have you been here before": "Czy był pan tu wcześniej?",
-    "please wait the doctor will call you": "Proszę czekać. Lekarz pana zawoła.",
-    "your appointment is confirmed": "Pana wizyta jest potwierdzona.",
-    "the doctor will see you now": "Lekarz teraz pana przyjmie.",
-    "where is your pain": "Gdzie pan odczuwa ból?",
-    "how long have you had this": "Jak długo ma pan ten problem?",
-    "do you have a fever": "Czy ma pan gorączkę?",
-    "are you having difficulty breathing": "Czy ma pan trudności z oddychaniem?",
-    "do you feel dizzy or faint": "Czy czuje pan zawroty głowy lub omdlenia?",
-    "do you have chest pain": "Czy ma pan ból w klatce piersiowej?",
-    "do you have any allergies": "Czy ma pan alergie?",
-    "are you taking any medication": "Czy przyjmuje pan leki?",
-    "have you had this before": "Czy miał pan to wcześniej?",
-}
-
-# ============================================================
-# STAFF PROMPTS — ARABIC
-# ============================================================
-
-STAFF_ARABIC = {
-    "good morning how can i help you": "صباح الخير. كيف يمكنني مساعدتك؟",
-    "do you have an appointment": "هل لديك موعد؟",
-    "can i take your name and date of birth": "هل يمكنني أخذ اسمك وتاريخ ميلادك؟",
-    "please take a seat the doctor will see you shortly": "يرجى الجلوس. سيراك الطبيب قريباً.",
-    "do you need any assistance": "هل تحتاج إلى أي مساعدة؟",
-    "is this your first visit": "هل هذه زيارتك الأولى؟",
-    "do you have your nhs number": "هل لديك رقم NHS الخاص بك؟",
-    "would you like to speak to someone": "هل ترغب في التحدث إلى شخص ما؟",
-    "please fill in this form": "يرجى ملء هذا النموذج.",
-    "have you been here before": "هل أتيت إلى هنا من قبل؟",
-    "please wait the doctor will call you": "يرجى الانتظار. سيتصل بك الطبيب.",
-    "your appointment is confirmed": "تم تأكيد موعدك.",
-    "the doctor will see you now": "سيراك الطبيب الآن.",
-    "where is your pain": "أين الألم؟",
-    "how long have you had this": "منذ متى وأنت تعاني من هذا؟",
-    "do you have a fever": "هل لديك حمى؟",
-    "are you having difficulty breathing": "هل تواجه صعوبة في التنفس؟",
-    "do you feel dizzy or faint": "هل تشعر بالدوار أو الإغماء؟",
-    "do you have chest pain": "هل تعاني من ألم في الصدر؟",
-    "do you have any allergies": "هل لديك أي حساسية؟",
-    "are you taking any medication": "هل تتناول أي دواء؟",
-    "have you had this before": "هل حدث لك هذا من قبل؟",
-}
-
-# ============================================================
-# STAFF PROMPTS — URDU
-# ============================================================
-
-STAFF_URDU = {
-    "good morning how can i help you": "صبح بخیر۔ میں آپ کی کیسے مدد کر سکتا ہوں؟",
-    "do you have an appointment": "کیا آپ کا کوئی اپوائنٹمنٹ ہے؟",
-    "can i take your name and date of birth": "کیا میں آپ کا نام اور تاریخ پیدائش لے سکتا ہوں؟",
-    "please take a seat the doctor will see you shortly": "براہ کرم بیٹھ جائیں۔ ڈاکٹر جلد آپ سے ملیں گے۔",
-    "do you need any assistance": "کیا آپ کو کسی مدد کی ضرورت ہے؟",
-    "is this your first visit": "کیا یہ آپ کا پہلا دورہ ہے؟",
-    "do you have your nhs number": "کیا آپ کے پاس این ایچ ایس نمبر ہے؟",
-    "would you like to speak to someone": "کیا آپ کسی سے بات کرنا چاہیں گے؟",
-    "please fill in this form": "براہ کرم یہ فارم پُر کریں۔",
-    "have you been here before": "کیا آپ پہلے یہاں آ چکے ہیں؟",
-    "please wait the doctor will call you": "براہ کرم انتظار کریں۔ ڈاکٹر آپ کو بلائیں گے۔",
-    "your appointment is confirmed": "آپ کا اپوائنٹمنٹ تصدیق ہو گیا ہے۔",
-    "the doctor will see you now": "ڈاکٹر اب آپ سے ملیں گے۔",
-    "where is your pain": "آپ کو درد کہاں ہے؟",
-    "how long have you had this": "یہ آپ کو کب سے ہے؟",
-    "do you have a fever": "کیا آپ کو بخار ہے؟",
-    "are you having difficulty breathing": "کیا آپ کو سانس لینے میں دشواری ہے؟",
-    "do you feel dizzy or faint": "کیا آپ کو چکر یا بے ہوشی محسوس ہو رہی ہے؟",
-    "do you have chest pain": "کیا آپ کو سینے میں درد ہے؟",
-    "do you have any allergies": "کیا آپ کو کوئی الرجی ہے؟",
-    "are you taking any medication": "کیا آپ کوئی دوا لے رہے ہیں؟",
-    "have you had this before": "کیا آپ کو یہ پہلے بھی ہوا ہے؟",
-}
-
-# ============================================================
-# STAFF PROMPTS — BENGALI
-# ============================================================
-
-STAFF_BENGALI = {
-    "good morning how can i help you": "সুপ্রভাত। আমি আপনাকে কীভাবে সাহায্য করতে পারি?",
-    "do you have an appointment": "আপনার কি কোনো অ্যাপয়েন্টমেন্ট আছে?",
-    "can i take your name and date of birth": "আমি কি আপনার নাম এবং জন্ম তারিখ নিতে পারি?",
-    "please take a seat the doctor will see you shortly": "দয়া করে বসুন। ডাক্তার শীঘ্রই আপনাকে দেখবেন।",
-    "do you need any assistance": "আপনার কি কোনো সাহায্যের প্রয়োজন?",
-    "is this your first visit": "এটি কি আপনার প্রথম দর্শন?",
-    "do you have your nhs number": "আপনার কি এনএইচএস নম্বর আছে?",
-    "would you like to speak to someone": "আপনি কি কারও সাথে কথা বলতে চান?",
-    "please fill in this form": "দয়া করে এই ফর্মটি পূরণ করুন।",
-    "have you been here before": "আপনি কি আগে এখানে এসেছেন?",
-    "please wait the doctor will call you": "দয়া করে অপেক্ষা করুন। ডাক্তার আপনাকে ডাকবেন।",
-    "your appointment is confirmed": "আপনার অ্যাপয়েন্টমেন্ট নিশ্চিত করা হয়েছে।",
-    "the doctor will see you now": "ডাক্তার এখন আপনাকে দেখবেন।",
-    "where is your pain": "আপনার ব্যথা কোথায়?",
-    "how long have you had this": "আপনার কতদিন ধরে এই সমস্যা?",
-    "do you have a fever": "আপনার কি জ্বর আছে?",
-    "are you having difficulty breathing": "আপনার কি শ্বাস নিতে কষ্ট হচ্ছে?",
-    "do you feel dizzy or faint": "আপনার কি মাথা ঘোরা বা অজ্ঞান হওয়ার অনুভূতি হচ্ছে?",
-    "do you have chest pain": "আপনার কি বুকে ব্যথা আছে?",
-    "do you have any allergies": "আপনার কি কোনো অ্যালার্জি আছে?",
-    "are you taking any medication": "আপনি কি কোনো ওষুধ খাচ্ছেন?",
-    "have you had this before": "আপনার কি আগেও এই সমস্যা হয়েছিল?",
-}
-
-# ============================================================
-# STAFF PROMPTS — SOMALI
-# ============================================================
-
-STAFF_SOMALI = {
-    "good morning how can i help you": "Subax wanaagsan. Sideen ku caawin karaa?",
-    "do you have an appointment": "Ma qabataa ballan?",
-    "can i take your name and date of birth": "Ma qaadan karaa magacaaga iyo taariikhda dhalashadaada?",
-    "please take a seat the doctor will see you shortly": "Fadlan fadhiiso. Dhakhtarka ayaa si dhaar ku arki doona.",
-    "do you need any assistance": "Ma u baahan tahay caawimaad?",
-    "is this your first visit": "Kani ma booqashadaada koowaad?",
-    "do you have your nhs number": "Ma haysataa lambarka NHS?",
-    "would you like to speak to someone": "Ma jeceshahay inaad qof la hadasho?",
-    "please fill in this form": "Fadlan buuxi foomkan.",
-    "have you been here before": "Ma horay u timid halkan?",
-    "please wait the doctor will call you": "Fadlan sug. Dhakhtarka ayaa kuu yeedhi doona.",
-    "your appointment is confirmed": "Ballaankaaga waa la xaqiijiyay.",
-    "the doctor will see you now": "Dhakhtarka ayaa hadda ku arki doona.",
-    "where is your pain": "Xanuunkaagu xaggee kuu jiraa?",
-    "how long have you had this": "Muddo intee leeg ayaad tan qabtaa?",
-    "do you have a fever": "Ma qabtaa qandho?",
-    "are you having difficulty breathing": "Ma adag tahay neefsashada?",
-    "do you feel dizzy or faint": "Ma dareemaysaa miyir beel ama dawakhaad?",
-    "do you have chest pain": "Ma qabtaa xanuun laabta?",
-    "do you have any allergies": "Ma qabtaa xasaasiyad?",
-    "are you taking any medication": "Ma qaadataa daawo?",
-    "have you had this before": "Ma horay kuu dhacday tan?",
-}
-
-# ============================================================
-# STAFF PROMPTS — ROMANIAN
-# ============================================================
-
-STAFF_ROMANIAN = {
-    "good morning how can i help you": "Bună dimineața. Cum vă pot ajuta?",
-    "do you have an appointment": "Aveți o programare?",
-    "can i take your name and date of birth": "Pot să vă iau numele și data nașterii?",
-    "please take a seat the doctor will see you shortly": "Vă rog să luați loc. Medicul vă va vedea în curând.",
-    "do you need any assistance": "Aveți nevoie de ajutor?",
-    "is this your first visit": "Este prima dvs. vizită?",
-    "do you have your nhs number": "Aveți numărul NHS?",
-    "would you like to speak to someone": "Doriți să vorbiți cu cineva?",
-    "please fill in this form": "Vă rugăm să completați acest formular.",
-    "have you been here before": "Ați mai fost aici înainte?",
-    "please wait the doctor will call you": "Vă rugăm să așteptați. Medicul vă va chema.",
-    "your appointment is confirmed": "Programarea dvs. este confirmată.",
-    "the doctor will see you now": "Medicul vă vede acum.",
-    "where is your pain": "Unde vă doare?",
-    "how long have you had this": "De cât timp aveți această problemă?",
-    "do you have a fever": "Aveți febră?",
-    "are you having difficulty breathing": "Aveți dificultăți de respirație?",
-    "do you feel dizzy or faint": "Vă simțiți amețit sau leșinat?",
-    "do you have chest pain": "Aveți durere în piept?",
-    "do you have any allergies": "Aveți alergii?",
-    "are you taking any medication": "Luați vreun medicament?",
-    "have you had this before": "Ați mai avut asta înainte?",
-}
-
-# ============================================================
-# PATIENT RESPONSES — ALL LANGUAGES
-# ============================================================
-
-PATIENT_TAMIL = {
+    # Patient responses
     "enaku nenji vali irukku": "I have chest pain",
     "enaku nenji vali iruku": "I have chest pain",
     "nenji vali irukku": "I have chest pain",
@@ -444,11 +212,18 @@ PATIENT_TAMIL = {
     "enaku thalai valikuthu": "I have a headache",
     "thalai vali irukku": "I have a headache",
     "thalai valikuthu": "my head is hurting",
+    "thalai vali": "headache",
     "enaku kaichal irukku": "I have a fever",
     "kaichal irukku": "I have a fever",
     "enaku vayiru vali irukku": "I have stomach pain",
     "vayiru vali irukku": "I have stomach pain",
+    "vayiru vali": "stomach pain",
+    "enaku kaal vali irukku": "I have leg pain",
+    "kaal vali": "leg pain",
+    "enaku kai vali irukku": "I have arm pain",
+    "kai vali": "arm pain",
     "thalai sutharuthu": "I feel dizzy",
+    "thalai sutru": "dizziness",
     "vanthi varuthu": "I feel like vomiting",
     "romba vali irukku": "I have severe pain",
     "enala moochu vida mudiyala": "I cannot breathe",
@@ -467,24 +242,76 @@ PATIENT_TAMIL = {
     "puriyala": "I do not understand",
     "help pannunga": "please help me",
     "nalla irukken": "I am fine",
+    "enakku romba vali": "I have severe pain",
+    "enakku thalaivali": "I have a headache",
+    "enakku kaichal": "I have a fever",
+    "enakku vayiru vali": "I have stomach pain",
+    "enakku kaal vali": "I have leg pain",
+    "enakku kai vali": "I have arm pain",
+    "enakku moochu pidikuthu": "I have breathing difficulty",
 }
 
-PATIENT_HINDI = {
+# ========== HINDI ==========
+translations["hi"] = {
+    # Staff prompts
+    "good morning how can i help you": "सुप्रभात। मैं आपकी कैसे मदद कर सकता हूँ?",
+    "good morning. how can i help you": "सुप्रभात। मैं आपकी कैसे मदद कर सकता हूँ?",
+    "do you have an appointment": "क्या आपका कोई अपॉइंटमेंट है?",
+    "can i take your name and date of birth": "क्या मैं आपका नाम और जन्मतिथि ले सकता हूँ?",
+    "please take a seat the doctor will see you shortly": "कृपया बैठ जाइए। डॉक्टर जल्द ही आपसे मिलेंगे।",
+    "please take a seat. the doctor will see you shortly": "कृपया बैठ जाइए। डॉक्टर जल्द ही आपसे मिलेंगे।",
+    "do you need any assistance": "क्या आपको किसी सहायता की आवश्यकता है?",
+    "is this your first visit": "क्या यह आपकी पहली यात्रा है?",
+    "do you have your nhs number": "क्या आपके पास एनएचएस नंबर है?",
+    "would you like to speak to someone": "क्या आप किसी से बात करना चाहेंगे?",
+    "please fill in this form": "कृपया यह फॉर्म भरें।",
+    "have you been here before": "क्या आप पहले यहाँ आ चुके हैं?",
+    "please wait the doctor will call you": "कृपया प्रतीक्षा करें। डॉक्टर आपको बुलाएंगे।",
+    "your appointment is confirmed": "आपका अपॉइंटमेंट पुष्टि हो गया है।",
+    "the doctor will see you now": "डॉक्टर अब आपसे मिलेंगे।",
+    "do you have your appointment letter": "क्या आपके पास अपॉइंटमेंट पत्र है?",
+    "please bring your medication list": "कृपया अपनी दवाओं की सूची लाएँ।",
+    "do you need an interpreter": "क्या आपको अनुवादक की आवश्यकता है?",
+    "is anyone with you today": "क्या आज आपके साथ कोई है?",
+    "please wait in the waiting area": "कृपया प्रतीक्षा क्षेत्र में प्रतीक्षा करें।",
+    "the appointment will take about 15 minutes": "अपॉइंटमेंट में लगभग 15 मिनट लगेंगे।",
+    "please follow me to the consultation room": "कृपया मेरे पीछे परामर्श कक्ष में चलें।",
+    "your appointment is at time": "आपका अपॉइंटमेंट [समय] पर है।",
+    "please arrive 10 minutes early": "कृपया 10 मिनट पहले आ जाएँ।",
+    "where is your pain": "आपको दर्द कहाँ हो रहा है?",
+    "how long have you had this": "यह आपको कितने दिनों से है?",
+    "do you have a fever": "क्या आपको बुखार है?",
+    "are you having difficulty breathing": "क्या आपको सांस लेने में कठिनाई हो रही है?",
+    "do you feel dizzy or faint": "क्या आपको चक्कर या बेहोशी महसूस हो रही है?",
+    "do you have chest pain": "क्या आपको सीने में दर्द है?",
+    "on a scale of 1 to 10 how severe is your pain": "1 से 10 के पैमाने पर आपका दर्द कितना गंभीर है?",
+    "do you have any allergies": "क्या आपको कोई एलर्जी है?",
+    "are you taking any medication": "क्या आप कोई दवा ले रहे हैं?",
+    "have you had this before": "क्या आपको यह पहले भी हुआ है?",
+    "do you have any other symptoms": "क्या आपको कोई अन्य लक्षण हैं?",
+    "does anything make it better or worse": "क्या किसी चीज़ से यह बेहतर या बदतर होता है?",
+    "is there any bleeding": "क्या कोई रक्तस्राव है?",
+    "when did the symptoms start": "लक्षण कब शुरू हुए?",
+    # Patient responses
     "mujhe chest mein dard hai": "I have chest pain",
     "seene mein dard hai": "I have chest pain",
     "mujhe seene mein dard hai": "I have chest pain",
+    "chest mein dard": "I have chest pain",
     "sar dard hai": "I have a headache",
     "mujhe sar dard hai": "I have a headache",
+    "sar mein dard": "headache",
     "bukhar hai": "I have a fever",
     "mujhe bukhar hai": "I have a fever",
     "pet mein dard hai": "I have stomach pain",
     "mujhe pet mein dard hai": "I have stomach pain",
+    "paaon mein dard hai": "I have leg pain",
+    "haath mein dard hai": "I have arm pain",
     "saans lene mein takleef hai": "I have difficulty breathing",
     "saans nahi aa rahi": "I cannot breathe",
     "chakkar aa raha hai": "I feel dizzy",
+    "ulti aa rahi hai": "I feel like vomiting",
     "bahut dard hai": "I have severe pain",
-    "mere pair mein dard ho raha hai": "I have leg pain",
-    "mere haath mein dard hai": "I have arm pain",
+    "dard hai": "I have pain",
     "chest mein dard nahi hai": "I do not have chest pain",
     "seene mein dard nahi hai": "I do not have chest pain",
     "sar dard nahi hai": "I do not have a headache",
@@ -498,9 +325,36 @@ PATIENT_HINDI = {
     "samajh nahi aaya": "I do not understand",
     "samajh aa gaya": "I understand",
     "meri madad karo": "please help me",
+    "mujhe dard": "I have pain",
+    "mujhe bukhar": "I have a fever",
+    "mujhe sar dard": "I have a headache",
+    "mujhe pet dard": "I have stomach pain",
 }
 
-PATIENT_MALAYALAM = {
+# ========== MALAYALAM ==========
+translations["ml"] = {
+    "good morning how can i help you": "സുപ്രഭാതം. എനിക്ക് നിങ്ങളെ എങ്ങനെ സഹായിക്കാനാകും?",
+    "do you have an appointment": "നിങ്ങൾക്ക് ഒരു അപ്പോയിന്റ്മെന്റ് ഉണ്ടോ?",
+    "can i take your name and date of birth": "എനിക്ക് നിങ്ങളുടെ പേരും ജനനത്തീയതിയും എടുക്കാമോ?",
+    "please take a seat the doctor will see you shortly": "ദയവായി ഇരിക്കുക. ഡോക്ടർ ഉടൻ നിങ്ങളെ കാണും.",
+    "do you need any assistance": "നിങ്ങൾക്ക് എന്തെങ്കിലും സഹായം വേണോ?",
+    "is this your first visit": "ഇത് നിങ്ങളുടെ ആദ്യ സന്ദർശനമാണോ?",
+    "do you have your nhs number": "നിങ്ങൾക്ക് എൻഎച്ച്എസ് നമ്പർ ഉണ്ടോ?",
+    "would you like to speak to someone": "നിങ്ങൾക്ക് ആരോടെങ്കിലും സംസാരിക്കാൻ ആഗ്രഹമുണ്ടോ?",
+    "please fill in this form": "ദയവായി ഈ ഫോം പൂരിപ്പിക്കുക.",
+    "have you been here before": "നിങ്ങൾ മുമ്പ് ഇവിടെ വന്നിട്ടുണ്ടോ?",
+    "please wait the doctor will call you": "ദയവായി കാത്തിരിക്കുക. ഡോക്ടർ നിങ്ങളെ വിളിക്കും.",
+    "your appointment is confirmed": "നിങ്ങളുടെ അപ്പോയിന്റ്മെന്റ് സ്ഥിരീകരിച്ചു.",
+    "the doctor will see you now": "ഡോക്ടർ ഇപ്പോൾ നിങ്ങളെ കാണും.",
+    "where is your pain": "നിങ്ങളുടെ വേദന എവിടെയാണ്?",
+    "how long have you had this": "ഇത് നിങ്ങൾക്ക് എത്രകാലമായി?",
+    "do you have a fever": "നിങ്ങൾക്ക് പനി ഉണ്ടോ?",
+    "are you having difficulty breathing": "നിങ്ങൾക്ക് ശ്വസിക്കാൻ ബുദ്ധിമുട്ട് ഉണ്ടോ?",
+    "do you feel dizzy or faint": "നിങ്ങൾക്ക് തലകറക്കമോ ബോധക്ഷയമോ തോന്നുന്നുണ്ടോ?",
+    "do you have chest pain": "നിങ്ങൾക്ക് നെഞ്ചുവേദന ഉണ്ടോ?",
+    "do you have any allergies": "നിങ്ങൾക്ക് എന്തെങ്കിലും അലർജി ഉണ്ടോ?",
+    "are you taking any medication": "നിങ്ങൾ എന്തെങ്കിലും മരുന്ന് കഴിക്കുന്നുണ്ടോ?",
+    "have you had this before": "ഇത് നിങ്ങൾക്ക് മുമ്പ് ഉണ്ടായിട്ടുണ്ടോ?",
     "nenjil vali undu": "I have chest pain",
     "nenjil vali und": "I have chest pain",
     "thalavalikkunnu": "I have a headache",
@@ -520,7 +374,29 @@ PATIENT_MALAYALAM = {
     "sahayam": "help me",
 }
 
-PATIENT_POLISH = {
+# ========== POLISH ==========
+translations["pl"] = {
+    "good morning how can i help you": "Dzień dobry. Jak mogę pomóc?",
+    "do you have an appointment": "Czy ma pan umówioną wizytę?",
+    "please take a seat the doctor will see you shortly": "Proszę usiąść. Lekarz wkrótce pana przyjmie.",
+    "do you need any assistance": "Czy potrzebuje pan pomocy?",
+    "is this your first visit": "Czy to pana pierwsza wizyta?",
+    "do you have your nhs number": "Czy ma pan numer NHS?",
+    "would you like to speak to someone": "Czy chciałby pan z kimś porozmawiać?",
+    "please fill in this form": "Proszę wypełnić ten formularz.",
+    "have you been here before": "Czy był pan tu wcześniej?",
+    "please wait the doctor will call you": "Proszę czekać. Lekarz pana zawoła.",
+    "your appointment is confirmed": "Pana wizyta jest potwierdzona.",
+    "the doctor will see you now": "Lekarz teraz pana przyjmie.",
+    "where is your pain": "Gdzie pan odczuwa ból?",
+    "how long have you had this": "Jak długo ma pan ten problem?",
+    "do you have a fever": "Czy ma pan gorączkę?",
+    "are you having difficulty breathing": "Czy ma pan trudności z oddychaniem?",
+    "do you feel dizzy or faint": "Czy czuje pan zawroty głowy lub omdlenia?",
+    "do you have chest pain": "Czy ma pan ból w klatce piersiowej?",
+    "do you have any allergies": "Czy ma pan alergie?",
+    "are you taking any medication": "Czy przyjmuje pan leki?",
+    "have you had this before": "Czy miał pan to wcześniej?",
     "mam bol w klatce piersiowej": "I have chest pain",
     "bol glowy": "I have a headache",
     "mam goraczke": "I have a fever",
@@ -530,9 +406,7 @@ PATIENT_POLISH = {
     "krecimi sie w glowie": "I feel dizzy",
     "bardzo boli": "I have severe pain",
     "nie mam bolu w klatce": "I do not have chest pain",
-    "nie mam bolu glowy": "I do not have a headache",
     "nie mam goraczki": "I do not have a fever",
-    "nie boli": "it does not hurt",
     "czuje sie dobrze": "I am fine",
     "tak": "yes",
     "nie": "no",
@@ -541,7 +415,29 @@ PATIENT_POLISH = {
     "pomocy": "help me",
 }
 
-PATIENT_ARABIC = {
+# ========== ARABIC ==========
+translations["ar"] = {
+    "good morning how can i help you": "صباح الخير. كيف يمكنني مساعدتك؟",
+    "do you have an appointment": "هل لديك موعد؟",
+    "please take a seat the doctor will see you shortly": "يرجى الجلوس. سيراك الطبيب قريباً.",
+    "do you need any assistance": "هل تحتاج إلى أي مساعدة؟",
+    "is this your first visit": "هل هذه زيارتك الأولى؟",
+    "do you have your nhs number": "هل لديك رقم NHS الخاص بك؟",
+    "would you like to speak to someone": "هل ترغب في التحدث إلى شخص ما؟",
+    "please fill in this form": "يرجى ملء هذا النموذج.",
+    "have you been here before": "هل أتيت إلى هنا من قبل؟",
+    "please wait the doctor will call you": "يرجى الانتظار. سيتصل بك الطبيب.",
+    "your appointment is confirmed": "تم تأكيد موعدك.",
+    "the doctor will see you now": "سيراك الطبيب الآن.",
+    "where is your pain": "أين الألم؟",
+    "how long have you had this": "منذ متى وأنت تعاني من هذا؟",
+    "do you have a fever": "هل لديك حمى؟",
+    "are you having difficulty breathing": "هل تواجه صعوبة في التنفس؟",
+    "do you feel dizzy or faint": "هل تشعر بالدوار أو الإغماء؟",
+    "do you have chest pain": "هل تعاني من ألم في الصدر؟",
+    "do you have any allergies": "هل لديك أي حساسية؟",
+    "are you taking any medication": "هل تتناول أي دواء؟",
+    "have you had this before": "هل حدث لك هذا من قبل؟",
     "عندي ألم في الصدر": "I have chest pain",
     "عندي صداع": "I have a headache",
     "عندي حمى": "I have a fever",
@@ -563,7 +459,29 @@ PATIENT_ARABIC = {
     "ساعدني": "help me",
 }
 
-PATIENT_URDU = {
+# ========== URDU ==========
+translations["ur"] = {
+    "good morning how can i help you": "صبح بخیر۔ میں آپ کی کیسے مدد کر سکتا ہوں؟",
+    "do you have an appointment": "کیا آپ کا کوئی اپوائنٹمنٹ ہے؟",
+    "please take a seat the doctor will see you shortly": "براہ کرم بیٹھ جائیں۔ ڈاکٹر جلد آپ سے ملیں گے۔",
+    "do you need any assistance": "کیا آپ کو کسی مدد کی ضرورت ہے؟",
+    "is this your first visit": "کیا یہ آپ کا پہلا دورہ ہے؟",
+    "do you have your nhs number": "کیا آپ کے پاس این ایچ ایس نمبر ہے؟",
+    "would you like to speak to someone": "کیا آپ کسی سے بات کرنا چاہیں گے؟",
+    "please fill in this form": "براہ کرم یہ فارم پُر کریں۔",
+    "have you been here before": "کیا آپ پہلے یہاں آ چکے ہیں؟",
+    "please wait the doctor will call you": "براہ کرم انتظار کریں۔ ڈاکٹر آپ کو بلائیں گے۔",
+    "your appointment is confirmed": "آپ کا اپوائنٹمنٹ تصدیق ہو گیا ہے۔",
+    "the doctor will see you now": "ڈاکٹر اب آپ سے ملیں گے۔",
+    "where is your pain": "آپ کو درد کہاں ہے؟",
+    "how long have you had this": "یہ آپ کو کب سے ہے؟",
+    "do you have a fever": "کیا آپ کو بخار ہے؟",
+    "are you having difficulty breathing": "کیا آپ کو سانس لینے میں دشواری ہے؟",
+    "do you feel dizzy or faint": "کیا آپ کو چکر یا بے ہوشی محسوس ہو رہی ہے؟",
+    "do you have chest pain": "کیا آپ کو سینے میں درد ہے؟",
+    "do you have any allergies": "کیا آپ کو کوئی الرجی ہے؟",
+    "are you taking any medication": "کیا آپ کوئی دوا لے رہے ہیں؟",
+    "have you had this before": "کیا آپ کو یہ پہلے بھی ہوا ہے؟",
     "میرے سینے میں درد ہے": "I have chest pain",
     "میرا سر درد ہے": "I have a headache",
     "مجھے بخار ہے": "I have a fever",
@@ -583,7 +501,29 @@ PATIENT_URDU = {
     "مدد کرو": "help me",
 }
 
-PATIENT_BENGALI = {
+# ========== BENGALI ==========
+translations["bn"] = {
+    "good morning how can i help you": "সুপ্রভাত। আমি আপনাকে কীভাবে সাহায্য করতে পারি?",
+    "do you have an appointment": "আপনার কি কোনো অ্যাপয়েন্টমেন্ট আছে?",
+    "please take a seat the doctor will see you shortly": "দয়া করে বসুন। ডাক্তার শীঘ্রই আপনাকে দেখবেন।",
+    "do you need any assistance": "আপনার কি কোনো সাহায্যের প্রয়োজন?",
+    "is this your first visit": "এটি কি আপনার প্রথম দর্শন?",
+    "do you have your nhs number": "আপনার কি এনএইচএস নম্বর আছে?",
+    "would you like to speak to someone": "আপনি কি কারও সাথে কথা বলতে চান?",
+    "please fill in this form": "দয়া করে এই ফর্মটি পূরণ করুন।",
+    "have you been here before": "আপনি কি আগে এখানে এসেছেন?",
+    "please wait the doctor will call you": "দয়া করে অপেক্ষা করুন। ডাক্তার আপনাকে ডাকবেন।",
+    "your appointment is confirmed": "আপনার অ্যাপয়েন্টমেন্ট নিশ্চিত করা হয়েছে।",
+    "the doctor will see you now": "ডাক্তার এখন আপনাকে দেখবেন।",
+    "where is your pain": "আপনার ব্যথা কোথায়?",
+    "how long have you had this": "আপনার কতদিন ধরে এই সমস্যা?",
+    "do you have a fever": "আপনার কি জ্বর আছে?",
+    "are you having difficulty breathing": "আপনার কি শ্বাস নিতে কষ্ট হচ্ছে?",
+    "do you feel dizzy or faint": "আপনার কি মাথা ঘোরা বা অজ্ঞান হওয়ার অনুভূতি হচ্ছে?",
+    "do you have chest pain": "আপনার কি বুকে ব্যথা আছে?",
+    "do you have any allergies": "আপনার কি কোনো অ্যালার্জি আছে?",
+    "are you taking any medication": "আপনি কি কোনো ওষুধ খাচ্ছেন?",
+    "have you had this before": "আপনার কি আগেও এই সমস্যা হয়েছিল?",
     "আমার বুকে ব্যথা": "I have chest pain",
     "আমার মাথা ব্যাথা": "I have a headache",
     "আমার জ্বর": "I have a fever",
@@ -603,7 +543,29 @@ PATIENT_BENGALI = {
     "সাহায্য করুন": "help me",
 }
 
-PATIENT_SOMALI = {
+# ========== SOMALI ==========
+translations["so"] = {
+    "good morning how can i help you": "Subax wanaagsan. Sideen ku caawin karaa?",
+    "do you have an appointment": "Ma qabataa ballan?",
+    "please take a seat the doctor will see you shortly": "Fadlan fadhiiso. Dhakhtarka ayaa si dhaar ku arki doona.",
+    "do you need any assistance": "Ma u baahan tahay caawimaad?",
+    "is this your first visit": "Kani ma booqashadaada koowaad?",
+    "do you have your nhs number": "Ma haysataa lambarka NHS?",
+    "would you like to speak to someone": "Ma jeceshahay inaad qof la hadasho?",
+    "please fill in this form": "Fadlan buuxi foomkan.",
+    "have you been here before": "Ma horay u timid halkan?",
+    "please wait the doctor will call you": "Fadlan sug. Dhakhtarka ayaa kuu yeedhi doona.",
+    "your appointment is confirmed": "Ballaankaaga waa la xaqiijiyay.",
+    "the doctor will see you now": "Dhakhtarka ayaa hadda ku arki doona.",
+    "where is your pain": "Xanuunkaagu xaggee kuu jiraa?",
+    "how long have you had this": "Muddo intee leeg ayaad tan qabtaa?",
+    "do you have a fever": "Ma qabtaa qandho?",
+    "are you having difficulty breathing": "Ma adag tahay neefsashada?",
+    "do you feel dizzy or faint": "Ma dareemaysaa miyir beel ama dawakhaad?",
+    "do you have chest pain": "Ma qabtaa xanuun laabta?",
+    "do you have any allergies": "Ma qabtaa xasaasiyad?",
+    "are you taking any medication": "Ma qaadataa daawo?",
+    "have you had this before": "Ma horay kuu dhacday tan?",
     "xanuun laabta": "I have chest pain",
     "madax xanuun": "I have a headache",
     "qandho": "I have a fever",
@@ -623,7 +585,29 @@ PATIENT_SOMALI = {
     "i caawi": "help me",
 }
 
-PATIENT_ROMANIAN = {
+# ========== ROMANIAN ==========
+translations["ro"] = {
+    "good morning how can i help you": "Bună dimineața. Cum vă pot ajuta?",
+    "do you have an appointment": "Aveți o programare?",
+    "please take a seat the doctor will see you shortly": "Vă rog să luați loc. Medicul vă va vedea în curând.",
+    "do you need any assistance": "Aveți nevoie de ajutor?",
+    "is this your first visit": "Este prima dvs. vizită?",
+    "do you have your nhs number": "Aveți numărul NHS?",
+    "would you like to speak to someone": "Doriți să vorbiți cu cineva?",
+    "please fill in this form": "Vă rugăm să completați acest formular.",
+    "have you been here before": "Ați mai fost aici înainte?",
+    "please wait the doctor will call you": "Vă rugăm să așteptați. Medicul vă va chema.",
+    "your appointment is confirmed": "Programarea dvs. este confirmată.",
+    "the doctor will see you now": "Medicul vă vede acum.",
+    "where is your pain": "Unde vă doare?",
+    "how long have you had this": "De cât timp aveți această problemă?",
+    "do you have a fever": "Aveți febră?",
+    "are you having difficulty breathing": "Aveți dificultăți de respirație?",
+    "do you feel dizzy or faint": "Vă simțiți amețit sau leșinat?",
+    "do you have chest pain": "Aveți durere în piept?",
+    "do you have any allergies": "Aveți alergii?",
+    "are you taking any medication": "Luați vreun medicament?",
+    "have you had this before": "Ați mai avut asta înainte?",
     "durere in piept": "I have chest pain",
     "durere de cap": "I have a headache",
     "febra": "I have a fever",
@@ -644,44 +628,31 @@ PATIENT_ROMANIAN = {
 }
 
 # ============================================================
-# BUILD COMPLETE TRANSLATION DICTIONARY
+# HELPER: Lookup translation in the selected language's dictionary
 # ============================================================
 
-TRANSLATION_DICT = {
-    **STAFF_TAMIL,
-    **STAFF_HINDI,
-    **STAFF_MALAYALAM,
-    **STAFF_POLISH,
-    **STAFF_ARABIC,
-    **STAFF_URDU,
-    **STAFF_BENGALI,
-    **STAFF_SOMALI,
-    **STAFF_ROMANIAN,
-    **PATIENT_TAMIL,
-    **PATIENT_HINDI,
-    **PATIENT_MALAYALAM,
-    **PATIENT_POLISH,
-    **PATIENT_ARABIC,
-    **PATIENT_URDU,
-    **PATIENT_BENGALI,
-    **PATIENT_SOMALI,
-    **PATIENT_ROMANIAN,
-}
-
-def lookup_translation(text):
+def lookup_translation(text, lang_code):
+    """Look up translation in the specific language dictionary."""
+    if not lang_code or lang_code not in translations:
+        return None
+    lang_dict = translations[lang_code]
     text_lower = text.lower().strip()
-    if text_lower in TRANSLATION_DICT:
-        return TRANSLATION_DICT[text_lower]
+    
+    # Exact match
+    if text_lower in lang_dict:
+        return lang_dict[text_lower]
+    
+    # Partial match (longest phrase wins)
     best_match = None
     best_length = 0
-    for phrase, translation in TRANSLATION_DICT.items():
+    for phrase, translation in lang_dict.items():
         if phrase in text_lower and len(phrase) > best_length:
             best_match = translation
             best_length = len(phrase)
     return best_match
 
 # ============================================================
-# SYMPTOM DETECTION — ALL LANGUAGES
+# SYMPTOM DETECTION (PER LANGUAGE)
 # ============================================================
 
 SYMPTOM_MAP = {
@@ -703,7 +674,6 @@ SYMPTOM_MAP = {
         "pet dard": "stomach pain",
         "chakkar": "dizziness",
         "ulti": "vomiting",
-        "pair mein dard": "leg pain",
     },
     "ml": {
         "nenjil vali": "chest pain",
@@ -711,7 +681,6 @@ SYMPTOM_MAP = {
         "thalavalikkunnu": "headache",
         "pani undu": "fever",
         "vayaril vali": "stomach pain",
-        "thala": "dizziness",
     },
     "pl": {
         "bol klatki": "chest pain",
@@ -719,7 +688,6 @@ SYMPTOM_MAP = {
         "bol glowy": "headache",
         "goraczka": "fever",
         "bol brzucha": "stomach pain",
-        "krecimi sie w glowie": "dizziness",
     },
     "ar": {
         "ألم في الصدر": "chest pain",
@@ -727,7 +695,6 @@ SYMPTOM_MAP = {
         "صداع": "headache",
         "حمى": "fever",
         "ألم في المعدة": "stomach pain",
-        "دوار": "dizziness",
     },
     "ur": {
         "سینے میں درد": "chest pain",
@@ -735,7 +702,6 @@ SYMPTOM_MAP = {
         "سر درد": "headache",
         "بخار": "fever",
         "پیٹ میں درد": "stomach pain",
-        "چکر": "dizziness",
     },
     "bn": {
         "বুকে ব্যথা": "chest pain",
@@ -743,7 +709,6 @@ SYMPTOM_MAP = {
         "মাথা ব্যাথা": "headache",
         "জ্বর": "fever",
         "পেটে ব্যথা": "stomach pain",
-        "মাথা ঘোরা": "dizziness",
     },
     "so": {
         "xanuun laabta": "chest pain",
@@ -751,7 +716,6 @@ SYMPTOM_MAP = {
         "madax xanuun": "headache",
         "qandho": "fever",
         "xanuun calool": "stomach pain",
-        "madhax wareeg": "dizziness",
     },
     "ro": {
         "durere in piept": "chest pain",
@@ -759,7 +723,6 @@ SYMPTOM_MAP = {
         "durere de cap": "headache",
         "febra": "fever",
         "durere de stomac": "stomach pain",
-        "amețeală": "dizziness",
     },
 }
 
@@ -772,7 +735,7 @@ def detect_symptom(text, lang_code):
     return None
 
 # ============================================================
-# GUIDED PROMPTS
+# GUIDED PROMPTS (English only)
 # ============================================================
 
 GUIDED_PROMPTS = {
@@ -821,21 +784,27 @@ GUIDED_PROMPTS = {
 }
 
 # ============================================================
-# TRANSLATION FUNCTIONS
+# TRANSLATION FUNCTIONS (USING SESSION LANGUAGE)
 # ============================================================
 
-def translate_to_english(text, lang_code="auto"):
-    builtin = lookup_translation(text)
+def translate_to_english(text, lang_code):
+    # 1. Look in the language-specific dictionary
+    builtin = lookup_translation(text, lang_code)
     if builtin:
         return builtin, None
+    
+    # 2. Try MyMemory API with the specific language
     try:
         from deep_translator import MyMemoryTranslator
+        # Try auto detection
         try:
             result = MyMemoryTranslator(source="auto", target="en-GB").translate(text)
             if result and result.strip().lower() != text.strip().lower():
                 return result, None
         except:
             pass
+        
+        # Try with language code
         if lang_code and lang_code != "auto":
             try:
                 target = get_lang_code(lang_code)
@@ -844,6 +813,8 @@ def translate_to_english(text, lang_code="auto"):
                     return result, None
             except:
                 pass
+        
+        # Fallback: try all supported languages
         for src in ["ta", "hi", "ml", "pl", "ar", "ur", "bn", "so", "ro"]:
             try:
                 target = get_lang_code(src)
@@ -852,6 +823,7 @@ def translate_to_english(text, lang_code="auto"):
                     return result, None
             except:
                 continue
+        
         return text, None
     except:
         return text, "Translation service unavailable"
@@ -859,13 +831,19 @@ def translate_to_english(text, lang_code="auto"):
 def translate_to_language(text, target_lang_code):
     if not text:
         return text, None
+    
+    # 1. Check cache
     cached = get_cached_translation(text, target_lang_code)
     if cached:
         return cached, None
-    builtin = lookup_translation(text)
+    
+    # 2. Look in the language-specific dictionary
+    builtin = lookup_translation(text, target_lang_code)
     if builtin:
         set_cached_translation(text, target_lang_code, builtin)
         return builtin, None
+    
+    # 3. Try MyMemory API
     try:
         from deep_translator import MyMemoryTranslator
         target = get_lang_code(target_lang_code)
@@ -935,30 +913,20 @@ def translate_staff():
     lang_code = session.get("lang_code", "ta")
     lang_name = session.get("lang", "Tamil")
 
-    for phrase, translation in TRANSLATION_DICT.items():
-        if raw_text.lower() == phrase.lower():
-            set_cached_translation(raw_text, lang_code, translation)
-            return jsonify({
-                "original": raw_text,
-                "simplified": raw_text,
-                "was_simplified": False,
-                "translated": translation,
-                "lang": lang_name,
-                "urgent": False,
-            })
-
-    lookup = lookup_translation(raw_text)
-    if lookup:
-        set_cached_translation(raw_text, lang_code, lookup)
+    # First, try to get translation from language-specific dictionary
+    translation = lookup_translation(raw_text, lang_code)
+    if translation:
+        set_cached_translation(raw_text, lang_code, translation)
         return jsonify({
             "original": raw_text,
             "simplified": raw_text,
             "was_simplified": False,
-            "translated": lookup,
+            "translated": translation,
             "lang": lang_name,
             "urgent": False,
         })
 
+    # If not in dictionary, simplify and use API
     simplified, was_simplified = simplify_text(raw_text)
     translated, error = translate_to_language(simplified, lang_code)
     if error:
@@ -983,16 +951,25 @@ def translate_patient():
     lang_code = session.get("lang_code", "ta")
     lang_name = session.get("lang", "Tamil")
 
-    english_text, error = translate_to_english(text, lang_code)
-    if error:
-        return jsonify({"error": "Could not translate. Please try again."}), 500
+    # Look up translation from language-specific dictionary
+    english_text = lookup_translation(text, lang_code)
+    if not english_text:
+        # Fallback to API
+        english_text, error = translate_to_english(text, lang_code)
+        if error:
+            return jsonify({"error": "Could not translate. Please try again."}), 500
 
+    # Detect symptom
     symptom = detect_symptom(text, lang_code)
-    medical_alert = needs_medical_consultation(text) or needs_medical_consultation(english_text or "")
+    # Medical alert
+    medical_alert = needs_medical_consultation(text, lang_code) or needs_medical_consultation(english_text, lang_code)
+
+    # Generate native script (just return the original for now, can be enhanced)
+    native_text = text
 
     return jsonify({
         "original": text,
-        "native": text,
+        "native": native_text,
         "translated": english_text,
         "lang": lang_name,
         "symptom_detected": symptom,
