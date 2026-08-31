@@ -1,3 +1,4 @@
-flask==3.0.3 
-deep-translator==1.11.4 
+flask
+deep-translator
+flask-login
 gunicorn==22.0.0
