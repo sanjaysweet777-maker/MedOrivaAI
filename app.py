@@ -25,8 +25,8 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 template_dir = os.path.join(BASE_DIR, 'templates')
 
 app = Flask(__name__, template_folder=template_dir)
-# Change this key to invalidate all old browser cookies
-app.secret_key = "medoriva-reset-force-login-2026-v2"
+# Change this secret string in app.py to invalidate all current sessions
+app.secret_key = "medoriva-force-logout-key-v3"
 # Standard session security settings (expires on browser close or logout)
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
