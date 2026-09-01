@@ -1,4 +1,6 @@
-flask
-deep-translator
-flask-login
-gunicorn==22.0.0
+flask>=3.0.0
+flask-login>=0.6.3
+deep-translator>=1.11.4
+gunicorn>=21.2.0
+requests>=2.31.0
+beautifulsoup4>=4.12.0
