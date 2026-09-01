@@ -4,9 +4,34 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>MedOriva AI — NHS Multilingual Communication</title>
-<link rel="stylesheet" href="/static/css/style.css"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+<style>
+  .top-pilot-banner {
+    background: linear-gradient(90deg, #0369a1, #0284c7);
+    color: #ffffff;
+    text-align: center;
+    padding: 9px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    width: 100%;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    position: sticky;
+    top: 0;
+    z-index: 9999;
+  }
+  .top-pilot-banner strong {
+    color: #ffffff;
+    font-weight: 700;
+  }
+</style>
 </head>
 <body>
+
+<!-- ═══ TOP PILOT BANNER ═════════════════════════════════════════════════ -->
+<div class="top-pilot-banner">
+  🚀 <strong>MedOriva AI Clinical Pilot:</strong> Early Access Version — Full Enterprise Suite Launching Soon.
+</div>
 
 <!-- ═══ SETUP SCREEN ═══════════════════════════════════════════════════════ -->
 <div id="setupScreen" class="screen active">
@@ -60,35 +85,35 @@
         <h2>2. Patient language</h2>
         <p class="card-hint">Select the language the patient speaks.</p>
         <div class="lang-grid">
-  <button class="lang-btn" data-lang="Tamil" data-code="ta" onclick="selectLang(this)">
-    <span class="flag">🇮🇳</span> Tamil
-  </button>
-  <button class="lang-btn" data-lang="Hindi" data-code="hi" onclick="selectLang(this)">
-    <span class="flag">🇮🇳</span> Hindi
-  </button>
-  <button class="lang-btn" data-lang="Malayalam" data-code="ml" onclick="selectLang(this)">
-    <span class="flag">🇮🇳</span> Malayalam
-  </button>
-  <button class="lang-btn" data-lang="Polish" data-code="pl" onclick="selectLang(this)">
-    <span class="flag">🇵🇱</span> Polish
-  </button>
-  <button class="lang-btn" data-lang="Arabic" data-code="ar" onclick="selectLang(this)">
-    <span class="flag">🇸🇦</span> Arabic
-  </button>
-  <button class="lang-btn" data-lang="Urdu" data-code="ur" onclick="selectLang(this)">
-    <span class="flag">🇵🇰</span> Urdu
-  </button>
-  <button class="lang-btn" data-lang="Bengali" data-code="bn" onclick="selectLang(this)">
-    <span class="flag">🇧🇩</span> Bengali
-  </button>
-  <button class="lang-btn" data-lang="Somali" data-code="so" onclick="selectLang(this)">
-    <span class="flag">🇸🇴</span> Somali
-  </button>
-  <button class="lang-btn" data-lang="Romanian" data-code="ro" onclick="selectLang(this)">
-    <span class="flag">🇷🇴</span> Romanian
-  </button>
-</div>
-   </div>
+          <button class="lang-btn" data-lang="Tamil" data-code="ta" onclick="selectLang(this)">
+            <span class="flag">🇮🇳</span> Tamil
+          </button>
+          <button class="lang-btn" data-lang="Hindi" data-code="hi" onclick="selectLang(this)">
+            <span class="flag">🇮🇳</span> Hindi
+          </button>
+          <button class="lang-btn" data-lang="Malayalam" data-code="ml" onclick="selectLang(this)">
+            <span class="flag">🇮🇳</span> Malayalam
+          </button>
+          <button class="lang-btn" data-lang="Polish" data-code="pl" onclick="selectLang(this)">
+            <span class="flag">🇵🇱</span> Polish
+          </button>
+          <button class="lang-btn" data-lang="Arabic" data-code="ar" onclick="selectLang(this)">
+            <span class="flag">🇸🇦</span> Arabic
+          </button>
+          <button class="lang-btn" data-lang="Urdu" data-code="ur" onclick="selectLang(this)">
+            <span class="flag">🇵🇰</span> Urdu
+          </button>
+          <button class="lang-btn" data-lang="Bengali" data-code="bn" onclick="selectLang(this)">
+            <span class="flag">🇧🇩</span> Bengali
+          </button>
+          <button class="lang-btn" data-lang="Somali" data-code="so" onclick="selectLang(this)">
+            <span class="flag">🇸🇴</span> Somali
+          </button>
+          <button class="lang-btn" data-lang="Romanian" data-code="ro" onclick="selectLang(this)">
+            <span class="flag">🇷🇴</span> Romanian
+          </button>
+        </div>
+      </div>
     </div>
 
     <button class="start-btn" id="startBtn" onclick="startSession()" disabled>
@@ -219,6 +244,6 @@
   </div>
 </div>
 
-<script src="/static/js/app.js"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>
