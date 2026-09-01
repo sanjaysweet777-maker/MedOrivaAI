@@ -4,8 +4,11 @@ import re
 import uuid
 
 from clinical_phrases import (
+    AFFIRMATION_PATTERNS,
     CLINICAL_DICTIONARY,
+    DURATION_PATTERNS,
     GUIDED_PROMPTS,
+    MULTI_LANG_SYMPTOMS,
     NEGATION_PATTERNS,
     SIMPLIFY_RULES,
     URGENT_SYMPTOMS_CONFIG,
@@ -13,6 +16,10 @@ from clinical_phrases import (
 from deep_translator import GoogleTranslator, MyMemoryTranslator
 from flask import Flask, flash, jsonify, redirect, render_template, request, session, url_for
 from flask_login import LoginManager, UserMixin, current_user, login_required, login_user, logout_user
+
+# ============================================================
+# APP CONFIGURATION & SESSION PERSISTENCE
+# ============================================================
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 template_dir = os.path.join(BASE_DIR, 'templates')
@@ -99,10 +106,46 @@ def simplify_text(text):
             simplified = result
     return simplified, changed
 
+# ============================================================
+# EXACT & HIGH-CONFIDENCE DICTIONARY LOOKUP
+# ============================================================
+
+def lookup_clinical_phrase(text, lang_code):
+    """Performs strict matching to avoid substring collisions."""
+    if not lang_code or lang_code not in CLINICAL_DICTIONARY:
+        return None
+    
+    lang_dict = CLINICAL_DICTIONARY[lang_code]
+    norm_input = normalize_text(text)
+    
+    # 1. Exact match
+    if norm_input in lang_dict:
+        return lang_dict[norm_input]
+    
+    # 2. Strict matching without partial question collisions
+    for phrase_key, data in lang_dict.items():
+        norm_key = normalize_text(phrase_key)
+        # Avoid overriding longer phrases like "how long do you have chest pain"
+        if norm_input == norm_key:
+            return data
+            
+    return None
+
+# ============================================================
+# MULTI-LANGUAGE PARSING ENGINE (For Phonetic / Romanized Text)
+# ============================================================
+
+def detect_affirmation(text, lang_code):
+    norm = f" {normalize_text(text)} "
+    tokens = norm.split()
+    for word in AFFIRMATION_PATTERNS.get(lang_code, []) + AFFIRMATION_PATTERNS["en"]:
+        if f" {normalize_text(word)} " in norm or word in tokens:
+            return True
+    return False
+
 def detect_negation(text, lang_code=None):
     norm = f" {normalize_text(text)} "
     tokens = norm.split()
-    
     if lang_code and lang_code in NEGATION_PATTERNS:
         for word in NEGATION_PATTERNS[lang_code]:
             clean_word = normalize_text(word)
@@ -115,8 +158,29 @@ def detect_negation(text, lang_code=None):
 
     return False
 
+def extract_duration(text):
+    for pattern, replacement in DURATION_PATTERNS:
+        if re.search(pattern, text, flags=re.IGNORECASE):
+            return re.search(pattern, text, flags=re.IGNORECASE).expand(replacement)
+    return None
+
+def extract_symptom(text, lang_code):
+    norm = normalize_text(text)
+    for sym_key, sym_data in MULTI_LANG_SYMPTOMS.items():
+        # Check language specific aliases
+        if lang_code in sym_data:
+            native_label, aliases = sym_data[lang_code]
+            for alias in aliases:
+                if normalize_text(alias) in norm:
+                    return sym_key, sym_data["english"], native_label
+        # Check universal English aliases
+        if sym_data["english"] in norm or sym_key in norm:
+            native_label = sym_data.get(lang_code, (sym_data["english"], []))[0]
+            return sym_key, sym_data["english"], native_label
+    return None, None, None
+
 def evaluate_medical_triage(original_text, english_text, lang_code):
-    combined_text = f"{normalize_text(original_text)} {normalize_text(english_text)}"
+    combined = f"{normalize_text(original_text)} {normalize_text(english_text)}"
     is_neg = detect_negation(original_text, lang_code) or detect_negation(english_text, "en")
     
     detected_symptom = None
@@ -124,7 +188,7 @@ def evaluate_medical_triage(original_text, english_text, lang_code):
     
     for symptom_name, phrase_list in URGENT_SYMPTOMS_CONFIG.items():
         for phrase in phrase_list:
-            if normalize_text(phrase) in combined_text:
+            if normalize_text(phrase) in combined:
                 detected_symptom = symptom_name
                 is_urgent = True
                 break
@@ -139,33 +203,16 @@ def evaluate_medical_triage(original_text, english_text, lang_code):
         "medical_alert": medical_alert
     }
 
-def lookup_clinical_phrase(text, lang_code):
-    if not lang_code or lang_code not in CLINICAL_DICTIONARY:
-        return None
-    
-    lang_dict = CLINICAL_DICTIONARY[lang_code]
-    norm_input = normalize_text(text)
-    
-    if norm_input in lang_dict:
-        return lang_dict[norm_input]
-    
-    best_match = None
-    best_len = 0
-    for phrase_key, data in lang_dict.items():
-        norm_key = normalize_text(phrase_key)
-        if norm_key in norm_input or norm_input in norm_key:
-            if len(norm_key) > best_len:
-                best_match = data
-                best_len = len(norm_key)
-                
-    return best_match
+# ============================================================
+# TRANSLATION HANDLERS
+# ============================================================
 
 def execute_online_translation(text, src, target):
     if not text:
         return ""
     try:
         res = GoogleTranslator(source=src, target=target).translate(text)
-        if res:
+        if res and res.strip().lower() != text.strip().lower():
             return res
     except Exception:
         pass
@@ -183,14 +230,17 @@ def translate_staff_to_native(text, target_lang_code):
     if not text:
         return "", None
 
+    # 1. Exact phrasebook lookup
     lookup = lookup_clinical_phrase(text, target_lang_code)
     if lookup:
         return lookup[1], None
 
+    # 2. Cache lookup
     cached = get_cached_translation(text, target_lang_code)
     if cached:
         return cached, None
 
+    # 3. Dynamic translation
     target = get_clean_lang_code(target_lang_code)
     translated = execute_online_translation(text, "en", target)
     
@@ -201,24 +251,62 @@ def translate_staff_to_native(text, target_lang_code):
     return text, "Translation unavailable"
 
 def translate_patient_input(text, lang_code):
+    """
+    Translates Patient input (Romanized or Native script) across all languages into:
+    1. Clean English for Staff
+    2. Pure Native Script for UI display
+    """
     if not text:
         return "", "", None
 
+    # 1. Exact match in phrasebook
     lookup = lookup_clinical_phrase(text, lang_code)
     if lookup:
         return lookup[0], lookup[1], None
 
+    # 2. If already written in Native Script (Non-Latin)
     if is_native_script(text):
-        native_trans = text
         target_src = get_clean_lang_code(lang_code)
         english_trans = execute_online_translation(text, target_src, "en")
-        return english_trans, native_trans, None
+        return english_trans, text, None
 
+    # 3. Intelligent Semantic Parser for Romanized / Phonetic Text
+    has_affirmation = detect_affirmation(text, lang_code)
+    has_negation = detect_negation(text, lang_code)
+    duration_str = extract_duration(text)
+    sym_key, sym_english, sym_native = extract_symptom(text, lang_code)
+
+    if sym_english:
+        english_parts = []
+        if has_affirmation:
+            english_parts.append("Yes,")
+        
+        if has_negation:
+            english_parts.append(f"I do not have {sym_english}")
+        else:
+            if duration_str:
+                english_parts.append(f"I have had {sym_english} {duration_str}")
+            else:
+                english_parts.append(f"I have {sym_english}")
+                
+        constructed_english = " ".join(english_parts)
+        
+        # Translate constructed English back to pure Native Script
+        target_clean = get_clean_lang_code(lang_code)
+        reconstructed_native = execute_online_translation(constructed_english, "en", target_clean)
+        
+        return constructed_english, reconstructed_native, None
+
+    # 4. Fallback for unlisted Romanized text
     english_trans = execute_online_translation(text, "auto", "en")
     target_clean = get_clean_lang_code(lang_code)
     native_trans = execute_online_translation(english_trans, "en", target_clean)
     
     return english_trans, native_trans, None
+
+# ============================================================
+# FLASK ROUTES
+# ============================================================
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
