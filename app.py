@@ -18,7 +18,7 @@ from flask import Flask, flash, jsonify, redirect, render_template, request, ses
 from flask_login import LoginManager, UserMixin, current_user, login_required, login_user, logout_user
 
 # ============================================================
-# APP CONFIGURATION & SESSION PERSISTENCE
+# APP INITIALIZATION & SECURITY CONFIGURATION
 # ============================================================
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -27,10 +27,13 @@ template_dir = os.path.join(BASE_DIR, 'templates')
 app = Flask(__name__, template_folder=template_dir)
 app.secret_key = os.environ.get("SECRET_KEY", "medoriva-clinical-mvp-secret-2026")
 
-app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=30)
-app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=30)
+# Standard session security settings (expires on browser close or logout)
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+
+# ============================================================
+# FLASK-LOGIN AUTHENTICATION
+# ============================================================
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -60,6 +63,10 @@ def unauthorized():
         return jsonify({"error": "Unauthorized", "message": "Session expired. Please log in again."}), 401
     return redirect(url_for('login', next=request.path))
 
+# ============================================================
+# CACHE & STRING NORMALIZATION
+# ============================================================
+
 translation_cache = {}
 
 def normalize_text(text):
@@ -82,6 +89,7 @@ def set_cached_translation(text, target_lang, result):
     translation_cache[cache_key] = result
 
 def reset_translation_session():
+    """Clears translation context without logging out the authenticated user."""
     keys_to_clear = ["session_id", "context", "lang", "lang_code", "active"]
     for key in keys_to_clear:
         session.pop(key, None)
@@ -125,7 +133,6 @@ def lookup_clinical_phrase(text, lang_code):
     # 2. Strict matching without partial question collisions
     for phrase_key, data in lang_dict.items():
         norm_key = normalize_text(phrase_key)
-        # Avoid overriding longer phrases like "how long do you have chest pain"
         if norm_input == norm_key:
             return data
             
@@ -167,13 +174,11 @@ def extract_duration(text):
 def extract_symptom(text, lang_code):
     norm = normalize_text(text)
     for sym_key, sym_data in MULTI_LANG_SYMPTOMS.items():
-        # Check language specific aliases
         if lang_code in sym_data:
             native_label, aliases = sym_data[lang_code]
             for alias in aliases:
                 if normalize_text(alias) in norm:
                     return sym_key, sym_data["english"], native_label
-        # Check universal English aliases
         if sym_data["english"] in norm or sym_key in norm:
             native_label = sym_data.get(lang_code, (sym_data["english"], []))[0]
             return sym_key, sym_data["english"], native_label
@@ -230,17 +235,14 @@ def translate_staff_to_native(text, target_lang_code):
     if not text:
         return "", None
 
-    # 1. Exact phrasebook lookup
     lookup = lookup_clinical_phrase(text, target_lang_code)
     if lookup:
         return lookup[1], None
 
-    # 2. Cache lookup
     cached = get_cached_translation(text, target_lang_code)
     if cached:
         return cached, None
 
-    # 3. Dynamic translation
     target = get_clean_lang_code(target_lang_code)
     translated = execute_online_translation(text, "en", target)
     
@@ -290,8 +292,6 @@ def translate_patient_input(text, lang_code):
                 english_parts.append(f"I have {sym_english}")
                 
         constructed_english = " ".join(english_parts)
-        
-        # Translate constructed English back to pure Native Script
         target_clean = get_clean_lang_code(lang_code)
         reconstructed_native = execute_online_translation(constructed_english, "en", target_clean)
         
@@ -324,8 +324,8 @@ def login():
 
         if email == DEMO_EMAIL.lower() and password == DEMO_PASSWORD:
             user = User(email)
-            login_user(user, remember=True)
-            session.permanent = True
+            # remember=False requires login after closing the browser / logging out
+            login_user(user, remember=False)
 
             if request.is_json:
                 return jsonify({"status": "ok", "redirect": url_for('index')})
@@ -346,7 +346,7 @@ def login():
 @login_required
 def logout():
     logout_user()
-    reset_translation_session()
+    session.clear()
     return redirect(url_for('login'))
 
 @app.route("/")
