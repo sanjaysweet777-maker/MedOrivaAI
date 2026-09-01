@@ -18,21 +18,20 @@ from flask import Flask, flash, jsonify, redirect, render_template, request, ses
 from flask_login import LoginManager, UserMixin, current_user, login_required, login_user, logout_user
 
 # ============================================================
-# APP INITIALIZATION & SECURITY CONFIGURATION
+# APP CONFIGURATION & SECURITY
 # ============================================================
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 template_dir = os.path.join(BASE_DIR, 'templates')
 
 app = Flask(__name__, template_folder=template_dir)
-# Change this secret string in app.py to invalidate all current sessions
-app.secret_key = "medoriva-force-logout-key-v3"
-# Standard session security settings (expires on browser close or logout)
+app.secret_key = os.environ.get("SECRET_KEY", "medoriva-clinical-mvp-secret-2026")
+
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
 # ============================================================
-# FLASK-LOGIN AUTHENTICATION
+# FLASK-LOGIN SETUP
 # ============================================================
 
 login_manager = LoginManager()
@@ -62,6 +61,24 @@ def unauthorized():
     if request.path.startswith('/api/'):
         return jsonify({"error": "Unauthorized", "message": "Session expired. Please log in again."}), 401
     return redirect(url_for('login', next=request.path))
+
+# ============================================================
+# PUBLIC HEALTH CHECKS (Render Monitoring)
+# ============================================================
+
+@app.route("/api/ping", methods=["GET"])
+def ping():
+    """Public health check endpoint for Render (NO @login_required)."""
+    return jsonify({
+        "status": "ok",
+        "service": "MedOriva AI",
+        "healthy": True
+    }), 200
+
+@app.route("/healthz", methods=["GET"])
+def healthz():
+    """Alternative standard health check path."""
+    return jsonify({"status": "ok"}), 200
 
 # ============================================================
 # CACHE & STRING NORMALIZATION
@@ -115,32 +132,25 @@ def simplify_text(text):
     return simplified, changed
 
 # ============================================================
-# EXACT & HIGH-CONFIDENCE DICTIONARY LOOKUP
+# EXACT MATCH & PARSING UTILITIES
 # ============================================================
 
 def lookup_clinical_phrase(text, lang_code):
-    """Performs strict matching to avoid substring collisions."""
     if not lang_code or lang_code not in CLINICAL_DICTIONARY:
         return None
     
     lang_dict = CLINICAL_DICTIONARY[lang_code]
     norm_input = normalize_text(text)
     
-    # 1. Exact match
     if norm_input in lang_dict:
         return lang_dict[norm_input]
     
-    # 2. Strict matching without partial question collisions
     for phrase_key, data in lang_dict.items():
         norm_key = normalize_text(phrase_key)
         if norm_input == norm_key:
             return data
             
     return None
-
-# ============================================================
-# MULTI-LANGUAGE PARSING ENGINE (For Phonetic / Romanized Text)
-# ============================================================
 
 def detect_affirmation(text, lang_code):
     norm = f" {normalize_text(text)} "
@@ -209,7 +219,7 @@ def evaluate_medical_triage(original_text, english_text, lang_code):
     }
 
 # ============================================================
-# TRANSLATION HANDLERS
+# TRANSLATION ENGINES
 # ============================================================
 
 def execute_online_translation(text, src, target):
@@ -253,26 +263,18 @@ def translate_staff_to_native(text, target_lang_code):
     return text, "Translation unavailable"
 
 def translate_patient_input(text, lang_code):
-    """
-    Translates Patient input (Romanized or Native script) across all languages into:
-    1. Clean English for Staff
-    2. Pure Native Script for UI display
-    """
     if not text:
         return "", "", None
 
-    # 1. Exact match in phrasebook
     lookup = lookup_clinical_phrase(text, lang_code)
     if lookup:
         return lookup[0], lookup[1], None
 
-    # 2. If already written in Native Script (Non-Latin)
     if is_native_script(text):
         target_src = get_clean_lang_code(lang_code)
         english_trans = execute_online_translation(text, target_src, "en")
         return english_trans, text, None
 
-    # 3. Intelligent Semantic Parser for Romanized / Phonetic Text
     has_affirmation = detect_affirmation(text, lang_code)
     has_negation = detect_negation(text, lang_code)
     duration_str = extract_duration(text)
@@ -297,7 +299,6 @@ def translate_patient_input(text, lang_code):
         
         return constructed_english, reconstructed_native, None
 
-    # 4. Fallback for unlisted Romanized text
     english_trans = execute_online_translation(text, "auto", "en")
     target_clean = get_clean_lang_code(lang_code)
     native_trans = execute_online_translation(english_trans, "en", target_clean)
@@ -305,7 +306,7 @@ def translate_patient_input(text, lang_code):
     return english_trans, native_trans, None
 
 # ============================================================
-# FLASK ROUTES
+# APPLICATION ROUTES
 # ============================================================
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -324,7 +325,6 @@ def login():
 
         if email == DEMO_EMAIL.lower() and password == DEMO_PASSWORD:
             user = User(email)
-            # remember=False requires login after closing the browser / logging out
             login_user(user, remember=False)
 
             if request.is_json:
@@ -353,11 +353,6 @@ def logout():
 @login_required
 def index():
     return render_template("index.html")
-
-@app.route("/api/ping", methods=["GET"])
-@login_required
-def ping():
-    return jsonify({"status": "Flask is running", "session": dict(session)})
 
 @app.route("/api/start_session", methods=["POST"])
 @login_required
