@@ -3,22 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MedOriva AI — Real-Time Multilingual Clinical Communication & Triage</title>
-    <meta name="description" content="AI-powered medical communication and triage safety assistant for NHS trusts, emergency departments, and GP reception desks.">
+    <title>MedOriva AI — Multilingual Clinical Intake & Triage Support</title>
+    <meta name="description" content="AI-powered multilingual communication aid and real-time triage safety assistant for NHS trusts, emergency departments, and GP surgeries.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #0F6E56;
-            --primary-dark: #0a5a45;
+            --primary-dark: #0a5240;
             --primary-light: #14b8a6;
-            --bg-dark: #0f172a;
-            --bg-card: #1e293b;
-            --border: #334155;
+            --primary-glow: rgba(15, 110, 86, 0.25);
+            --bg-dark: #0b1329;
+            --bg-card: #151f38;
+            --bg-card-hover: #1c2a4c;
+            --border: #263556;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --accent-red: #ef4444;
+            --accent-green: #10b981;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
@@ -26,13 +29,14 @@
 
         /* Announcement Bar */
         .top-banner {
-            background: linear-gradient(90deg, #0F6E56, #14b8a6);
+            background: linear-gradient(90deg, #0a5240 0%, #0F6E56 50%, #14b8a6 100%);
             color: #ffffff;
             text-align: center;
             padding: 9px 16px;
             font-size: 13px;
             font-weight: 600;
             letter-spacing: 0.3px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         /* Navigation */
@@ -40,9 +44,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 18px 40px;
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(10px);
+            padding: 18px 48px;
+            background: rgba(11, 19, 41, 0.92);
+            backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--border);
             position: sticky;
             top: 0;
@@ -54,14 +58,15 @@
             gap: 12px;
             text-decoration: none;
             color: var(--text-main);
-            font-size: 20px;
+            font-size: 21px;
             font-weight: 800;
+            letter-spacing: -0.5px;
         }
-        .nav-brand .brand-teal { color: var(--primary); }
+        .nav-brand .brand-teal { color: var(--primary-light); }
         .nav-links {
             display: flex;
             align-items: center;
-            gap: 28px;
+            gap: 32px;
             list-style: none;
         }
         .nav-links a {
@@ -69,32 +74,41 @@
             text-decoration: none;
             font-size: 14px;
             font-weight: 500;
-            transition: color 0.2s;
+            transition: color 0.2s ease;
         }
-        .nav-links a:hover { color: var(--text-main); }
+        .nav-links a:hover { color: #fff; }
         .btn-portal {
-            background: var(--primary);
+            background: linear-gradient(135deg, var(--primary) 0%, #108569 100%);
             color: #fff !important;
-            padding: 9px 18px;
+            padding: 10px 20px;
             border-radius: 8px;
             font-weight: 600;
-            transition: background 0.2s;
+            font-size: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 12px var(--primary-glow);
+            transition: transform 0.2s, box-shadow 0.2s;
         }
-        .btn-portal:hover { background: var(--primary-dark); }
+        .btn-portal:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px var(--primary-glow);
+        }
 
         /* Hero Section */
         .hero {
-            padding: 90px 24px 60px;
-            max-width: 1100px;
+            padding: 96px 24px 72px;
+            max-width: 1120px;
             margin: 0 auto;
             text-align: center;
+            position: relative;
         }
         .badge {
-            display: inline-block;
-            background: rgba(15, 110, 86, 0.15);
-            border: 1px solid rgba(15, 110, 86, 0.35);
-            color: #14b8a6;
-            padding: 5px 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(15, 110, 86, 0.18);
+            border: 1px solid rgba(20, 184, 166, 0.35);
+            color: var(--primary-light);
+            padding: 6px 16px;
             border-radius: 9999px;
             font-size: 12px;
             font-weight: 700;
@@ -102,214 +116,246 @@
             letter-spacing: 0.8px;
             margin-bottom: 24px;
         }
+        .badge-dot { width: 7px; height: 7px; background: var(--primary-light); border-radius: 50%; box-shadow: 0 0 8px var(--primary-light); }
         .hero h1 {
-            font-size: 48px;
+            font-size: 52px;
             font-weight: 800;
-            line-height: 1.2;
-            margin-bottom: 22px;
-            background: linear-gradient(135deg, #ffffff 40%, #94a3b8 100%);
+            line-height: 1.15;
+            margin-bottom: 24px;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, #ffffff 40%, #cbd5e1 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         .hero p {
-            font-size: 18px;
+            font-size: 19px;
             color: var(--text-muted);
-            max-width: 780px;
+            max-width: 820px;
             margin: 0 auto 36px;
+            font-weight: 400;
         }
         .hero-actions {
             display: flex;
             justify-content: center;
             gap: 16px;
             flex-wrap: wrap;
+            margin-bottom: 30px;
         }
         .btn-primary {
             background: var(--primary);
             color: #fff;
-            padding: 14px 28px;
+            padding: 15px 32px;
             border-radius: 8px;
             font-size: 15px;
             font-weight: 600;
             text-decoration: none;
-            transition: background 0.2s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: background 0.2s, transform 0.2s;
         }
-        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
         .btn-secondary {
             background: var(--bg-card);
             color: #fff;
             border: 1px solid var(--border);
-            padding: 14px 28px;
+            padding: 15px 32px;
             border-radius: 8px;
             font-size: 15px;
             font-weight: 600;
             text-decoration: none;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, background 0.2s;
         }
-        .btn-secondary:hover { border-color: #64748b; }
+        .btn-secondary:hover { border-color: var(--primary-light); background: var(--bg-card-hover); }
 
         /* Trust Strip */
         .trust-strip {
             display: flex;
             justify-content: center;
-            gap: 40px;
+            gap: 36px;
             flex-wrap: wrap;
-            margin-top: 50px;
-            padding: 20px;
+            margin-top: 40px;
+            padding: 22px;
             border-top: 1px solid var(--border);
             border-bottom: 1px solid var(--border);
             color: var(--text-muted);
             font-size: 13px;
         }
-        .trust-item { display: flex; align-items: center; gap: 8px; font-weight: 500; }
+        .trust-item { display: flex; align-items: center; gap: 8px; font-weight: 600; color: #cbd5e1; }
 
-        /* Section Layouts */
+        /* Section Global */
         .section { padding: 90px 24px; max-width: 1150px; margin: 0 auto; }
         .section-header { text-align: center; margin-bottom: 56px; }
-        .section-header h2 { font-size: 32px; font-weight: 700; margin-bottom: 12px; }
-        .section-header p { color: var(--text-muted); font-size: 16px; max-width: 600px; margin: 0 auto; }
+        .section-header h2 { font-size: 34px; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.5px; }
+        .section-header p { color: var(--text-muted); font-size: 16px; max-width: 620px; margin: 0 auto; }
 
-        /* Feature Cards Grid */
+        /* Capabilities Grid */
         .grid-3 {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
             gap: 24px;
         }
         .card {
             background: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 30px;
-            transition: transform 0.2s, border-color 0.2s;
+            border-radius: 14px;
+            padding: 32px;
+            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
         }
-        .card:hover { transform: translateY(-3px); border-color: var(--primary); }
+        .card:hover { transform: translateY(-4px); border-color: var(--primary-light); box-shadow: 0 12px 24px -8px rgba(0,0,0,0.3); }
         .card-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 10px;
-            background: rgba(15, 110, 86, 0.12);
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: rgba(15, 110, 86, 0.15);
             color: var(--primary-light);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 22px;
-            margin-bottom: 18px;
+            font-size: 24px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(20, 184, 166, 0.2);
         }
-        .card h3 { font-size: 18px; margin-bottom: 10px; }
+        .card h3 { font-size: 19px; margin-bottom: 12px; font-weight: 700; color: #fff; }
         .card p { color: var(--text-muted); font-size: 14px; line-height: 1.6; }
 
-        /* About Section */
-        .about-box {
-            background: var(--bg-card);
+        /* Clinical Governance Box */
+        .safety-box {
+            background: linear-gradient(180deg, var(--bg-card) 0%, rgba(21, 31, 56, 0.6) 100%);
             border: 1px solid var(--border);
-            border-radius: 16px;
+            border-radius: 18px;
             padding: 48px;
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 48px;
             align-items: center;
         }
-        .about-text h3 { font-size: 24px; margin-bottom: 16px; }
-        .about-text p { color: var(--text-muted); margin-bottom: 16px; font-size: 15px; }
-        .about-stats {
+        .safety-text h3 { font-size: 26px; font-weight: 800; margin-bottom: 16px; letter-spacing: -0.5px; }
+        .safety-text p { color: var(--text-muted); margin-bottom: 18px; font-size: 15px; }
+        .safety-stats {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 18px;
+            gap: 16px;
         }
         .stat-card {
-            background: #0f172a;
+            background: #0b1329;
             border: 1px solid var(--border);
-            padding: 20px;
-            border-radius: 10px;
+            padding: 22px;
+            border-radius: 12px;
             text-align: center;
         }
-        .stat-number { font-size: 30px; font-weight: 800; color: var(--primary-light); margin-bottom: 4px; }
-        .stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+        .stat-number { font-size: 32px; font-weight: 800; color: var(--primary-light); margin-bottom: 4px; }
+        .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
 
-        /* Contact Section */
+        /* FAQ Section */
+        .faq-list { max-width: 840px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+        .faq-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .faq-question {
+            padding: 18px 24px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+        .faq-question:hover { color: var(--primary-light); }
+        .faq-answer {
+            padding: 0 24px 20px;
+            font-size: 14px;
+            color: var(--text-muted);
+            display: none;
+            line-height: 1.7;
+        }
+        .faq-item.active .faq-answer { display: block; }
+        .faq-item.active .faq-toggle { transform: rotate(45deg); color: var(--primary-light); }
+        .faq-toggle { font-size: 20px; transition: transform 0.2s ease; }
+
+        /* Contact Form */
         .contact-wrapper {
             background: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 16px;
+            border-radius: 18px;
             padding: 48px;
-            max-width: 800px;
+            max-width: 840px;
             margin: 0 auto;
         }
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: #cbd5e1; }
         .form-control {
             width: 100%;
-            padding: 12px 16px;
-            background: #0f172a;
+            padding: 13px 16px;
+            background: #0b1329;
             border: 1px solid var(--border);
             border-radius: 8px;
             color: #fff;
             font-size: 14px;
             outline: none;
+            transition: border-color 0.2s;
         }
-        .form-control:focus { border-color: var(--primary); }
+        .form-control:focus { border-color: var(--primary-light); }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 
         /* Footer */
         footer {
-            background: #090d16;
+            background: #070c1a;
             border-top: 1px solid var(--border);
-            padding: 60px 24px 30px;
+            padding: 64px 24px 32px;
             font-size: 13px;
             color: var(--text-muted);
+        }
+        .disclaimer-box {
+            max-width: 1150px;
+            margin: 0 auto 36px;
+            padding: 16px 20px;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            background: rgba(239, 68, 68, 0.08);
+            border-radius: 10px;
+            font-size: 12px;
+            color: #fca5a5;
+            line-height: 1.6;
         }
         .footer-grid {
             max-width: 1150px;
             margin: 0 auto;
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr;
-            gap: 40px;
-            margin-bottom: 40px;
+            grid-template-columns: 2fr 1fr 1fr 1.2fr;
+            gap: 44px;
+            margin-bottom: 44px;
         }
-        .footer-col h4 { color: #fff; font-size: 14px; margin-bottom: 16px; font-weight: 700; }
+        .footer-col h4 { color: #fff; font-size: 14px; margin-bottom: 18px; font-weight: 700; }
         .footer-col ul { list-style: none; }
         .footer-col ul li { margin-bottom: 10px; }
         .footer-col ul li a { color: var(--text-muted); text-decoration: none; transition: color 0.2s; cursor: pointer; }
         .footer-col ul li a:hover { color: #fff; }
-        .disclaimer-box {
-            max-width: 1150px;
-            margin: 0 auto 30px;
-            padding: 16px 20px;
-            border: 1px solid rgba(239, 68, 68, 0.25);
-            background: rgba(239, 68, 68, 0.08);
-            border-radius: 8px;
-            font-size: 12px;
-            color: #fca5a5;
-            line-height: 1.5;
-        }
         .footer-bottom {
             max-width: 1150px;
             margin: 0 auto;
             padding-top: 24px;
-            border-top: 1px solid #1e293b;
+            border-top: 1px solid #1c2640;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 12px;
-        }
-        .footer-bottom .company-details {
-            font-size: 12px;
-            color: var(--text-muted);
-            text-align: center;
+            gap: 14px;
         }
 
-        /* UK GDPR Cookie Consent Banner */
+        /* UK GDPR Cookie Banner */
         .cookie-banner {
             position: fixed;
             bottom: 20px;
             left: 20px;
             right: 20px;
             max-width: 580px;
-            background: #1e293b;
-            border: 1px solid #475569;
+            background: #151f38;
+            border: 1px solid #334155;
             border-radius: 12px;
             padding: 22px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.7);
             z-index: 99999;
             display: none;
         }
@@ -333,22 +379,22 @@
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(4px);
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
             z-index: 100000;
             align-items: center;
             justify-content: center;
             padding: 20px;
         }
         .modal-content {
-            background: #1e293b;
+            background: #151f38;
             border: 1px solid var(--border);
-            border-radius: 12px;
-            max-width: 720px;
+            border-radius: 14px;
+            max-width: 740px;
             width: 100%;
             max-height: 85vh;
             overflow-y: auto;
-            padding: 32px;
+            padding: 36px;
             position: relative;
         }
         .modal-close {
@@ -362,39 +408,40 @@
         }
         .modal-content h3 { font-size: 22px; margin-bottom: 16px; color: #fff; }
         .modal-content h4 { font-size: 15px; margin: 18px 0 8px; color: var(--primary-light); }
-        .modal-content p, .modal-content li { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
+        .modal-content p, .modal-content li { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.6; }
         .modal-content ul { padding-left: 20px; }
 
         @media(max-width: 768px) {
             .hero h1 { font-size: 34px; }
-            .about-box { grid-template-columns: 1fr; }
+            .safety-box { grid-template-columns: 1fr; }
             .footer-grid { grid-template-columns: 1fr; }
             .form-row { grid-template-columns: 1fr; }
-            nav { padding: 14px 20px; flex-wrap: wrap; gap: 15px; }
-            .nav-links { flex-wrap: wrap; justify-content: center; gap: 15px; }
+            nav { padding: 14px 20px; }
+            .nav-links { display: none; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Announcement Bar -->
+    <!-- Top Announcement Bar -->
     <div class="top-banner">
-        🚀 MedOriva AI Clinical Pilot: Early Access Preview — Full Enterprise Suite Launching Soon.
+        🚀 MedOriva AI Clinical Pilot: Early Access Preview — Enterprise Suite Launching Soon.
     </div>
 
-    <!-- Navigation -->
+    <!-- Navigation Header -->
     <nav>
         <a href="/" class="nav-brand">
-            <svg width="30" height="30" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg width="32" height="32" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect width="36" height="36" rx="8" fill="#0F6E56"/>
                 <path d="M8 22 Q13 12 18 18 Q23 24 28 14" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-                <circle cx="18" cy="10" r="3" fill="#ffffff"/>
+                <circle cx="18" cy="10" r="3.5" fill="#14b8a6"/>
             </svg>
-            <span class="brand-teal">MedOriva</span> AI
+            <span><span class="brand-teal">MedOriva</span> AI</span>
         </a>
         <ul class="nav-links">
             <li><a href="#services">Services</a></li>
-            <li><a href="#clinical-safety">Safety Protocol</a></li>
+            <li><a href="#clinical-safety">Safety &amp; DCB0129</a></li>
+            <li><a href="#faq">Assurance &amp; FAQ</a></li>
             <li><a href="#about">About Us</a></li>
             <li><a href="#contact">Contact</a></li>
             <li><a href="/login" class="btn-portal">Staff Portal Login</a></li>
@@ -403,11 +450,15 @@
 
     <!-- Hero Section -->
     <section class="hero">
-        <span class="badge">NHS Multilingual Communication Support</span>
-        <h1>Bridging Critical Language Gaps in Healthcare Consultations</h1>
+        <div class="badge">
+            <span class="badge-dot"></span>
+            NHS Multilingual Communication &amp; Triage Safety
+        </div>
+        <h1>Bridging Critical Language Gaps in Acute Healthcare Consultations</h1>
         <p>
-            MedOriva AI equips NHS receptionists, triage clinicians, and emergency personnel with real-time,
-            bidirectional communication across 9 languages—featuring automated red-flag symptom detection and Zero-PII retention.
+            MedOriva AI equips NHS receptionists, triage clinicians, and emergency intake staff with real-time,
+            bidirectional communication across <strong>9 core community languages (MVP)</strong> — expanding to 
+            <strong>120+ languages</strong> at enterprise deployment.
         </p>
         <div class="hero-actions">
             <a href="/login" class="btn-primary">Launch Clinical Pilot Portal</a>
@@ -415,39 +466,40 @@
         </div>
 
         <div class="trust-strip">
-            <div class="trust-item">🔒 UK GDPR & PECR Compliant</div>
-            <div class="trust-item">🚫 Zero Patient Data Stored</div>
-            <div class="trust-item">⚡ Native Script Translation</div>
-            <div class="trust-item">🩺 Clinical Risk Aligned</div>
+            <div class="trust-item">🔒 UK GDPR &amp; PECR Compliant</div>
+            <div class="trust-item">🚫 Zero Patient Data Stored (RAM Only)</div>
+            <div class="trust-item">⚡ Native Script Output</div>
+            <div class="trust-item">🩺 DCB0129 Hazard Management Aligned</div>
+            <div class="trust-item">🇬🇧 UK Entity (Reg: 17428312)</div>
         </div>
     </section>
 
     <!-- Services Overview -->
     <section class="section" id="services">
         <div class="section-header">
-            <h2>Core Platform Capabilities</h2>
-            <p>Engineered for high-pressure clinical triage, emergency admission, and primary care front desks.</p>
+            <h2>Clinical Platform Capabilities</h2>
+            <p>Engineered for high-volume emergency departments, urgent care centers, and GP reception desks.</p>
         </div>
         <div class="grid-3">
             <div class="card">
                 <div class="card-icon">🩺</div>
                 <h3>Automated Urgency Detection</h3>
                 <p>
-                    Continuously scans patient statements for acute red flags—including chest pain, respiratory distress, and stroke symptoms—while verifying contextual negations.
+                    Continuously scans patient statements for acute red flags—including chest pain, respiratory distress, and stroke symptoms—while verifying contextual negations (e.g., "no chest pain").
                 </p>
             </div>
             <div class="card">
                 <div class="card-icon">🌐</div>
                 <h3>Authentic Native Script Output</h3>
                 <p>
-                    Reconstructs spoken phonetic/Romanized text into proper native alphabets (Tamil, Hindi, Arabic, Urdu, Bengali, Polish, etc.), eliminating confusing transliteration.
+                    Reconstructs spoken phonetic or Romanized text into genuine native alphabets (Tamil, Hindi, Arabic, Urdu, Bengali, Polish, etc.), eliminating illegible transliteration.
                 </p>
             </div>
             <div class="card">
                 <div class="card-icon">📑</div>
                 <h3>Plain-Language Simplification</h3>
                 <p>
-                    Automatically converts complex medical jargon into simple language before translation, ensuring patient comprehension and reducing anxiety.
+                    Converts complex medical jargon into clear, accessible equivalents before translation, ensuring patient comprehension and mitigating acute anxiety.
                 </p>
             </div>
             <div class="card">
@@ -476,20 +528,27 @@
 
     <!-- Clinical Safety Strip -->
     <section class="section" id="clinical-safety" style="padding-top: 0;">
-        <div class="about-box">
-            <div class="about-text">
-                <h3>Clinical Safety & Governance</h3>
+        <div class="safety-box">
+            <div class="safety-text">
+                <h3>Clinical Safety &amp; Governance (DCB0129)</h3>
                 <p>
-                    MedOriva AI is architected as an <strong>administrative communication aid</strong>, not a medical diagnostic device. It supports front-of-house communication and triage queue orientation.
+                    MedOriva AI is architected strictly as an <strong>administrative communication aid</strong>, not a medical diagnostic device. It supports front-of-house communication and triage queue orientation.
                 </p>
                 <p>
-                    Our platform provides explicit triage alerts when critical clinical review is mandated, ensuring healthcare professionals maintain full clinical responsibility.
+                    Our platform conforms to NHS DCB0129 Clinical Risk Management standards, embedding mandatory dual-direction verification and prominent red-flag UI warnings to keep registered clinicians in control.
+                </p>
+                <p style="font-size: 13px; color: #64748b;">
+                    <strong>🇬🇧 Roadmap:</strong> 9 MVP languages actively supported. Enterprise expansion scales to 120+ languages covering all UK community demographics.
                 </p>
             </div>
-            <div class="about-stats">
+            <div class="safety-stats">
                 <div class="stat-card">
                     <div class="stat-number">9</div>
-                    <div class="stat-label">Supported Languages</div>
+                    <div class="stat-label">MVP Languages</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">120+</div>
+                    <div class="stat-label">Enterprise Scope</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number">&lt; 1s</div>
@@ -499,9 +558,51 @@
                     <div class="stat-number">0 KB</div>
                     <div class="stat-label">Stored Patient PII</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-number">100%</div>
-                    <div class="stat-label">Volatile Memory Only</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Clinical Assurance & FAQ -->
+    <section class="section" id="faq">
+        <div class="section-header">
+            <h2>Clinical Assurance &amp; Governance FAQ</h2>
+            <p>Direct answers for NHS Clinical Safety Officers, Caldicott Guardians, and Trust Directors.</p>
+        </div>
+        <div class="faq-list">
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    Does MedOriva AI store patient consultations or NHS numbers?
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    No. MedOriva AI operates on a strictly ephemeral, in-memory processing architecture. No clinical transcripts, audio recordings, patient names, NHS numbers, or identifiable medical details are written to disk, databases, or third-party training pipelines. When a session ends, the memory state is cleared immediately.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    Does MedOriva AI replace official NHS human interpreters?
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    No. MedOriva AI is designed to bridge the hazardous 15 to 45-minute communication void between a non-English speaking patient's arrival and the arrival of an official telephone or in-person interpreter. It facilitates reception intake, initial identification, and red-flag symptom discovery.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    How does the system prevent false triage alarms on negated phrases?
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    Our triage engine couples symptom keyword scanning with multi-language negation parsing across all supported dialects (e.g., detecting "illai", "nahi", "nie", "la", or "no"). If a patient confirms they do not have chest pain ("nenji vali illai"), the system classifies the statement as negative and suppresses urgent alarm fatigue.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    What regulatory frameworks does MedOriva AI comply with in the UK?
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    MedOriva AI is built in accordance with the UK General Data Protection Regulation (UK GDPR), the Data Protection Act 2018, the Privacy and Electronic Communications Regulations (PECR), and NHS Digital DCB0129 clinical safety guidance.
                 </div>
             </div>
         </div>
@@ -510,16 +611,21 @@
     <!-- About Us Section -->
     <section class="section" id="about">
         <div class="section-header">
-            <h2>About MedOriva AI</h2>
-            <p>Our mission is to eliminate linguistic disparities in emergency healthcare.</p>
+            <h2>About MedOriva AI Ltd</h2>
+            <p>Eliminating linguistic disparities in acute and primary emergency care.</p>
         </div>
-        <div style="max-width: 800px; margin: 0 auto; color: var(--text-muted); font-size: 15px; line-height: 1.8;">
+        <div style="max-width: 820px; margin: 0 auto; color: var(--text-muted); font-size: 15px; line-height: 1.8;">
             <p style="margin-bottom: 18px;">
-                Founded in the United Kingdom, MedOriva AI was developed to address critical delays encountered by non-English speaking patients at NHS emergency reception desks and general practice appointments. In emergency medicine, 15 to 45-minute interpreter wait times directly impact clinical outcomes.
+                Founded in the United Kingdom, <strong>MedOriva AI Ltd</strong> was established to tackle the life-threatening bottlenecks encountered by non-English speaking patients at NHS emergency reception desks and general practice appointments. In clinical emergencies, delays in basic history-taking directly degrade clinical outcomes.
             </p>
             <p style="margin-bottom: 18px;">
-                By combining instant dual-direction translation with smart clinical negation and symptom screening, MedOriva AI bridges the first critical minutes of care. Our early-access pilot program provides healthcare trusts and international endorsing bodies with an operational look at the future of compliant, safe multilingual clinical intake.
+                By combining immediate two-way translation, plain-language simplification, and dual-verification symptom parsing, MedOriva AI secures the golden first minutes of clinical triage. Our pilot deployment suite is structured to demonstrate immediate return on investment for endorsing bodies and early-adopting healthcare trusts.
             </p>
+            <div style="background: var(--bg-card); padding: 20px 24px; border-radius: 10px; border-left: 3px solid var(--primary-light); margin-top: 24px;">
+                <p style="font-size: 14px; color: #cbd5e1; margin-bottom: 0;">
+                    <strong>🔬 Enterprise Scalability:</strong> Engineered to integrate across all 6,500+ GP surgeries and 214 NHS trusts in the United Kingdom, with a scalable containerised backend designed for low latency and zero compliance overhead.
+                </p>
+            </div>
         </div>
     </section>
 
@@ -527,13 +633,13 @@
     <section class="section" id="contact">
         <div class="section-header">
             <h2>Request Trust Evaluation / Contact Us</h2>
-            <p>Speak with our product team regarding pilot deployments and technical validation.</p>
+            <p>Direct communication with our technical team for pilot deployment and validation.</p>
         </div>
         <div class="contact-wrapper">
             <form id="contactForm" onsubmit="handleContact(event)">
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="name">Your Name *</label>
+                        <label for="name">Full Name *</label>
                         <input type="text" id="name" class="form-control" required placeholder="Dr. Jane Smith">
                     </div>
                     <div class="form-group">
@@ -542,15 +648,15 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="org">NHS Trust / Organization *</label>
-                    <input type="text" id="org" class="form-control" required placeholder="e.g. Imperial College Healthcare NHS Trust">
+                    <label for="org">NHS Trust / Healthcare Organisation *</label>
+                    <input type="text" id="org" class="form-control" required placeholder="e.g. Barts Health NHS Trust">
                 </div>
                 <div class="form-group">
-                    <label for="message">Inquiry Details *</label>
-                    <textarea id="message" rows="4" class="form-control" required placeholder="Please provide details regarding your clinical environment or endorsement inquiries..."></textarea>
+                    <label for="message">Clinical Inquiry / Pilot Requirements *</label>
+                    <textarea id="message" rows="4" class="form-control" required placeholder="Provide details regarding your clinical intake environment, patient demographics, or technical evaluation needs..."></textarea>
                 </div>
                 <button type="submit" id="contactBtn" class="btn-primary" style="width: 100%; border: none; cursor: pointer;">Submit Pilot Request</button>
-                <div id="contactMsg" style="display:none; margin-top: 15px; padding: 12px; border-radius: 6px; font-size: 13px; text-align: center;"></div>
+                <div id="contactMsg" style="display:none; margin-top: 16px; padding: 12px; border-radius: 6px; font-size: 13px; text-align: center;"></div>
             </form>
         </div>
     </section>
@@ -558,18 +664,18 @@
     <!-- Footer -->
     <footer>
         <div class="disclaimer-box">
-            <strong>REGULATORY NOTICE:</strong> MedOriva AI is an operational multilingual communication aid for clinical reception desks. It is not a certified SaMD (Software as a Medical Device) and does not provide diagnosis, triage prioritisation algorithms, or treatment instructions. All clinical decisions remain the sole responsibility of registered healthcare staff.
+            <strong>REGULATORY COMPLIANCE NOTICE:</strong> MedOriva AI is an operational multilingual communication aid for clinical reception desks. It is not a certified SaMD (Software as a Medical Device) and does not provide autonomous diagnostic conclusions, triage scoring, or prescribing instructions. Full clinical liability remains with registered attending healthcare staff.
         </div>
 
         <div class="footer-grid">
             <div class="footer-col">
                 <h4>MedOriva AI Ltd</h4>
-                <p style="margin-bottom: 12px;">Real-time clinical multilingual communication support for UK healthcare institutions.</p>
-                <p><strong>Company Number:</strong> 17428312</p>
-                <p><strong>Registered Address:</strong> Flat 16 Russell Court, Station Approach, New Barnet, Barnet, EN5 1LW</p>
-                <p style="margin-top: 8px;">
-                    <strong>Contact:</strong> <a href="mailto:sanjaythillai@gmail.com" style="color: #14b8a6;">sanjaythillai@gmail.com</a><br>
-                    <strong>Phone:</strong> <a href="tel:+447778095553" style="color: #14b8a6;">07778 095553</a>
+                <p style="margin-bottom: 12px;">Real-time clinical multilingual communication support for UK healthcare trusts.</p>
+                <p><strong>Company Registration:</strong> 17428312</p>
+                <p><strong>Jurisdiction:</strong> England and Wales</p>
+                <p style="margin-top: 10px;">
+                    <strong>Email:</strong> <a href="mailto:sanjaythillai@gmail.com" style="color: var(--primary-light);">sanjaythillai@gmail.com</a><br>
+                    <strong>Phone:</strong> <a href="tel:+447778095553" style="color: var(--primary-light);">07778 095553</a>
                 </p>
             </div>
             <div class="footer-col">
@@ -587,15 +693,17 @@
                     <li><a onclick="openModal('privacyModal')">Privacy Policy</a></li>
                     <li><a onclick="openModal('termsModal')">Terms of Service</a></li>
                     <li><a onclick="openModal('cookiesModal')">Cookie Policy</a></li>
+                    <li><a onclick="openModal('dcbModal')">DCB0129 Clinical Risk</a></li>
                 </ul>
             </div>
             <div class="footer-col">
-                <h4>Compliance</h4>
+                <h4>Compliance Standards</h4>
                 <ul>
-                    <li>UK GDPR (2026)</li>
+                    <li>UK GDPR (2026 Ready)</li>
                     <li>Data Protection Act 2018</li>
-                    <li>PECR Aligned</li>
+                    <li>PECR Compliance</li>
                     <li>Zero-PII Storage</li>
+                    <li>NHS Standard Contract Aligned</li>
                 </ul>
             </div>
         </div>
@@ -603,17 +711,17 @@
         <div class="footer-bottom">
             <div>
                 <div>&copy; 2026 <strong>MedOriva AI Ltd</strong>. All rights reserved.</div>
-                <div class="company-details">Company Number: 17428312 | Registered in England and Wales</div>
+                <div style="font-size: 12px; color: #64748b;">Company Number: 17428312 | Registered in England and Wales</div>
             </div>
-            <div>Built for UK Healthcare &amp; Endorsement Validation.</div>
+            <div style="font-size: 12px; color: #64748b;">Built for UK Healthcare &amp; Endorsement Evaluation.</div>
         </div>
     </footer>
 
-    <!-- UK GDPR Cookie Banner -->
+    <!-- Cookie Consent Banner -->
     <div class="cookie-banner" id="cookieBanner">
-        <h4>UK GDPR & Cookie Compliance</h4>
+        <h4>UK GDPR &amp; Cookie Compliance</h4>
         <p>
-            MedOriva AI uses only strictly necessary cookies to maintain secure staff authentication sessions. We do not use third-party tracking, advertising, or profiling cookies.
+            MedOriva AI utilizes solely strictly necessary cryptographic cookies to authenticate authorized clinical personnel. No third-party profiling or advertising trackers are deployed.
         </p>
         <div class="cookie-actions">
             <button class="cookie-btn accept" onclick="acceptCookies()">Accept Essential Only</button>
@@ -621,55 +729,65 @@
         </div>
     </div>
 
-    <!-- Privacy Policy Modal -->
+    <!-- Modals -->
     <div class="modal" id="privacyModal">
         <div class="modal-content">
             <button class="modal-close" onclick="closeModal('privacyModal')">&times;</button>
             <h3>Privacy Policy (UK GDPR Aligned)</h3>
-            <p><strong>Last Updated:</strong> September 2026</p>
-            <h4>1. Zero Patient Identifiable Data Storage</h4>
-            <p>MedOriva AI processes patient dialogue strictly in volatile memory (RAM) during active sessions. No clinical notes, audio records, patient names, NHS numbers, or identifiable health transcripts are persisted to relational databases, object storage, or hard disks.</p>
+            <p><strong>Effective Date:</strong> September 2026</p>
+            <h4>1. Zero Patient Identifiable Data Retention</h4>
+            <p>MedOriva AI processes patient dialogue exclusively in volatile RAM during active socket connections. No patient names, NHS numbers, voice recordings, or clinical narratives are persisted to relational tables or hard disks.</p>
             <h4>2. Data Minimisation Principle</h4>
-            <p>In accordance with Article 5(1)(c) of the UK GDPR, data collection is limited exclusively to technical strings necessary for real-time translation during active socket lifecycles.</p>
-            <h4>3. Staff Account Data</h4>
-            <p>Staff credentials (email addresses and cryptographic session tokens) are maintained solely for authorized application access under the lawful basis of legitimate clinical governance.</p>
+            <p>In accordance with Article 5(1)(c) of the UK GDPR, data processing is strictly limited to real-time translation string payloads required during an ongoing reception exchange.</p>
+            <h4>3. Staff Account Administration</h4>
+            <p>Staff credentials (email identifiers and encrypted session cookies) are processed under the lawful basis of legitimate clinical governance.</p>
         </div>
     </div>
 
-    <!-- Terms of Service Modal -->
     <div class="modal" id="termsModal">
         <div class="modal-content">
             <button class="modal-close" onclick="closeModal('termsModal')">&times;</button>
             <h3>Terms of Service</h3>
             <p><strong>Version:</strong> 1.2 (Pilot Suite 2026)</p>
             <h4>1. Clinical Scope of Use</h4>
-            <p>MedOriva AI is provided strictly to facilitate linguistic bridge communication between clinical personnel and patients. The software must not be relied upon as an autonomous medical diagnostic device.</p>
+            <p>MedOriva AI is provided strictly to facilitate initial linguistic bridge communication between healthcare staff and patients. It does not replace medical practitioners or clinical judgment.</p>
             <h4>2. Professional Responsibility</h4>
-            <p>Healthcare professionals retain complete statutory and clinical responsibility for patient evaluation, clinical history taking, diagnosis, and triage designation.</p>
-            <h4>3. Intellectual Property</h4>
-            <p>All source algorithms, proprietary triage evaluation engines, UI scaffolding, and trademarks are the exclusive intellectual property of MedOriva AI Ltd.</p>
+            <p>Attending clinicians retain complete statutory responsibility for patient triage, physical examinations, diagnosis, and treatment delivery.</p>
+            <h4>3. Proprietary Rights</h4>
+            <p>All clinical negation algorithms, triage parsing logic, and architectural assets are the exclusive property of MedOriva AI Ltd (Company Number: 17428312).</p>
         </div>
     </div>
 
-    <!-- Cookie Policy Modal -->
     <div class="modal" id="cookiesModal">
         <div class="modal-content">
             <button class="modal-close" onclick="closeModal('cookiesModal')">&times;</button>
             <h3>Cookie Policy</h3>
-            <p><strong>Compliance:</strong> UK PECR & Data Protection Act 2018</p>
-            <h4>1. What Cookies We Use</h4>
-            <p>We deploy solely <strong>Strictly Necessary Cookies</strong>:</p>
+            <p><strong>Compliance:</strong> UK PECR &amp; Data Protection Act 2018</p>
+            <h4>1. Strictly Necessary Cookies Only</h4>
             <ul>
-                <li><code>session</code>: Encrypted token to maintain authenticated staff sessions across API requests.</li>
-                <li><code>medoriva_cookie_consent</code>: Local record verifying that you have reviewed this cookie disclosure.</li>
+                <li><code>session</code>: Encrypted cryptographic cookie to authenticate active staff sessions.</li>
+                <li><code>medoriva_cookie_consent</code>: Local record verifying cookie notice acknowledgement.</li>
             </ul>
-            <h4>2. Third-Party Analytics</h4>
-            <p>We do not deploy marketing, advertising, cross-site trackers, or third-party behavioral pixels.</p>
+            <h4>2. Third-Party Trackers</h4>
+            <p>We do not deploy marketing, advertising, cross-site trackers, or commercial pixels.</p>
+        </div>
+    </div>
+
+    <div class="modal" id="dcbModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('dcbModal')">&times;</button>
+            <h3>Clinical Safety Statement (DCB0129)</h3>
+            <p>MedOriva AI aligns with NHS Digital DCB0129 clinical risk management standards:</p>
+            <ul>
+                <li><strong>Red-Flag UI Alerts:</strong> Automated emergency symptom detection (e.g., chest pain, respiratory distress, stroke) triggers distinct visual warnings.</li>
+                <li><strong>Negation Safety:</strong> Validates negative qualifiers ("no chest pain", "nenji vali illai") to mitigate alarm fatigue.</li>
+                <li><strong>Back-Translation:</strong> Displays English verification subtitles alongside native script translations to prevent misinterpretation.</li>
+            </ul>
         </div>
     </div>
 
     <script>
-        // UK GDPR Cookie Storage
+        // Cookie Banner
         document.addEventListener("DOMContentLoaded", function() {
             if (!localStorage.getItem("medoriva_cookie_consent")) {
                 document.getElementById("cookieBanner").style.display = "block";
@@ -681,20 +799,20 @@
             document.getElementById("cookieBanner").style.display = "none";
         }
 
-        // Modal Handlers
-        function openModal(id) {
-            document.getElementById(id).style.display = "flex";
+        // FAQ Toggle
+        function toggleFaq(elem) {
+            const item = elem.parentElement;
+            item.classList.toggle("active");
         }
-        function closeModal(id) {
-            document.getElementById(id).style.display = "none";
-        }
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal')) {
-                event.target.style.display = "none";
-            }
+
+        // Modals
+        function openModal(id) { document.getElementById(id).style.display = "flex"; }
+        function closeModal(id) { document.getElementById(id).style.display = "none"; }
+        window.onclick = function(e) {
+            if (e.target.classList.contains('modal')) { e.target.style.display = "none"; }
         };
 
-        // Pilot Contact Submission
+        // Contact Form
         function handleContact(e) {
             e.preventDefault();
             const btn = document.getElementById("contactBtn");
@@ -717,9 +835,9 @@
             .then(data => {
                 msg.style.display = "block";
                 if (data.status === "ok") {
-                    msg.style.background = "rgba(34, 197, 94, 0.15)";
-                    msg.style.color = "#86efac";
-                    msg.style.border = "1px solid rgba(34, 197, 94, 0.4)";
+                    msg.style.background = "rgba(16, 185, 129, 0.15)";
+                    msg.style.color = "#6ee7b7";
+                    msg.style.border = "1px solid rgba(16, 185, 129, 0.4)";
                     msg.innerText = data.message;
                     document.getElementById("contactForm").reset();
                 } else {
