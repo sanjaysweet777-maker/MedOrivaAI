@@ -18,7 +18,7 @@ from flask import Flask, flash, jsonify, redirect, render_template, request, ses
 from flask_login import LoginManager, UserMixin, current_user, login_required, login_user, logout_user
 
 # ============================================================
-# APP CONFIGURATION & SECURITY
+# APP INITIALIZATION & SECURITY CONFIGURATION
 # ============================================================
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -27,11 +27,12 @@ template_dir = os.path.join(BASE_DIR, 'templates')
 app = Flask(__name__, template_folder=template_dir)
 app.secret_key = os.environ.get("SECRET_KEY", "medoriva-clinical-mvp-secret-2026")
 
+# Cookie & session security settings
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
 # ============================================================
-# FLASK-LOGIN SETUP
+# FLASK-LOGIN AUTHENTICATION
 # ============================================================
 
 login_manager = LoginManager()
@@ -61,24 +62,6 @@ def unauthorized():
     if request.path.startswith('/api/'):
         return jsonify({"error": "Unauthorized", "message": "Session expired. Please log in again."}), 401
     return redirect(url_for('login', next=request.path))
-
-# ============================================================
-# PUBLIC HEALTH CHECKS (Render Monitoring)
-# ============================================================
-
-@app.route("/api/ping", methods=["GET"])
-def ping():
-    """Public health check endpoint for Render (NO @login_required)."""
-    return jsonify({
-        "status": "ok",
-        "service": "MedOriva AI",
-        "healthy": True
-    }), 200
-
-@app.route("/healthz", methods=["GET"])
-def healthz():
-    """Alternative standard health check path."""
-    return jsonify({"status": "ok"}), 200
 
 # ============================================================
 # CACHE & STRING NORMALIZATION
@@ -132,10 +115,11 @@ def simplify_text(text):
     return simplified, changed
 
 # ============================================================
-# EXACT MATCH & PARSING UTILITIES
+# EXACT & HIGH-CONFIDENCE DICTIONARY LOOKUP
 # ============================================================
 
 def lookup_clinical_phrase(text, lang_code):
+    """Performs strict matching to avoid substring collisions."""
     if not lang_code or lang_code not in CLINICAL_DICTIONARY:
         return None
     
@@ -151,6 +135,10 @@ def lookup_clinical_phrase(text, lang_code):
             return data
             
     return None
+
+# ============================================================
+# MULTI-LANGUAGE PARSING ENGINE (For Phonetic / Romanized Text)
+# ============================================================
 
 def detect_affirmation(text, lang_code):
     norm = f" {normalize_text(text)} "
@@ -219,7 +207,7 @@ def evaluate_medical_triage(original_text, english_text, lang_code):
     }
 
 # ============================================================
-# TRANSLATION ENGINES
+# TRANSLATION HANDLERS
 # ============================================================
 
 def execute_online_translation(text, src, target):
@@ -266,15 +254,18 @@ def translate_patient_input(text, lang_code):
     if not text:
         return "", "", None
 
+    # 1. Exact match in phrasebook
     lookup = lookup_clinical_phrase(text, lang_code)
     if lookup:
         return lookup[0], lookup[1], None
 
+    # 2. If already written in Native Script
     if is_native_script(text):
         target_src = get_clean_lang_code(lang_code)
         english_trans = execute_online_translation(text, target_src, "en")
         return english_trans, text, None
 
+    # 3. Intelligent Semantic Parser for Romanized / Phonetic Text
     has_affirmation = detect_affirmation(text, lang_code)
     has_negation = detect_negation(text, lang_code)
     duration_str = extract_duration(text)
@@ -299,6 +290,7 @@ def translate_patient_input(text, lang_code):
         
         return constructed_english, reconstructed_native, None
 
+    # 4. Fallback for unlisted Romanized text
     english_trans = execute_online_translation(text, "auto", "en")
     target_clean = get_clean_lang_code(lang_code)
     native_trans = execute_online_translation(english_trans, "en", target_clean)
@@ -306,13 +298,24 @@ def translate_patient_input(text, lang_code):
     return english_trans, native_trans, None
 
 # ============================================================
-# APPLICATION ROUTES
+# PUBLIC & WORKSPACE ROUTES
 # ============================================================
+
+@app.route("/")
+def index():
+    """Public landing page for visitors, trusts, and endorsing bodies."""
+    return render_template("landing.html")
+
+@app.route("/portal")
+@login_required
+def portal():
+    """Protected clinical translation tool workspace."""
+    return render_template("index.html")
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('index'))
+        return redirect(url_for('portal'))
 
     if request.method == 'POST':
         if request.is_json:
@@ -328,12 +331,12 @@ def login():
             login_user(user, remember=False)
 
             if request.is_json:
-                return jsonify({"status": "ok", "redirect": url_for('index')})
+                return jsonify({"status": "ok", "redirect": url_for('portal')})
 
             next_url = request.args.get('next')
-            if next_url and next_url.startswith('/'):
+            if next_url and next_url.startswith('/') and next_url not in ['/', '/login']:
                 return redirect(next_url)
-            return redirect(url_for('index'))
+            return redirect(url_for('portal'))
 
         if request.is_json:
             return jsonify({"status": "error", "message": "Invalid email or password"}), 401
@@ -349,10 +352,41 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
-@app.route("/")
-@login_required
-def index():
-    return render_template("index.html")
+@app.route("/api/contact", methods=["POST"])
+def submit_contact():
+    """Handles trust pilot evaluation inquiries from the landing page."""
+    data = request.get_json() or {}
+    name = data.get("name", "").strip()
+    email = data.get("email", "").strip()
+    message = data.get("message", "").strip()
+
+    if not name or not email or not message:
+        return jsonify({"status": "error", "message": "All required fields must be completed."}), 400
+
+    return jsonify({
+        "status": "ok",
+        "message": "Thank you. Your clinical pilot inquiry has been received. Our team will contact you within 24 hours."
+    }), 200
+
+# ============================================================
+# HEALTH CHECK (Public - No Login Required for Render)
+# ============================================================
+
+@app.route("/api/ping", methods=["GET"])
+def ping():
+    return jsonify({
+        "status": "ok",
+        "service": "MedOriva AI",
+        "healthy": True
+    }), 200
+
+@app.route("/healthz", methods=["GET"])
+def healthz():
+    return jsonify({"status": "ok"}), 200
+
+# ============================================================
+# CLINICAL TRANSLATION & SESSION APIS (Protected)
+# ============================================================
 
 @app.route("/api/start_session", methods=["POST"])
 @login_required
