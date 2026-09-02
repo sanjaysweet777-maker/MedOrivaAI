@@ -251,21 +251,23 @@ def translate_staff_to_native(text, target_lang_code):
     return text, "Translation unavailable"
 
 def translate_patient_input(text, lang_code):
+    """
+    Translates Patient input (Romanized or Native script) across all languages into:
+    1. Clean English for Staff
+    2. Pure Native Script for UI display
+    """
     if not text:
         return "", "", None
 
-    # 1. Exact match in phrasebook
     lookup = lookup_clinical_phrase(text, lang_code)
     if lookup:
         return lookup[0], lookup[1], None
 
-    # 2. If already written in Native Script
     if is_native_script(text):
         target_src = get_clean_lang_code(lang_code)
         english_trans = execute_online_translation(text, target_src, "en")
         return english_trans, text, None
 
-    # 3. Intelligent Semantic Parser for Romanized / Phonetic Text
     has_affirmation = detect_affirmation(text, lang_code)
     has_negation = detect_negation(text, lang_code)
     duration_str = extract_duration(text)
@@ -290,7 +292,6 @@ def translate_patient_input(text, lang_code):
         
         return constructed_english, reconstructed_native, None
 
-    # 4. Fallback for unlisted Romanized text
     english_trans = execute_online_translation(text, "auto", "en")
     target_clean = get_clean_lang_code(lang_code)
     native_trans = execute_online_translation(english_trans, "en", target_clean)
@@ -369,7 +370,7 @@ def submit_contact():
     }), 200
 
 # ============================================================
-# HEALTH CHECK (Public - No Login Required for Render)
+# HEALTH CHECK (Public - Required for Render Uptime)
 # ============================================================
 
 @app.route("/api/ping", methods=["GET"])
