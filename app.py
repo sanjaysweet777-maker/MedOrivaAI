@@ -12,6 +12,7 @@ from clinical_phrases import (
     NEGATION_PATTERNS,
     SIMPLIFY_RULES,
     URGENT_SYMPTOMS_CONFIG,
+    synthesize_staff_question,
 )
 from deep_translator import GoogleTranslator, MyMemoryTranslator
 from flask import Flask, flash, jsonify, redirect, render_template, request, session, url_for
@@ -27,7 +28,6 @@ template_dir = os.path.join(BASE_DIR, 'templates')
 app = Flask(__name__, template_folder=template_dir)
 app.secret_key = os.environ.get("SECRET_KEY", "medoriva-clinical-mvp-secret-2026")
 
-# Cookie & session security settings
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
@@ -85,11 +85,13 @@ def get_cached_translation(text, target_lang):
     return translation_cache.get(cache_key)
 
 def set_cached_translation(text, target_lang, result):
+    # CRITICAL: Never cache if the result is identical to English input for a foreign target
+    if target_lang != "en" and normalize_text(text) == normalize_text(result):
+        return
     cache_key = f"{normalize_text(text)}_{target_lang}"
     translation_cache[cache_key] = result
 
 def reset_translation_session():
-    """Clears translation context without logging out the authenticated user."""
     keys_to_clear = ["session_id", "context", "lang", "lang_code", "active"]
     for key in keys_to_clear:
         session.pop(key, None)
@@ -119,7 +121,6 @@ def simplify_text(text):
 # ============================================================
 
 def lookup_clinical_phrase(text, lang_code):
-    """Performs strict matching to avoid substring collisions."""
     if not lang_code or lang_code not in CLINICAL_DICTIONARY:
         return None
     
@@ -137,7 +138,7 @@ def lookup_clinical_phrase(text, lang_code):
     return None
 
 # ============================================================
-# MULTI-LANGUAGE PARSING ENGINE (For Phonetic / Romanized Text)
+# PARSING ENGINE (For Phonetic / Romanized Patient Text)
 # ============================================================
 
 def detect_affirmation(text, lang_code):
@@ -207,12 +208,14 @@ def evaluate_medical_triage(original_text, english_text, lang_code):
     }
 
 # ============================================================
-# TRANSLATION HANDLERS
+# ROBUST DUAL TRANSLATION HANDLERS
 # ============================================================
 
 def execute_online_translation(text, src, target):
     if not text:
         return ""
+
+    # Attempt 1: Google Translator
     try:
         res = GoogleTranslator(source=src, target=target).translate(text)
         if res and res.strip().lower() != text.strip().lower():
@@ -220,33 +223,55 @@ def execute_online_translation(text, src, target):
     except Exception:
         pass
 
+    # Attempt 2: MyMemory Translator
     try:
         res = MyMemoryTranslator(source=src, target=target).translate(text)
-        if res:
+        if res and res.strip().lower() != text.strip().lower():
             return res
     except Exception:
         pass
 
-    return text
+    return ""
 
 def translate_staff_to_native(text, target_lang_code):
+    """
+    Translates staff English text into pure Native Script with 3 levels of defense:
+    1. Direct Synthesizer (Instant match for triage/reception questions)
+    2. Curated Phrasebook
+    3. Live Translation fallback with cache
+    """
     if not text:
         return "", None
 
-    lookup = lookup_clinical_phrase(text, target_lang_code)
+    target = get_clean_lang_code(target_lang_code)
+
+    # 1. Check Clinical Synthesizer (Catches 'how long do you have pain?', 'where is the pain?', etc.)
+    synthesized = synthesize_staff_question(text, target)
+    if synthesized:
+        set_cached_translation(text, target, synthesized)
+        return synthesized, None
+
+    # 2. Check Curated Phrasebook
+    lookup = lookup_clinical_phrase(text, target)
     if lookup:
+        set_cached_translation(text, target, lookup[1])
         return lookup[1], None
 
-    cached = get_cached_translation(text, target_lang_code)
-    if cached:
+    # 3. Check Memory Cache
+    cached = get_cached_translation(text, target)
+    if cached and normalize_text(cached) != normalize_text(text):
         return cached, None
 
-    target = get_clean_lang_code(target_lang_code)
+    # 4. Live Translation Engine
     translated = execute_online_translation(text, "en", target)
-    
-    if translated:
-        set_cached_translation(text, target_lang_code, translated)
+    if translated and normalize_text(translated) != normalize_text(text):
+        set_cached_translation(text, target, translated)
         return translated, None
+
+    # 5. Symptom Emergency Fallback: If web translation fails, inject native medical label
+    _, sym_english, sym_native = extract_symptom(text, target)
+    if sym_native:
+        return f"{sym_native}?", None
 
     return text, "Translation unavailable"
 
@@ -259,25 +284,32 @@ def translate_patient_input(text, lang_code):
     if not text:
         return "", "", None
 
-    lookup = lookup_clinical_phrase(text, lang_code)
+    target_clean = get_clean_lang_code(lang_code)
+
+    # 1. Exact match in phrasebook
+    lookup = lookup_clinical_phrase(text, target_clean)
     if lookup:
         return lookup[0], lookup[1], None
 
+    # 2. If already written in Native Script
     if is_native_script(text):
-        target_src = get_clean_lang_code(lang_code)
-        english_trans = execute_online_translation(text, target_src, "en")
+        english_trans = execute_online_translation(text, target_clean, "en")
+        if not english_trans:
+            _, sym_eng, _ = extract_symptom(text, target_clean)
+            english_trans = f"Reported: {sym_eng}" if sym_eng else text
         return english_trans, text, None
 
-    has_affirmation = detect_affirmation(text, lang_code)
-    has_negation = detect_negation(text, lang_code)
+    # 3. Intelligent Semantic Parser for Romanized / Phonetic Text (e.g., Tanglish / Hinglish)
+    has_affirmation = detect_affirmation(text, target_clean)
+    has_negation = detect_negation(text, target_clean)
     duration_str = extract_duration(text)
-    sym_key, sym_english, sym_native = extract_symptom(text, lang_code)
+    _, sym_english, sym_native = extract_symptom(text, target_clean)
 
     if sym_english:
         english_parts = []
         if has_affirmation:
             english_parts.append("Yes,")
-        
+
         if has_negation:
             english_parts.append(f"I do not have {sym_english}")
         else:
@@ -285,17 +317,23 @@ def translate_patient_input(text, lang_code):
                 english_parts.append(f"I have had {sym_english} {duration_str}")
             else:
                 english_parts.append(f"I have {sym_english}")
-                
+
         constructed_english = " ".join(english_parts)
-        target_clean = get_clean_lang_code(lang_code)
         reconstructed_native = execute_online_translation(constructed_english, "en", target_clean)
-        
+        if not reconstructed_native:
+            reconstructed_native = sym_native
+
         return constructed_english, reconstructed_native, None
 
+    # 4. General Online Translation Fallback
     english_trans = execute_online_translation(text, "auto", "en")
-    target_clean = get_clean_lang_code(lang_code)
+    if not english_trans:
+        english_trans = text
+
     native_trans = execute_online_translation(english_trans, "en", target_clean)
-    
+    if not native_trans:
+        native_trans = text
+
     return english_trans, native_trans, None
 
 # ============================================================
@@ -304,13 +342,11 @@ def translate_patient_input(text, lang_code):
 
 @app.route("/")
 def index():
-    """Public landing page for visitors, trusts, and endorsing bodies."""
     return render_template("landing.html")
 
 @app.route("/portal")
 @login_required
 def portal():
-    """Protected clinical translation tool workspace."""
     return render_template("index.html")
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -355,7 +391,6 @@ def logout():
 
 @app.route("/api/contact", methods=["POST"])
 def submit_contact():
-    """Handles trust pilot evaluation inquiries from the landing page."""
     data = request.get_json() or {}
     name = data.get("name", "").strip()
     email = data.get("email", "").strip()
@@ -370,16 +405,12 @@ def submit_contact():
     }), 200
 
 # ============================================================
-# HEALTH CHECK (Public - Required for Render Uptime)
+# HEALTH CHECKS (Public for Render Monitoring)
 # ============================================================
 
 @app.route("/api/ping", methods=["GET"])
 def ping():
-    return jsonify({
-        "status": "ok",
-        "service": "MedOriva AI",
-        "healthy": True
-    }), 200
+    return jsonify({"status": "ok", "service": "MedOriva AI", "healthy": True}), 200
 
 @app.route("/healthz", methods=["GET"])
 def healthz():
