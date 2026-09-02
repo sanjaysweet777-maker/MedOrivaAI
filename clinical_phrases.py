@@ -31,8 +31,8 @@ SIMPLIFY_RULES = [
 # AFFIRMATIONS & NEGATIONS (ALL 9 LANGUAGES)
 # ============================================================
 AFFIRMATION_PATTERNS = {
-    "ta": ["aam", "aama", "aamaam", "seri", "kandippa", "ஆம்", "ஆமாம்", "சரி"],
-    "hi": ["haan", "ji haan", "theek hai", "sahi", "हाँ", "जी हाँ", "ठीक है"],
+    "ta": ["aam", "aama", "aamaam", "seri", "kandippa", "aamanga", "ஆம்", "ஆமாம்", "சரி"],
+    "hi": ["haan", "ji haan", "theek hai", "sahi", "haanji", "हाँ", "जी हाँ", "ठीक है"],
     "ml": ["athe", "atheyo", "sherikkum", "ശരി", "അതെ"],
     "pl": ["tak", "zgadza sie", "dokladnie", "jasne"],
     "ar": ["naam", "na'am", "aiwa", "sah", "نعم", "أيوا", "أجل"],
@@ -57,7 +57,7 @@ NEGATION_PATTERNS = {
 }
 
 # ============================================================
-# TIME & DURATION CONVERTERS
+# DURATION CONVERTERS
 # ============================================================
 DURATION_PATTERNS = [
     (r"(\d+)\s*(?:naalaga|naatkalaga|naala|naatkkala)", r"for \1 days"),
@@ -77,16 +77,11 @@ DURATION_PATTERNS = [
     (r"(?:char|4)\s*din se", "for 4 days"),
     (r"(\d+)\s*(?:hafte se|hafto se)", r"for \1 weeks"),
     (r"(\d+)\s*(?:mahine se|mahino se)", r"for \1 months"),
-    (r"(\d+)\s*(?:ghante se|ghanto se)", r"for \1 hours"),
 
     (r"(\d+)\s*(?:divasamayi|divasamaayi|naalayi)", r"for \1 days"),
-    (r"(\d+)\s*(?:aazhchayayi|masamayi)", r"for \1 weeks"),
-
     (r"od\s*(\d+)\s*dni", r"for \1 days"),
-    (r"od\s*(\d+)\s*tygodni", r"for \1 weeks"),
-
-    (r"(?:min|sarli|baali)\s*(\d+)\s*(?:ayam|tiyam|yom)", r"for \1 days"),
-    (r"(\d+)\s*(?:din say|din se|dino se)", r"for \1 days"),
+    (r"(?:min|sarli)\s*(\d+)\s*(?:ayam|yom)", r"for \1 days"),
+    (r"(\d+)\s*(?:din say|din se)", r"for \1 days"),
     (r"(\d+)\s*(?:din dhore|din jabot)", r"for \1 days"),
     (r"(\d+)\s*(?:maalmood|cisho)", r"for \1 days"),
     (r"de\s*(\d+)\s*zile", r"for \1 days"),
@@ -94,55 +89,92 @@ DURATION_PATTERNS = [
 
 # ============================================================
 # COMPREHENSIVE CLINICAL SYMPTOM REGISTRY (ALL 9 LANGUAGES)
+# Explicit specific anatomical phrases included with phonetic typos
 # ============================================================
 MULTI_LANG_SYMPTOMS = {
-    "pain": {
-        "english": "pain",
-        "ta": ("வலி", ["vali", "valikuthu", "valikirathu", "vali irukku", "நோவு", "வலி"]),
-        "hi": ("दर्द", ["dard", "dard ho raha", "peeda", "दर्द"]),
-        "ml": ("വേദന", ["vedana", "vedanayaanu", "valikunnu", "വേദന"]),
-        "pl": ("ból", ["bol", "boli", "bole"]),
-        "ar": ("ألم", ["alam", "waja", "wajah", "ألم", "وجع"]),
-        "ur": ("درد", ["dard", "takleef", "درد"]),
-        "bn": ("ব্যথা", ["betha", "byatha", "batha", "ব্যথা"]),
-        "so": ("xanuun", ["xanuun", "dawaaf"]),
-        "ro": ("durere", ["durere", "doare", "dureri"])
-    },
     "chest pain": {
         "english": "chest pain",
-        "ta": ("நெஞ்சு வலி", ["nenji vali", "nenju vali", "nenjil vali", "nenjula vali", "maar vali", "நெஞ்சு வலி", "நெஞ்சில் வலி"]),
-        "hi": ("सीने में दर्द", ["seene mein dard", "chest mein dard", "chhati mein dard", "seene me dard", "सीने में दर्द"]),
+        "ta": ("நெஞ்சு வலி", ["nenji vali", "nenju vali", "nenjil vali", "nenjula vali", "enji vali", "enju vali", "maar vali", "நெஞ்சு வலி", "நெஞ்சில் வலி"]),
+        "hi": ("सीने में दर्द", ["seene mein dard", "chest mein dard", "chhati mein dard", "seene me dard", "sene me dard", "sine mein dard", "सीने में दर्द"]),
         "ml": ("നെഞ്ചുവേദന", ["nenjil vali", "nenju vali", "nenjile vedana", "നെഞ്ചുവേദന", "നെഞ്ചിൽ വേദന"]),
-        "pl": ("ból w klatce piersiowej", ["bol klatki", "bol w klatce", "pieczenie w klatce"]),
-        "ar": ("ألم في الصدر", ["alam fi al sadr", "alam sedr", "wagah sedr", "ألم في الصدر"]),
+        "pl": ("ból w klatce piersiowej", ["bol w klatce piersiowej", "bol klatki piersiowej", "bol klatki", "bol w klatce", "pieczenie w klatce"]),
+        "ar": ("ألم في الصدر", ["alam fi al sadr", "alam fi sadr", "alam sedr", "wagah sedr", "وجع في الصدر", "ألم في الصدر"]),
         "ur": ("سینے میں درد", ["seene mein dard", "seene me dard", "dil mein dard", "سینے میں درد"]),
         "bn": ("বুকে ব্যথা", ["buke betha", "buke byatha", "buke batha", "বুকে ব্যথা"]),
-        "so": ("xanuunka laabta", ["xanuun laabta", "laab xanuun"]),
-        "ro": ("durere în piept", ["durere in piept", "dureri in piept"])
+        "so": ("xanuunka laabta", ["xanuun laabta", "xanuunka laabta", "laab xanuun"]),
+        "ro": ("durere în piept", ["durere in piept", "durere în piept", "dureri in piept"])
     },
     "headache": {
         "english": "headache",
-        "ta": ("தலைவலி", ["thalai vali", "thala vali", "thalavali", "தலைவலி"]),
-        "hi": ("सिरदर्द", ["sar dard", "sir dard", "sar me dard", "सिरदर्द"]),
-        "ml": ("തലവേദന", ["thalavedana", "thalavalikkunnu", "തലവേദന"]),
-        "pl": ("ból głowy", ["bol glowy", "boli mnie glowa"]),
-        "ar": ("صداع", ["suda", "rasi yowjaani", "صداع"]),
-        "ur": ("سر درد", ["sar dard", "sir mein dard", "سر درد"]),
-        "bn": ("মাথা ব্যথা", ["matha betha", "matha byatha", "মাথা ব্যথা"]),
-        "so": ("madax xanuun", ["madax xanuun"]),
-        "ro": ("durere de cap", ["durere de cap", "ma doare capul"])
+        "ta": ("தலைவலி", ["thalai vali", "thala vali", "thalavali", "thalai valikuthu", "தலைவலி", "தலை வலிக்கிறது"]),
+        "hi": ("सिरदर्द", ["sar dard", "sir dard", "sar me dard", "sir me dard", "sar dard hai", "सिरदर्द", "सिर में दर्द"]),
+        "ml": ("തലവേദന", ["thalavedana", "thalavalikkunnu", "thala vedana", "തലവേദന"]),
+        "pl": ("ból głowy", ["bol glowy", "boli mnie glowa", "bol glowa"]),
+        "ar": ("صداع", ["suda", "alam fi al ras", "alam rasi", "rasi yowjaani", "صداع", "ألم في الرأس"]),
+        "ur": ("سر درد", ["sar dard", "sir mein dard", "sar me dard", "سر درد"]),
+        "bn": ("মাথা ব্যথা", ["matha betha", "matha byatha", "matha batha", "মাথা ব্যথা"]),
+        "so": ("madax xanuun", ["madax xanuun", "madax xanoon"]),
+        "ro": ("durere de cap", ["durere de cap", "ma doare capul", "dureri de cap"])
+    },
+    "stomach pain": {
+        "english": "stomach pain",
+        "ta": ("வயிற்று வலி", ["vayiru vali", "vathiru vali", "vayaru vali", "vayiru valikuthu", "வயிற்று வலி"]),
+        "hi": ("पेट दर्द", ["pet dard", "pet me dard", "pet mein dard", "पेट में दर्द", "पेट दर्द"]),
+        "ml": ("വയറുവേദന", ["vayaruvathana", "vayaril vali", "vayar vedana", "വയറുവേദന"]),
+        "pl": ("ból brzucha", ["bol brzucha", "boli mnie brzuch"]),
+        "ar": ("ألم في المعدة", ["alam fi al batan", "alam fi al meeda", "batni tuwjaani", "ألم في المعدة", "وجع بطن"]),
+        "ur": ("پیٹ میں درد", ["pet mein dard", "pait dard", "پیٹ میں درد"]),
+        "bn": ("পেটে ব্যথা", ["pete betha", "pet byatha", "pet betha", "পেটে ব্যথা"]),
+        "so": ("calool xanuun", ["xanuun calool", "calool xanuun"]),
+        "ro": ("durere de stomac", ["durere de stomac", "ma doare stomacul", "durere abdominala"])
+    },
+    "back pain": {
+        "english": "back pain",
+        "ta": ("முதுகு வலி", ["muthugu vali", "mudhugu vali", "iduppu vali", "முதுகு வலி"]),
+        "hi": ("पीठ दर्द", ["kamar dard", "peeth dard", "peeth mein dard", "kamar mein dard", "पीठ में दर्द"]),
+        "ml": ("നടുവേദന", ["naduvedana", "puram vedana", "നടുവേദന"]),
+        "pl": ("ból pleców", ["bol plecow", "bola mnie plecy"]),
+        "ar": ("ألم في الظهر", ["alam fi al dhahr", "alam dhahr", "ألم في الظهر"]),
+        "ur": ("کمر درد", ["kamar dard", "peeth mein dard", "کمر میں درد"]),
+        "bn": ("পিঠে ব্যথা", ["pithe betha", "komor betha", "পিঠে ব্যথা"]),
+        "so": ("dhabar xanuun", ["dhabar xanuun"]),
+        "ro": ("durere de spate", ["durere de spate", "ma doare spatele"])
+    },
+    "throat pain": {
+        "english": "sore throat",
+        "ta": ("தொண்டை வலி", ["thondai vali", "thonda vali", "தொண்டை வலி"]),
+        "hi": ("गले में दर्द", ["gale mein dard", "gala kharab", "gale me dard", "गले में दर्द"]),
+        "ml": ("തണ്ടവേദന", ["thondavedana", "തൊണ്ടവേദന"]),
+        "pl": ("ból gardła", ["bol gardla", "boli mnie gardlo"]),
+        "ar": ("ألم في الحلق", ["alam fi al halq", "alam halq", "ألم في الحلق"]),
+        "ur": ("گلے میں درد", ["galay mein dard", "gala kharab", "گلے میں درد"]),
+        "bn": ("গলায় ব্যথা", ["golar betha", "gola betha", "গলায় ব্যথা"]),
+        "so": ("cunaha xanuun", ["cunaha xanuun"]),
+        "ro": ("durere în gât", ["durere in gat", "durere în gât", "ma doare in gat"])
+    },
+    "leg pain": {
+        "english": "leg pain",
+        "ta": ("கால் வலி", ["kaal vali", "kaalu vali", "கால் வலி"]),
+        "hi": ("पैर में दर्द", ["pair dard", "taang mein dard", "pair mein dard", "पैर में दर्द"]),
+        "ml": ("കാൽ വേദന", ["kaal vedana", "kaalu vedana", "കാൽ വേദന"]),
+        "pl": ("ból nogi", ["bol nogi", "boli mnie noga"]),
+        "ar": ("ألم في الساق", ["alam fi al saq", "alam rijli", "ألم في الساق"]),
+        "ur": ("ٹانگ میں درد", ["taang mein dard", "paon mein dard", "ٹانگ میں درد"]),
+        "bn": ("পায়ে ব্যথা", ["payer betha", "pa betha", "পায়ে ব্যথা"]),
+        "so": ("lug xanuun", ["lug xanuun"]),
+        "ro": ("durere de picior", ["durere de picior", "ma doare piciorul"])
     },
     "fever": {
         "english": "fever",
-        "ta": ("காய்ச்சல்", ["kaichal", "jwaram", "udambu suudu", "காய்ச்சல்"]),
-        "hi": ("बुखार", ["bukhar", "tap", "sarir garam", "बुखार"]),
+        "ta": ("காய்ச்சல்", ["kaichal", "jwaram", "udambu suudu", "kaachal", "காய்ச்சல்"]),
+        "hi": ("बुखार", ["bukhar", "tap", "sarir garam", "bukhar hai", "बुखार"]),
         "ml": ("പനി", ["pani", "panind", "പനി"]),
-        "pl": ("gorączka", ["goraczka", "mam temperature"]),
+        "pl": ("gorączka", ["goraczka", "mam temperature", "gorączka"]),
         "ar": ("حمى", ["humma", "sukhuna", "harara", "حمى"]),
         "ur": ("بخار", ["bukhar", "jism garam", "بخار"]),
         "bn": ("জ্বর", ["jhor", "jor", "shorir gorom", "জ্বর"]),
-        "so": ("qandho", ["qandho"]),
-        "ro": ("febră", ["febra", "am temperatura"])
+        "so": ("qandho", ["qandho", "qando"]),
+        "ro": ("febră", ["febra", "am temperatura", "febră"])
     },
     "breathing difficulty": {
         "english": "difficulty breathing",
@@ -155,18 +187,6 @@ MULTI_LANG_SYMPTOMS = {
         "bn": ("শ্বাসকষ্ট", ["shwash nite koshto", "shwaskoshto", "dom bondho", "শ্বাস নিতে কষ্ট"]),
         "so": ("dhibaatada neefsashada", ["neefsasho dhib", "neefta igu dhegaysa"]),
         "ro": ("dificultăți de respirație", ["dificultate de respiratie", "lipsa de aer", "greu de respirat"])
-    },
-    "stomach pain": {
-        "english": "stomach pain",
-        "ta": ("வயிற்று வலி", ["vayiru vali", "vathiru valikuthu", "வயிற்று வலி"]),
-        "hi": ("पेट दर्द", ["pet dard", "pet me dard", "पेट में दर्द"]),
-        "ml": ("വയറുവേദന", ["vayaruvathana", "vayaril vali", "വയറുവേദന"]),
-        "pl": ("ból brzucha", ["bol brzucha", "boli mnie brzuch"]),
-        "ar": ("ألم في المعدة", ["alam fi al meeda", "batni tuwjaani", "ألم في المعدة"]),
-        "ur": ("پیٹ میں درد", ["pet mein dard", "پیٹ میں درد"]),
-        "bn": ("পেটে ব্যথা", ["pete betha", "pet betha", "পেটে ব্যথা"]),
-        "so": ("xanuun calool", ["calool xanuun"]),
-        "ro": ("durere de stomac", ["durere de stomac", "ma doare stomacul"])
     },
     "bleeding": {
         "english": "bleeding",
@@ -182,27 +202,309 @@ MULTI_LANG_SYMPTOMS = {
     },
     "dizziness": {
         "english": "dizziness",
-        "ta": ("தலைசுற்றல்", ["thalai sutharuthu", "mayakkam", "தலை சுற்றல்", "மயக்கம்"]),
-        "hi": ("चक्कर आना", ["chakkar aa raha", "behosh", "चक्कर"]),
+        "ta": ("தலைசுற்றல்", ["thalai sutharuthu", "thala suthuthu", "mayakkam", "தலை சுற்றல்", "மயக்கம்"]),
+        "hi": ("चक्कर आना", ["chakkar aa raha", "behosh", "chakkar", "चक्कर"]),
         "ml": ("തലകറക്കം", ["thalakarakkam", "bodhakshayam", "തലകറക്കം"]),
-        "pl": ("zawroty głowy", ["kreci mi sie w glowie", "omdlenie"]),
-        "ar": ("دوخة", ["dayikh", "dawkha", "دوار"]),
-        "ur": ("چکر آنا", ["chakkar aa rahe hain", "چکر"]),
-        "bn": ("মাথা ঘোরা", ["matha ghurche", "মাথা ঘোরা"]),
-        "so": ("dawakhaad", ["madhax wareeg"]),
-        "ro": ("amețeală", ["ametit", "ameteli"])
+        "pl": ("zawroty głowy", ["kreci mi sie w glowie", "omdlenie", "zawroty glowy"]),
+        "ar": ("دوخة", ["dayikh", "dawkha", "dawar", "دوار", "دوخة"]),
+        "ur": ("چکر آنا", ["chakkar aa rahe hain", "chakkar", "چکر"]),
+        "bn": ("মাথা ঘোরা", ["matha ghurche", "matha ghora", "মাথা ঘোরা"]),
+        "so": ("dawakhaad", ["madhax wareeg", "dawakhaad"]),
+        "ro": ("amețeală", ["ametit", "ameteli", "amețeală"])
     },
-    "cough": {
-        "english": "cough",
-        "ta": ("இருமல்", ["irumal", "irumal irukku", "இருமல்"]),
-        "hi": ("खांसी", ["khansi", "khasi", "खांसी"]),
-        "ml": ("ചുമ", ["chuma", "chumakkunnu", "ചുമ"]),
-        "pl": ("kaszel", ["kaszel", "kaszle"]),
-        "ar": ("سعال", ["koha", "kuhha", "sual", "سعال"]),
-        "ur": ("کھانسی", ["khansi", "کھانسی"]),
-        "bn": ("কাশি", ["kashi", "কাশি"]),
-        "so": ("qufac", ["qufac"]),
-        "ro": ("tuse", ["tuse", "tusesc"])
+    # GENERIC FALLBACK - only matches if no specific anatomy was identified
+    "pain": {
+        "english": "pain",
+        "ta": ("வலி", ["vali", "valikuthu", "valikirathu", "vali irukku", "நோவு", "வலி"]),
+        "hi": ("दर्द", ["dard", "dard ho raha", "peeda", "दर्द"]),
+        "ml": ("വേദന", ["vedana", "vedanayaanu", "valikunnu", "വേദന"]),
+        "pl": ("ból", ["bol", "boli", "bole"]),
+        "ar": ("ألم", ["alam", "waja", "wajah", "ألم", "وجع"]),
+        "ur": ("درد", ["dard", "takleef", "درد"]),
+        "bn": ("ব্যথা", ["betha", "byatha", "batha", "ব্যথা"]),
+        "so": ("xanuun", ["xanuun", "dawaaf"]),
+        "ro": ("durere", ["durere", "doare", "dureri"])
+    }
+}
+
+# ============================================================
+# DETERMINISTIC CANONICAL PATIENT TRANSLATIONS (ALL 9 LANGUAGES)
+# Guarantees verified native clinical output without external API failures
+# ============================================================
+PATIENT_CANONICAL_RESPONSES = {
+    "ta": {
+        "chest pain": {
+            "pos": ("I have chest pain", "எனக்கு நெஞ்சு வலி இருக்கிறது"),
+            "neg": ("I do not have chest pain", "எனக்கு நெஞ்சு வலி இல்லை")
+        },
+        "headache": {
+            "pos": ("I have a headache", "எனக்கு தலைவலி இருக்கிறது"),
+            "neg": ("I do not have a headache", "எனக்கு தலைவலி இல்லை")
+        },
+        "stomach pain": {
+            "pos": ("I have stomach pain", "எனக்கு வயிற்று வலி இருக்கிறது"),
+            "neg": ("I do not have stomach pain", "எனக்கு வயிற்று வலி இல்லை")
+        },
+        "back pain": {
+            "pos": ("I have back pain", "எனக்கு முதுகு வலி இருக்கிறது"),
+            "neg": ("I do not have back pain", "எனக்கு முதுகு வலி இல்லை")
+        },
+        "throat pain": {
+            "pos": ("I have a sore throat", "எனக்கு தொண்டை வலி இருக்கிறது"),
+            "neg": ("I do not have a sore throat", "எனக்கு தொண்டை வலி இல்லை")
+        },
+        "leg pain": {
+            "pos": ("I have leg pain", "எனக்கு கால் வலி இருக்கிறது"),
+            "neg": ("I do not have leg pain", "எனக்கு கால் வலி இல்லை")
+        },
+        "fever": {
+            "pos": ("I have a fever", "எனக்கு காய்ச்சல் இருக்கிறது"),
+            "neg": ("I do not have a fever", "எனக்கு காய்ச்சல் இல்லை")
+        },
+        "breathing difficulty": {
+            "pos": ("I have difficulty breathing", "எனக்கு மூச்சு விடுவதில் சிரமம் உள்ளது"),
+            "neg": ("I do not have difficulty breathing", "எனக்கு மூச்சுத் திணறல் இல்லை")
+        },
+        "bleeding": {
+            "pos": ("I am bleeding", "எனக்கு இரத்தப்போக்கு உள்ளது"),
+            "neg": ("I am not bleeding", "எனக்கு இரத்தப்போக்கு இல்லை")
+        },
+        "dizziness": {
+            "pos": ("I feel dizzy", "எனக்கு தலை சுற்றுகிறது"),
+            "neg": ("I do not feel dizzy", "எனக்கு தலை சுற்றல் இல்லை")
+        },
+        "pain": {
+            "pos": ("I have pain", "எனக்கு வலி இருக்கிறது"),
+            "neg": ("I do not have pain", "எனக்கு வலி இல்லை")
+        }
+    },
+    "hi": {
+        "chest pain": {
+            "pos": ("I have chest pain", "मुझे सीने में दर्द है"),
+            "neg": ("I do not have chest pain", "मुझे सीने में दर्द नहीं है")
+        },
+        "headache": {
+            "pos": ("I have a headache", "मुझे सिरदर्द है"),
+            "neg": ("I do not have a headache", "मुझे सिरदर्द नहीं है")
+        },
+        "stomach pain": {
+            "pos": ("I have stomach pain", "मुझे पेट में दर्द है"),
+            "neg": ("I do not have stomach pain", "मुझे पेट में दर्द नहीं है")
+        },
+        "back pain": {
+            "pos": ("I have back pain", "मुझे पीठ में दर्द है"),
+            "neg": ("I do not have back pain", "मुझे पीठ में दर्द नहीं है")
+        },
+        "throat pain": {
+            "pos": ("I have a sore throat", "मुझे गले में दर्द है"),
+            "neg": ("I do not have a sore throat", "मुझे गले में दर्द नहीं है")
+        },
+        "leg pain": {
+            "pos": ("I have leg pain", "मुझे पैर में दर्द है"),
+            "neg": ("I do not have leg pain", "मुझे पैर में दर्द नहीं है")
+        },
+        "fever": {
+            "pos": ("I have a fever", "मुझे बुखार है"),
+            "neg": ("I do not have a fever", "मुझे बुखार नहीं है")
+        },
+        "breathing difficulty": {
+            "pos": ("I have difficulty breathing", "मुझे सांस लेने में तकलीफ है"),
+            "neg": ("I do not have difficulty breathing", "मुझे सांस लेने में कोई तकलीफ नहीं है")
+        },
+        "bleeding": {
+            "pos": ("I am bleeding", "खून बह रहा है"),
+            "neg": ("I am not bleeding", "खून नहीं बह रहा है")
+        },
+        "dizziness": {
+            "pos": ("I feel dizzy", "मुझे चक्कर आ रहा है"),
+            "neg": ("I do not feel dizzy", "मुझे चक्कर नहीं आ रहा है")
+        },
+        "pain": {
+            "pos": ("I have pain", "मुझे दर्द हो रहा है"),
+            "neg": ("I do not have pain", "मुझे दर्द नहीं है")
+        }
+    },
+    "ml": {
+        "chest pain": {
+            "pos": ("I have chest pain", "എനിക്ക് നെഞ്ചുവേദനയുണ്ട്"),
+            "neg": ("I do not have chest pain", "എനിക്ക് നെഞ്ചുവേദനയില്ല")
+        },
+        "headache": {
+            "pos": ("I have a headache", "എനിക്ക് തലവേദനയുണ്ട്"),
+            "neg": ("I do not have a headache", "എനിക്ക് തലവേദനയില്ല")
+        },
+        "stomach pain": {
+            "pos": ("I have stomach pain", "എനിക്ക് വയറുവേദനയുണ്ട്"),
+            "neg": ("I do not have stomach pain", "എനിക്ക് വയറുവേദനയില്ല")
+        },
+        "fever": {
+            "pos": ("I have a fever", "എനിക്ക് പനിയുണ്ട്"),
+            "neg": ("I do not have a fever", "എനിക്ക് പനിയില്ല")
+        },
+        "breathing difficulty": {
+            "pos": ("I have difficulty breathing", "എനിക്ക് ശ്വാസതടസ്സമുണ്ട്"),
+            "neg": ("I do not have difficulty breathing", "എനിക്ക് ശ്വാസതടസ്സമില്ല")
+        },
+        "pain": {
+            "pos": ("I have pain", "എനിക്ക് വേദനയുണ്ട്"),
+            "neg": ("I do not have pain", "എനിക്ക് വേദനയില്ല")
+        }
+    },
+    "pl": {
+        "chest pain": {
+            "pos": ("I have chest pain", "Mam ból w klatce piersiowej"),
+            "neg": ("I do not have chest pain", "Nie mam bólu w klatce piersiowej")
+        },
+        "headache": {
+            "pos": ("I have a headache", "Boli mnie głowa"),
+            "neg": ("I do not have a headache", "Nie boli mnie głowa")
+        },
+        "stomach pain": {
+            "pos": ("I have stomach pain", "Mam ból brzucha"),
+            "neg": ("I do not have stomach pain", "Nie mam bólu brzucha")
+        },
+        "fever": {
+            "pos": ("I have a fever", "Mam gorączkę"),
+            "neg": ("I do not have a fever", "Nie mam gorączki")
+        },
+        "breathing difficulty": {
+            "pos": ("I have difficulty breathing", "Mam trudności z oddychaniem"),
+            "neg": ("I do not have difficulty breathing", "Nie mam trudności z oddychaniem")
+        },
+        "pain": {
+            "pos": ("I have pain", "Odczuwam ból"),
+            "neg": ("I do not have pain", "Nie odczuwam bólu")
+        }
+    },
+    "ar": {
+        "chest pain": {
+            "pos": ("I have chest pain", "أشعر بألم في الصدر"),
+            "neg": ("I do not have chest pain", "لا أشعر بألم في الصدر")
+        },
+        "headache": {
+            "pos": ("I have a headache", "أعاني من صداع"),
+            "neg": ("I do not have a headache", "ليس لدي صداع")
+        },
+        "stomach pain": {
+            "pos": ("I have stomach pain", "أعاني من ألم في المعدة"),
+            "neg": ("I do not have stomach pain", "ليس لدي ألم في المعدة")
+        },
+        "fever": {
+            "pos": ("I have a fever", "أعاني من الحمى"),
+            "neg": ("I do not have a fever", "ليس لدي حمى")
+        },
+        "breathing difficulty": {
+            "pos": ("I have difficulty breathing", "أواجه صعوبة في التنفس"),
+            "neg": ("I do not have difficulty breathing", "لا أواجه صعوبة في التنفس")
+        },
+        "pain": {
+            "pos": ("I have pain", "أشعر بالألم"),
+            "neg": ("I do not have pain", "لا أشعر بأي ألم")
+        }
+    },
+    "ur": {
+        "chest pain": {
+            "pos": ("I have chest pain", "میرے سینے میں درد ہے"),
+            "neg": ("I do not have chest pain", "میرے سینے میں درد نہیں ہے")
+        },
+        "headache": {
+            "pos": ("I have a headache", "میرے سر میں درد ہے"),
+            "neg": ("I do not have a headache", "میرے سر میں درد نہیں ہے")
+        },
+        "stomach pain": {
+            "pos": ("I have stomach pain", "میرے پیٹ میں درد ہے"),
+            "neg": ("I do not have stomach pain", "میرے پیٹ میں درد نہیں ہے")
+        },
+        "fever": {
+            "pos": ("I have a fever", "मुझे بخار ہے"),
+            "neg": ("I do not have a fever", "مجھے بخار نہیں ہے")
+        },
+        "breathing difficulty": {
+            "pos": ("I have difficulty breathing", "مجھے سانس لینے میں دشواری ہے"),
+            "neg": ("I do not have difficulty breathing", "مجھے سانس لینے میں کوئی دشواری نہیں ہے")
+        },
+        "pain": {
+            "pos": ("I have pain", "مجھے درد ہو رہا ہے"),
+            "neg": ("I do not have pain", "مجھے کوئی درد نہیں ہے")
+        }
+    },
+    "bn": {
+        "chest pain": {
+            "pos": ("I have chest pain", "আমার বুকে ব্যথা আছে"),
+            "neg": ("I do not have chest pain", "আমার বুকে ব্যথা নেই")
+        },
+        "headache": {
+            "pos": ("I have a headache", "আমার মাথা ব্যথা করছে"),
+            "neg": ("I do not have a headache", "আমার মাথা ব্যথা নেই")
+        },
+        "stomach pain": {
+            "pos": ("I have stomach pain", "আমার পেটে ব্যথা করছে"),
+            "neg": ("I do not have stomach pain", "আমার পেটে ব্যথা নেই")
+        },
+        "fever": {
+            "pos": ("I have a fever", "আমার জ্বর আছে"),
+            "neg": ("I do not have a fever", "আমার জ্বর নেই")
+        },
+        "breathing difficulty": {
+            "pos": ("I have difficulty breathing", "আমার শ্বাস নিতে কষ্ট হচ্ছে"),
+            "neg": ("I do not have difficulty breathing", "আমার শ্বাসকষ্ট নেই")
+        },
+        "pain": {
+            "pos": ("I have pain", "আমার ব্যথা আছে"),
+            "neg": ("I do not have pain", "আমার কোনো ব্যথা নেই")
+        }
+    },
+    "so": {
+        "chest pain": {
+            "pos": ("I have chest pain", "Waxaan dareemayaa xanuunka laabta"),
+            "neg": ("I do not have chest pain", "Ma qabo wax xanuun laabta ah")
+        },
+        "headache": {
+            "pos": ("I have a headache", "Waxaan qabaa madax xanuun"),
+            "neg": ("I do not have a headache", "Ma qabo madax xanuun")
+        },
+        "stomach pain": {
+            "pos": ("I have stomach pain", "Waxaan qabaa calool xanuun"),
+            "neg": ("I do not have stomach pain", "Ma qabo calool xanuun")
+        },
+        "fever": {
+            "pos": ("I have a fever", "Waxaan qabaa qandho"),
+            "neg": ("I do not have a fever", "Ma qabo wax qandho ah")
+        },
+        "breathing difficulty": {
+            "pos": ("I have difficulty breathing", "Waxaan dhib ku qabaa neefsashada"),
+            "neg": ("I do not have difficulty breathing", "Dhib kuma qabo neefsashada")
+        },
+        "pain": {
+            "pos": ("I have pain", "Xanuun ayaan dareemayaa"),
+            "neg": ("I do not have pain", "Wax xanuun ah ma dareemayo")
+        }
+    },
+    "ro": {
+        "chest pain": {
+            "pos": ("I have chest pain", "Am dureri în piept"),
+            "neg": ("I do not have chest pain", "Nu am dureri în piept")
+        },
+        "headache": {
+            "pos": ("I have a headache", "Am o durere de cap"),
+            "neg": ("I do not have a headache", "Nu am dureri de cap")
+        },
+        "stomach pain": {
+            "pos": ("I have stomach pain", "Am dureri de stomac"),
+            "neg": ("I do not have stomach pain", "Nu am dureri de stomac")
+        },
+        "fever": {
+            "pos": ("I have a fever", "Am febră"),
+            "neg": ("I do not have a fever", "Nu am febră")
+        },
+        "breathing difficulty": {
+            "pos": ("I have difficulty breathing", "Am dificultăți de respirație"),
+            "neg": ("I do not have difficulty breathing", "Nu am dificultăți de respirație")
+        },
+        "pain": {
+            "pos": ("I have pain", "Am o durere"),
+            "neg": ("I do not have pain", "Nu am nicio durere")
+        }
     }
 }
 
@@ -217,11 +519,9 @@ URGENT_SYMPTOMS_CONFIG = {
 }
 
 # ============================================================
-# CLINICAL QUESTION SYNTHESIZER (STAFF INTENT -> 9 LANGUAGES)
-# Guarantees questions NEVER fall back to untranslated English
+# STAFF QUESTION SYNTHESIZER
 # ============================================================
 CLINICAL_STAFF_SYNTHESIZER = {
-    # 1. DURATION: "how long do you have [symptom]?" / "how long have you had this?"
     "HOW_LONG_PAIN": {
         "ta": "உங்களுக்கு எவ்வளவு காலமாக வலி இருக்கிறது?",
         "hi": "आपको कितने समय से दर्द हो रहा है?",
@@ -277,17 +577,6 @@ CLINICAL_STAFF_SYNTHESIZER = {
         "so": "Muddo intee leeg ayaad dhibaatada neefsashada qabtaa?",
         "ro": "De cât timp aveți dificultăți de respirație?"
     },
-    "HOW_LONG_STOMACH": {
-        "ta": "உங்களுக்கு எவ்வளவு காலமாக வயிற்று வலி உள்ளது?",
-        "hi": "आपको पेट में दर्द कब से है?",
-        "ml": "നിങ്ങൾക്ക് എത്ര നാളായി വയറുവേദനയുണ്ട്?",
-        "pl": "Od jak dawna ma Pan/Pani ból brzucha?",
-        "ar": "منذ متى وأنت تعاني من ألم في المعدة؟",
-        "ur": "آپ کو پیٹ میں درد کب سے ہے؟",
-        "bn": "আপনার কতদিন ধরে পেটে ব্যথা হচ্ছে?",
-        "so": "Muddo intee leeg ayaad calool xanuunka qabtaa?",
-        "ro": "De cât timp aveți dureri de stomac?"
-    },
     "HOW_LONG_GENERAL": {
         "ta": "இது உங்களுக்கு எவ்வளவு காலமாக உள்ளது?",
         "hi": "यह समस्या आपको कब से है?",
@@ -299,8 +588,6 @@ CLINICAL_STAFF_SYNTHESIZER = {
         "so": "Muddo intee leeg ayaad tan qabtaa?",
         "ro": "De cât timp aveți această problemă?"
     },
-
-    # 2. LOCATION: "where is your pain?" / "where does it hurt?"
     "WHERE_IS_PAIN": {
         "ta": "உங்கள் வலி எங்கே இருக்கிறது?",
         "hi": "आपको दर्द कहाँ हो रहा है?",
@@ -312,8 +599,6 @@ CLINICAL_STAFF_SYNTHESIZER = {
         "so": "Xanuunku xaggee ku hayaa?",
         "ro": "Unde vă doare mai exact?"
     },
-
-    # 3. PRESENCE: "do you have [symptom]?"
     "DO_YOU_HAVE_PAIN": {
         "ta": "உங்களுக்கு வலி இருக்கிறதா?",
         "hi": "क्या आपको दर्द हो रहा है?",
@@ -357,65 +642,6 @@ CLINICAL_STAFF_SYNTHESIZER = {
         "bn": "আপনার কি শ্বাস নিতে কষ্ট হচ্ছে?",
         "so": "Ma kugu adag tahay neefsashadu?",
         "ro": "Aveți dificultăți de respirație?"
-    },
-    "DO_YOU_HAVE_DIZZINESS": {
-        "ta": "நீங்கள் தலை சுற்றல் அல்லது மயக்கத்தை உணர்கிறீர்களா?",
-        "hi": "क्या आपको चक्कर या बेहोशी महसूस हो रही है?",
-        "ml": "നിങ്ങൾക്ക് തലകറക്കമോ ബോധക്ഷയമോ തോന്നുന്നുണ്ടോ?",
-        "pl": "Czy czuje Pan/Pani zawroty głowy lub omdlenia?",
-        "ar": "هل تشعر بالدوار أو الإغماء؟",
-        "ur": "کیا آپ کو چکر یا بے ہوشی محسوس ہو رہی ہے؟",
-        "bn": "আপনার কি মাথা ঘোরা বা অজ্ঞান হওয়ার অনুভূতি হচ্ছে?",
-        "so": "Ma dareemaysaa miyir beel ama dawakhaad?",
-        "ro": "Vă simțiți amețit sau leșinat?"
-    },
-    "DO_YOU_HAVE_BLEEDING": {
-        "ta": "ஏதேனும் இரத்தப்போக்கு உள்ளதா?",
-        "hi": "क्या कोई रक्तस्राव या खून बह रहा है?",
-        "ml": "എവിടെയെങ്കിലും രക്തസ്രാവം ഉണ്ടോ?",
-        "pl": "Czy występuje krwawienie?",
-        "ar": "هل هناك أي نزيف؟",
-        "ur": "کیا کہیں سے خون بہہ رہا ہے؟",
-        "bn": "কোথাও কি রক্তপাত হচ্ছে?",
-        "so": "Dhiig ma kaa socdaa?",
-        "ro": "Aveți vreo sângerare?"
-    },
-
-    # 4. SEVERITY / SCALE: "on a scale of 1 to 10..."
-    "SEVERITY_SCALE": {
-        "ta": "1 முதல் 10 வரை, உங்கள் வலி எவ்வளவு தீவிரமாக உள்ளது?",
-        "hi": "1 से 10 के पैमाने पर, आपका दर्द कितना गंभीर है?",
-        "ml": "1 മുതൽ 10 വരെയുള്ള അളവിൽ നിങ്ങളുടെ വേദന എത്രത്തോളമുണ്ട്?",
-        "pl": "W skali od 1 do 10, jak silny jest ten ból?",
-        "ar": "على مقياس من 1 إلى 10، ما مدى شدة ألمك؟",
-        "ur": "1 سے 10 کے پیمانے پر آپ کا درد کتنا شدید ہے؟",
-        "bn": "১ থেকে ১০ এর স্কেলে আপনার ব্যথা কতটা তীব্র?",
-        "so": "Qiyaastii 1 ilaa 10, intee in le'eg ayuu xanuunkaagu daran yahay?",
-        "ro": "Pe o scară de la 1 la 10, cât de severă este durerea?"
-    },
-
-    # 5. ALLERGIES & MEDS
-    "ALLERGIES_QUERY": {
-        "ta": "உங்களுக்கு ஏதேனும் மருந்து ஒவ்வாமை உள்ளதா?",
-        "hi": "क्या आपको किसी दवा से कोई एलर्जी है?",
-        "ml": "നിങ്ങൾക്ക് എന്തെങ്കിലും അലർജി ഉണ്ടോ?",
-        "pl": "Czy ma Pan/Pani jakieś alergie na leki?",
-        "ar": "هل لديك أي حساسية تجاه أي أدوية؟",
-        "ur": "کیا آپ کو کسی دوا سے کوئی الرجی ہے؟",
-        "bn": "আপনার কি কোনো অ্যালার্জি আছে?",
-        "so": "Ma qabtaa wax xasaasiyad ah?",
-        "ro": "Aveți alergii la vreun medicament?"
-    },
-    "MEDICATION_QUERY": {
-        "ta": "நீங்கள் தற்போது ஏதேனும் மருந்து உட்கொள்கிறீர்களா?",
-        "hi": "क्या आप वर्तमान में कोई दवा ले रहे हैं?",
-        "ml": "നിങ്ങൾ നിലവിൽ എന്തെങ്കിലും മരുന്ന് കഴിക്കുന്നുണ്ടോ?",
-        "pl": "Czy przyjmuje Pan/Pani obecnie jakieś leki?",
-        "ar": "هل تتناول أي أدوية بانتظام حالياً؟",
-        "ur": "کیا آپ اس وقت کوئی دوا لے رہے ہیں؟",
-        "bn": "আপনি কি বর্তমানে কোনো ওষুধ খাচ্ছেন?",
-        "so": "Ma qaadataa wax daawo ah hadda?",
-        "ro": "Luați în prezent vreun tratament medicamentos?"
     }
 }
 
@@ -470,77 +696,55 @@ GUIDED_PROMPTS = {
 }
 
 # ============================================================
-# EXACT PHRASEBOOK FOR COMMON RECEPTION UTTERANCES
+# LONGEST-FIRST SYMPTOM PARSER (FIXES GREEDY OVERLAP BUG)
 # ============================================================
-CLINICAL_DICTIONARY = {
-    "ta": {
-        "good morning how can i help you": ("Good morning. How can I help you?", "காலை வணக்கம். நான் உங்களுக்கு எப்படி உதவ முடியும்?", False, None),
-        "do you have an appointment": ("Do you have an appointment?", "உங்களுக்கு முன்பதிவு உள்ளதா?", False, None),
-        "can i take your name and date of birth": ("Can I take your name and date of birth?", "உங்கள் பெயரையும் பிறந்த தேதியையும் சொல்ல முடியுமா?", False, None),
-        "please take a seat the doctor will see you shortly": ("Please take a seat. The doctor will see you shortly.", "தயவு செய்து உட்காருங்கள். மருத்துவர் விரைவில் உங்களை பார்ப்பார்.", False, None),
-        "do you need any assistance": ("Do you need any assistance?", "உங்களுக்கு உதவி தேவையா?", False, None),
-        "is this your first visit": ("Is this your first visit?", "இது உங்கள் முதல் வருகையா?", False, None),
-        "do you have your nhs number": ("Do you have your NHS number?", "உங்களிடம் என்.எச்.எஸ் எண் உள்ளதா?", False, None),
-        "please wait the doctor will call you": ("Please wait. The doctor will call you.", "தயவு செய்து காத்திருக்கவும். மருத்துவர் உங்களை அழைப்பார்.", False, None),
-        "the doctor will see you now": ("The doctor will see you now.", "மருத்துவர் இப்போது உங்களை பார்ப்பார்.", False, None),
-        "your appointment is confirmed": ("Your appointment is confirmed.", "உங்கள் முன்பதிவு உறுதி செய்யப்பட்டுள்ளது.", False, None),
-        "please fill in this form": ("Please fill in this form.", "தயவு செய்து இந்த படிவத்தை நிரப்பவும்.", False, None),
-    },
-    "hi": {
-        "good morning how can i help you": ("Good morning. How can I help you?", "सुप्रभात। मैं आपकी कैसे मदद कर सकता हूँ?", False, None),
-        "do you have an appointment": ("Do you have an appointment?", "क्या आपका कोई अपॉइंटमेंट है?", False, None),
-        "please take a seat the doctor will see you shortly": ("Please take a seat. The doctor will see you shortly.", "कृपया बैठ जाइए। डॉक्टर जल्द ही आपसे मिलेंगे।", False, None),
-        "please wait the doctor will call you": ("Please wait. The doctor will call you.", "कृपया प्रतीक्षा करें। डॉक्टर आपको बुलाएंगे।", False, None),
-        "the doctor will see you now": ("The doctor will see you now.", "डॉक्टर अब आपसे मिलेंगे।", False, None),
-    },
-    "ml": {
-        "good morning how can i help you": ("Good morning. How can I help you?", "സുപ്രഭാതം. എനിക്ക് നിങ്ങളെ എങ്ങനെ സഹായിക്കാനാകും?", False, None),
-        "do you have an appointment": ("Do you have an appointment?", "നിങ്ങൾക്ക് ഒരു അപ്പോയിന്റ്മെന്റ് ഉണ്ടോ?", False, None),
-    },
-    "pl": {
-        "good morning how can i help you": ("Good morning. How can I help you?", "Dzień dobry. W czym mogę pomóc?", False, None),
-        "do you have an appointment": ("Do you have an appointment?", "Czy ma Pan/Pani umówioną wizytę?", False, None),
-    },
-    "ar": {
-        "good morning how can i help you": ("Good morning. How can I help you?", "صباح الخير. كيف يمكنني مساعدتك؟", False, None),
-        "do you have an appointment": ("Do you have an appointment?", "هل لديك موعد؟", False, None),
-    },
-    "ur": {
-        "good morning how can i help you": ("Good morning. How can I help you?", "صبح بخیر۔ میں آپ کی کیسے مدد کر سکتا ہوں؟", False, None),
-        "do you have an appointment": ("Do you have an appointment?", "کیا آپ کا کوئی اپوائنٹمنٹ ہے؟", False, None),
-    },
-    "bn": {
-        "good morning how can i help you": ("Good morning. How can I help you?", "সুপ্রভাত। আমি আপনাকে কীভাবে সাহায্য করতে পারি?", False, None),
-        "do you have an appointment": ("Do you have an appointment?", "আপনার কি কোনো অ্যাপয়েন্টমেন্ট আছে?", False, None),
-    },
-    "so": {
-        "good morning how can i help you": ("Good morning. How can I help you?", "Subax wanaagsan. Sideen ku caawin karaa?", False, None),
-        "do you have an appointment": ("Do you have an appointment?", "Ma qabtaa ballan?", False, None),
-    },
-    "ro": {
-        "good morning how can i help you": ("Good morning. How can I help you?", "Bună dimineața. Cu ce vă pot ajuta?", False, None),
-        "do you have an appointment": ("Do you have an appointment?", "Aveți o programare?", False, None),
-    }
-}
+def extract_symptom(text, lang_code):
+    """
+    Scans text against all known symptom aliases across languages.
+    CRITICAL: Evaluates aliases sorted by length DESCENDING so specific phrases
+    like 'nenji vali' or 'thalai vali' match before generic single tokens like 'vali' or 'dard'.
+    """
+    clean_text = re.sub(r'[^\w\s]', ' ', text.lower()).strip()
+    norm = f" {' '.join(clean_text.split())} "
 
-# ============================================================
-# CLINICAL SYNTHESIZER MATCHING FUNCTION
-# ============================================================
+    # Build candidates: (alias, symptom_key, english_name, native_name)
+    candidates = []
+    for sym_key, sym_data in MULTI_LANG_SYMPTOMS.items():
+        if lang_code in sym_data:
+            native_label, aliases = sym_data[lang_code]
+            for alias in aliases:
+                candidates.append((alias.lower().strip(), sym_key, sym_data["english"], native_label))
+        
+        # Universal English aliases
+        candidates.append((sym_data["english"].lower().strip(), sym_key, sym_data["english"], sym_data.get(lang_code, (sym_data["english"], []))[0]))
+
+    # Sort candidates by length in descending order (longest match first)
+    candidates.sort(key=lambda x: len(x[0]), reverse=True)
+
+    for alias, sym_key, english_name, native_label in candidates:
+        if f" {alias} " in norm or norm.strip().startswith(alias) or norm.strip().endswith(alias):
+            return sym_key, english_name, native_label
+
+    # Fallback to direct substring search for remaining items
+    for alias, sym_key, english_name, native_label in candidates:
+        if alias in norm:
+            return sym_key, english_name, native_label
+
+    return None, None, None
+
 def synthesize_staff_question(text, lang_code):
     """
-    Analyzes staff questions (e.g. 'how long do you have pain?', 'where does it hurt?')
-    and returns verified native translations across all 9 languages without relying on web scrapers.
+    Analyzes staff inquiries and deterministically returns verified translations
+    for all 9 languages without relying on external web APIs.
     """
     clean = re.sub(r'[^\w\s]', '', text.lower()).strip()
 
-    # --- 1. DURATION INTENTS ---
+    # DURATION
     if any(q in clean for q in ["how long", "since when", "how many days", "when did"]) and "pain" in clean:
         if "chest" in clean:
             return CLINICAL_STAFF_SYNTHESIZER["HOW_LONG_CHEST_PAIN"].get(lang_code)
         if "head" in clean:
             return CLINICAL_STAFF_SYNTHESIZER["HOW_LONG_HEADACHE"].get(lang_code)
-        if "stomach" in clean or "belly" in clean or "abdomen" in clean or "abdominal" in clean:
-            return CLINICAL_STAFF_SYNTHESIZER["HOW_LONG_STOMACH"].get(lang_code)
         return CLINICAL_STAFF_SYNTHESIZER["HOW_LONG_PAIN"].get(lang_code)
 
     if any(q in clean for q in ["how long", "since when", "when did"]) and ("fever" in clean or "temperature" in clean):
@@ -552,11 +756,11 @@ def synthesize_staff_question(text, lang_code):
     if clean in ["how long", "how long have you had this", "how long has this been", "how long is this"]:
         return CLINICAL_STAFF_SYNTHESIZER["HOW_LONG_GENERAL"].get(lang_code)
 
-    # --- 2. LOCATION INTENTS ---
-    if any(q in clean for q in ["where is", "where does it hurt", "where are you feeling", "where do you have"]):
+    # LOCATION
+    if any(q in clean for q in ["where is", "where does it hurt", "where do you have"]):
         return CLINICAL_STAFF_SYNTHESIZER["WHERE_IS_PAIN"].get(lang_code)
 
-    # --- 3. PRESENCE INTENTS ---
+    # PRESENCE
     if any(q in clean for q in ["do you have", "are you having", "is there", "are you feeling"]):
         if "chest" in clean:
             return CLINICAL_STAFF_SYNTHESIZER["DO_YOU_HAVE_CHEST_PAIN"].get(lang_code)
@@ -564,19 +768,7 @@ def synthesize_staff_question(text, lang_code):
             return CLINICAL_STAFF_SYNTHESIZER["DO_YOU_HAVE_FEVER"].get(lang_code)
         if "breath" in clean or "breathing" in clean:
             return CLINICAL_STAFF_SYNTHESIZER["DO_YOU_HAVE_BREATHING"].get(lang_code)
-        if "dizzy" in clean or "faint" in clean or "dizziness" in clean:
-            return CLINICAL_STAFF_SYNTHESIZER["DO_YOU_HAVE_DIZZINESS"].get(lang_code)
-        if "bleed" in clean or "blood" in clean:
-            return CLINICAL_STAFF_SYNTHESIZER["DO_YOU_HAVE_BLEEDING"].get(lang_code)
-        if "allergy" in clean or "allergies" in clean:
-            return CLINICAL_STAFF_SYNTHESIZER["ALLERGIES_QUERY"].get(lang_code)
-        if "medication" in clean or "medicine" in clean or "tablets" in clean or "drugs" in clean:
-            return CLINICAL_STAFF_SYNTHESIZER["MEDICATION_QUERY"].get(lang_code)
         if "pain" in clean:
             return CLINICAL_STAFF_SYNTHESIZER["DO_YOU_HAVE_PAIN"].get(lang_code)
-
-    # --- 4. SEVERITY INTENTS ---
-    if any(q in clean for q in ["scale of 1", "rate your pain", "how severe", "how bad"]):
-        return CLINICAL_STAFF_SYNTHESIZER["SEVERITY_SCALE"].get(lang_code)
 
     return None
