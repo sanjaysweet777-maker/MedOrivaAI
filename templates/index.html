@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>MedOriva AI — NHS Multilingual Communication</title>
+<title>MedOriva AI — Multilingual Communication Support</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
 <style>
   .top-pilot-banner {
@@ -30,7 +30,7 @@
 
 <!-- ═══ TOP PILOT BANNER ═════════════════════════════════════════════════ -->
 <div class="top-pilot-banner">
-  🚀 <strong>MedOriva AI Clinical Pilot:</strong> Early Access Version — Full Enterprise Suite Launching Soon.
+  🚀 <strong>MedOriva AI Primary Care Pilot:</strong> Early Access Version — Full Enterprise Suite Launching Soon.
 </div>
 
 <!-- ═══ SETUP SCREEN ═══════════════════════════════════════════════════════ -->
@@ -121,7 +121,7 @@
     </button>
 
     <div class="setup-footer">
-      No patient data is stored. Session clears on end.
+      Ephemeral session processing: conversational content clears immediately on session end.
     </div>
   </div>
 </div>
@@ -168,7 +168,7 @@
 
       <div class="sidebar-bottom">
         <div class="no-storage-note">
-          🔒 No data stored
+          🔒 Ephemeral Session — Cleared on Exit
         </div>
         <button class="end-btn" onclick="endSession()">End session</button>
       </div>
@@ -191,7 +191,7 @@
 
       <!-- Alert banner (hidden by default) -->
       <div class="alert-banner" id="alertBanner" style="display:none">
-        ⚠️ Potential urgent communication — follow protocol. This is NOT a diagnosis.
+        ℹ️ Symptom phrase identified — follow practice communication protocol. Non-clinical notification.
         <button onclick="dismissAlert()">✕</button>
       </div>
 
