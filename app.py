@@ -61,7 +61,7 @@ ALERT_SYMPTOM_NEGATIVE = (
 @app.after_request
 def set_security_and_governance_headers(response):
     """
-    Enforces UK GDPR data-minimisation and zero-retention principles.
+    Enforces UK GDPR data-minimisation and ephemeral processing principles.
     Prevents browsers, proxies, and intermediate nodes from caching ephemeral consultation strings.
     """
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
@@ -107,7 +107,7 @@ def unauthorized():
 # CACHE & STRING NORMALIZATION
 # ============================================================
 
-# Static prompt translation cache (staff standard questions only — zero patient payload retention)
+# Static prompt translation cache (staff standard questions only — ephemeral memory only)
 translation_cache = {}
 
 def normalize_text(text):
