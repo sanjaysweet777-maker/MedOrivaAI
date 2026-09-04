@@ -1,6 +1,15 @@
+"""
+MedOriva AI Ltd — Multilingual Communication Support Backend
+Classification: Strictly Confidential / Non-Medical Device
+Purpose: Ephemeral, structured multilingual communication facilitation for NHS-style healthcare environments.
+Regulatory Position: Administrative communication tool. Does not provide clinical diagnosis,
+triage scoring, or clinical treatment advice.
+"""
+
 from datetime import timedelta
 import os
 import re
+import secrets
 import uuid
 
 from clinical_phrases import (
@@ -31,6 +40,36 @@ app.secret_key = os.environ.get("SECRET_KEY", "medoriva-clinical-mvp-secret-2026
 
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+
+# ============================================================
+# REGULATORY & INFORMATION GOVERNANCE SAFEGUARDS (UK GDPR)
+# ============================================================
+
+NON_CLINICAL_DISCLAIMER = (
+    "MedOriva AI is an administrative communication facilitation tool. "
+    "It is not a medical device and does not provide clinical diagnosis, triage scoring, "
+    "or treatment advice."
+)
+
+ALERT_SYMPTOM_POSITIVE = (
+    "Symptom-related phrase identified; staff to follow practice communication protocol."
+)
+ALERT_SYMPTOM_NEGATIVE = (
+    "Patient reports no symptom; staff noted per practice communication protocol."
+)
+
+@app.after_request
+def set_security_and_governance_headers(response):
+    """
+    Enforces UK GDPR data-minimisation and zero-retention principles.
+    Prevents browsers, proxies, and intermediate nodes from caching ephemeral consultation strings.
+    """
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    return response
 
 # ============================================================
 # FLASK-LOGIN AUTHENTICATION
@@ -68,6 +107,7 @@ def unauthorized():
 # CACHE & STRING NORMALIZATION
 # ============================================================
 
+# Static prompt translation cache (staff standard questions only — zero patient payload retention)
 translation_cache = {}
 
 def normalize_text(text):
@@ -151,6 +191,11 @@ def extract_duration(text):
     return None
 
 def evaluate_medical_triage(original_text, english_text, lang_code):
+    """
+    Keyword-based staff notification generator.
+    Provides non-clinical visual alerts to assist staff workflow.
+    Strictly non-diagnostic and non-prescriptive.
+    """
     combined = f"{normalize_text(original_text)} {normalize_text(english_text)}"
     is_neg = detect_negation(original_text, lang_code) or detect_negation(english_text, "en")
     
@@ -166,16 +211,26 @@ def evaluate_medical_triage(original_text, english_text, lang_code):
         if is_urgent:
             break
             
+    # Positive flag triggered only when phrase is present and unnegated
     medical_alert = bool(is_urgent and not is_neg)
+    
+    # Generate non-clinical safe word notification for practice staff
+    if medical_alert:
+        staff_notification = ALERT_SYMPTOM_POSITIVE
+    elif detected_symptom and is_neg:
+        staff_notification = ALERT_SYMPTOM_NEGATIVE
+    else:
+        staff_notification = None
     
     return {
         "symptom_detected": detected_symptom,
         "is_negative": is_neg,
-        "medical_alert": medical_alert
+        "medical_alert": medical_alert,
+        "staff_notification": staff_notification
     }
 
 # ============================================================
-# TRANSLATION HANDLERS
+# TRANSLATION HANDLERS (ALL 9 CORE LANGUAGES)
 # ============================================================
 
 def execute_online_translation(text, src, target):
@@ -230,7 +285,7 @@ def translate_staff_to_native(text, target_lang_code):
 
 def translate_patient_input(text, lang_code):
     """
-    Translates Patient input (Romanized or Native script) across all 9 languages into:
+    Translates Patient input (Romanized, Thanglish, or Native script) across all 9 languages into:
     1. Clean English for Staff
     2. Pure Native Script for UI display
     """
@@ -247,7 +302,7 @@ def translate_patient_input(text, lang_code):
             english_trans = f"Reported: {sym_eng}" if sym_eng else text
         return english_trans, text, None
 
-    # Parse components from Romanized/phonetic text
+    # Parse components from Romanized/phonetic text (e.g., Thanglish)
     has_affirmation = detect_affirmation(text, target_clean)
     has_negation = detect_negation(text, target_clean)
     duration_str = extract_duration(text)
@@ -369,16 +424,23 @@ def submit_contact():
 
     return jsonify({
         "status": "ok",
-        "message": "Thank you. Your clinical pilot inquiry has been received. Our team will contact you within 24 hours."
+        "message": "Thank you. Your practice pilot inquiry has been received. Our team will contact you within 24 hours."
     }), 200
 
 # ============================================================
-# HEALTH CHECKS (Public for Render Monitoring)
+# HEALTH CHECKS & REGULATORY AUDIT ENDPOINTS
 # ============================================================
 
 @app.route("/api/ping", methods=["GET"])
 def ping():
-    return jsonify({"status": "ok", "service": "MedOriva AI", "healthy": True}), 200
+    return jsonify({
+        "status": "ok",
+        "service": "MedOriva AI",
+        "healthy": True,
+        "regulatory_status": "Non-Medical Device (Administrative Communication Support)",
+        "governance": "UK GDPR Data Minimisation Enforced",
+        "disclaimer": NON_CLINICAL_DISCLAIMER
+    }), 200
 
 @app.route("/healthz", methods=["GET"])
 def healthz():
@@ -406,6 +468,7 @@ def start_session():
             "prompts": prompts,
             "context": session["context"],
             "lang": session["lang"],
+            "disclaimer": NON_CLINICAL_DISCLAIMER
         })
     except Exception as e:
         return jsonify({"status": "error", "error": f"Could not start session: {str(e)}"}), 500
@@ -414,7 +477,11 @@ def start_session():
 @login_required
 def end_session():
     reset_translation_session()
-    return jsonify({"status": "ok"})
+    session.clear()
+    return jsonify({
+        "status": "ok",
+        "message": "Session closed. Active memory purged under data-minimisation controls."
+    })
 
 @app.route("/api/translate_staff", methods=["POST"])
 @login_required
@@ -440,7 +507,8 @@ def translate_staff():
         "translated": translated_native,
         "lang": lang_name,
         "urgent": False,
-        "warning": error
+        "warning": error,
+        "disclaimer": NON_CLINICAL_DISCLAIMER
     })
 
 @app.route("/api/translate_patient", methods=["POST"])
@@ -465,7 +533,9 @@ def translate_patient():
         "symptom_detected": triage["symptom_detected"],
         "is_negative": triage["is_negative"],
         "medical_alert": triage["medical_alert"],
-        "warning": error
+        "staff_notification": triage["staff_notification"],
+        "warning": error,
+        "disclaimer": NON_CLINICAL_DISCLAIMER
     })
 
 @app.route("/api/simplify", methods=["POST"])
