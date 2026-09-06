@@ -1,4 +1,5 @@
 import os
+import re
 from datetime import timedelta
 import uuid
 from flask import Flask, flash, jsonify, redirect, render_template, request, session, url_for
@@ -47,6 +48,43 @@ def unauthorized():
 def reset_translation_session():
     for key in ["session_id", "context", "lang", "lang_code", "active"]:
         session.pop(key, None)
+
+# ============================================================
+# CLINICAL SIMPLIFICATION RULES
+# ============================================================
+SIMPLIFY_RULES = [
+    (r"require\s+further\s+diagnostic\s+evaluation", "need more tests"),
+    (r"administer\s+medication", "give medicine"),
+    (r"experiencing\s+discomfort", "feeling pain"),
+    (r"prior\s+to", "before"),
+    (r"in\s+order\s+to", "to"),
+    (r"approximately", "about"),
+    (r"at\s+this\s+point\s+in\s+time", "now"),
+    (r"due\s+to\s+the\s+fact\s+that", "because"),
+    (r"facilitate", "help"),
+    (r"commence", "start"),
+    (r"terminate", "end"),
+    (r"endeavour", "try"),
+    (r"obtain", "get"),
+    (r"sufficient", "enough"),
+    (r"physician", "doctor"),
+    (r"hypertension", "high blood pressure"),
+    (r"hypotension", "low blood pressure"),
+    (r"myocardial\s+infarction", "heart attack"),
+    (r"cerebrovascular\s+accident", "stroke"),
+    (r"dyspnea", "shortness of breath"),
+    (r"fracture", "broken bone"),
+]
+
+def simplify_text(text):
+    simplified = text
+    changed = False
+    for pattern, replacement in SIMPLIFY_RULES:
+        result = re.sub(pattern, replacement, simplified, flags=re.IGNORECASE)
+        if result != simplified:
+            changed = True
+            simplified = result
+    return simplified, changed
 
 # ============================================================
 # PUBLIC & WORKSPACE ROUTES
@@ -151,12 +189,15 @@ def start_session():
         "Do you need an interpreter?"
     ]
 
+    # Returns lang_code and code so app.js never hits undefined .includes
     return jsonify({
         "status": "ok",
         "session_id": session["session_id"],
         "prompts": prompts,
         "context": session["context"],
         "lang": session["lang"],
+        "lang_code": session["lang_code"],
+        "code": session["lang_code"]
     })
 
 @app.route("/api/end_session", methods=["POST"])
@@ -164,6 +205,14 @@ def start_session():
 def end_session():
     reset_translation_session()
     return jsonify({"status": "ok"})
+
+@app.route("/api/simplify", methods=["POST"])
+@login_required
+def simplify_endpoint():
+    data = request.get_json() or {}
+    text = data.get("text", "")
+    simplified, changed = simplify_text(text)
+    return jsonify({"simplified": simplified, "changed": changed})
 
 @app.route("/api/translate_staff", methods=["POST"])
 @login_required
@@ -201,7 +250,7 @@ def translate_patient():
 
     res = patient_translation(raw_text, lang_code)
 
-    # Alert condition: Urgent symptom detected AND negation is FALSE
+    # Medical alert: Urgent symptom present AND not negated
     medical_alert = bool(res.symptom and not res.is_negative)
 
     return jsonify({
