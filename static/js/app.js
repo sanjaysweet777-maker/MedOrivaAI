@@ -9,16 +9,16 @@ let sessionId = null;
 // ============================================================
 
 function selectCtx(btn) {
-    const el = btn.closest('.ctx-btn') || btn;
-    document.querySelectorAll('.ctx-btn').forEach(b => b.classList.remove('active'));
+    const el = btn.closest('.ctx-card') || btn.closest('.ctx-btn') || btn;
+    document.querySelectorAll('.ctx-card, .ctx-btn').forEach(b => b.classList.remove('active'));
     el.classList.add('active');
     selectedContext = el.getAttribute('data-ctx') || el.dataset.ctx;
     checkReady();
 }
 
 function selectLang(btn) {
-    const el = btn.closest('.lang-btn') || btn;
-    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+    const el = btn.closest('.lang-card') || btn.closest('.lang-btn') || btn;
+    document.querySelectorAll('.lang-card, .lang-btn').forEach(b => b.classList.remove('active'));
     el.classList.add('active');
     
     // Safely read language and code attributes
@@ -73,7 +73,6 @@ async function startSession() {
         sessionId = data.session_id;
         const currentContext = data.context || selectedContext;
         const currentLang = data.lang || selectedLang;
-        const currentCode = String(data.lang_code || data.code || selectedLangCode || 'en').toLowerCase();
 
         // Update sidebar state badges
         const sideCtx = document.getElementById('sideCtx');
@@ -85,14 +84,6 @@ async function startSession() {
 
         // Render guided prompts in sidebar
         renderPrompts(data.prompts || []);
-
-        // Safe RTL script direction handling
-        const rtlLanguages = ['ar', 'ur'];
-        const isRtl = rtlLanguages.includes(currentCode);
-        const chatArea = document.getElementById('chatArea');
-        if (chatArea) {
-            chatArea.setAttribute('dir', isRtl ? 'rtl' : 'ltr');
-        }
 
         // Switch active screens
         const setupScreen = document.getElementById('setupScreen');
@@ -110,14 +101,12 @@ async function startSession() {
 async function endSession() {
     try {
         await fetch('/api/end_session', { method: 'POST' });
-    } catch (e) {
-        // Continue reload on network failure
-    }
+    } catch (e) {}
     window.location.reload();
 }
 
 // ============================================================
-// 3. TRANSLATION CONNECTION TEST (For index.html accordion)
+// 3. TRANSLATION CONNECTION TEST
 // ============================================================
 
 async function checkTranslationConnection() {
@@ -126,7 +115,7 @@ async function checkTranslationConnection() {
     if (!result) return;
 
     if (btn) btn.disabled = true;
-    result.textContent = 'Testing translation connection...';
+    result.textContent = 'Testing connection with prepared phrase resources...';
     result.style.color = '#94a3b8';
 
     try {
@@ -222,9 +211,7 @@ async function suggestSimplification() {
             input.value = data.simplified;
             if (note) note.style.display = data.changed ? 'block' : 'none';
         }
-    } catch (e) {
-        // Keep current input if simplify fails
-    }
+    } catch (e) {}
 }
 
 // Patient Response
@@ -246,10 +233,10 @@ async function translatePatient() {
         const data = await res.json();
 
         appendMessage('patient', {
-            original: text,
-            native: data.native || text,
-            translated: data.translated || text,
-            lang: data.lang || 'English',
+            typedInput: text,
+            englishMeaning: data.translated || text,
+            nativeScript: data.native || text,
+            lang: data.lang || selectedLang || 'Patient',
             alert: data.medical_alert,
             symptom: data.symptom_detected,
             isNegative: data.is_negative
@@ -283,10 +270,10 @@ async function checkUnderstanding() {
         const data = await res.json();
 
         appendMessage('patient', {
-            original: text,
-            native: data.native || text,
-            translated: `[Understanding Check]: ${data.translated || text}`,
-            lang: data.lang || 'English',
+            typedInput: text,
+            englishMeaning: `[Understanding Check]: ${data.translated || text}`,
+            nativeScript: data.native || text,
+            lang: data.lang || selectedLang || 'Patient',
             alert: data.medical_alert,
             symptom: data.symptom_detected,
             isNegative: data.is_negative
@@ -297,44 +284,62 @@ async function checkUnderstanding() {
 }
 
 // ============================================================
-// 5. DOM HELPERS
+// 5. TWO-SIDED CHAT RENDERING (Staff RIGHT ↔ Patient LEFT)
 // ============================================================
 
 function appendMessage(sender, msg) {
     const chatArea = document.getElementById('chatArea');
     if (!chatArea) return;
 
+    // Check if patient language is Right-to-Left (Arabic, Urdu)
+    const isRtl = ['ar', 'ur'].includes(String(selectedLangCode).toLowerCase());
+    const dirAttr = isRtl ? 'dir="rtl"' : 'dir="ltr"';
+
     const row = document.createElement('div');
     row.className = `msg-row ${sender}`;
+    row.style.display = 'flex';
+    row.style.width = '100%';
+    row.style.marginBottom = '12px';
+    row.style.justifyContent = (sender === 'staff') ? 'flex-end' : 'flex-start';
 
     if (sender === 'staff') {
+        // ── STAFF (RIGHT SIDE, GREEN/TEAL BUBBLE) ──
         row.innerHTML = `
-            <div class="msg-bubble staff">
-                <div class="msg-title">Staff → Patient</div>
-                <div class="msg-text main">${escapeHtml(msg.original)}</div>
-                <div class="msg-text sub"><strong>${escapeHtml(msg.lang)}:</strong> ${escapeHtml(msg.translated)}</div>
+            <div class="msg-bubble staff" style="max-width:72%;background:#f0fdf4;border:1px solid #bbf7d0;border-right:4px solid #0F6E56;border-radius:12px 12px 2px 12px;padding:14px 18px;text-align:left;box-shadow:0 2px 6px rgba(15,110,86,0.06);">
+                <div style="font-size:11px;font-weight:800;color:#0F6E56;text-transform:uppercase;margin-bottom:4px;letter-spacing:0.5px;">
+                    Staff Question (English)
+                </div>
+                <div style="font-size:15px;font-weight:700;color:#0f172a;margin-bottom:8px;">
+                    ${escapeHtml(msg.original)}
+                </div>
+                <div style="font-size:13px;color:#1e293b;background:#ffffff;border:1px solid #dcfce7;border-radius:6px;padding:8px 12px;" ${dirAttr}>
+                    <span style="color:#0F6E56;font-weight:700;">${escapeHtml(msg.lang)}:</span> ${escapeHtml(msg.translated)}
+                </div>
             </div>
         `;
     } else {
+        // ── PATIENT (LEFT SIDE, WHITE/BLUE BUBBLE) ──
+        // Assessor-safe communication cues (Non-clinical wording)
         const badge = msg.alert 
-            ? `<div class="cue-tag amber" style="margin-top:8px;padding:6px 10px;background:#fef3c7;border:1px solid #fde68a;border-radius:6px;color:#92400e;font-weight:700;font-size:12px;">
-                 ℹ️ Recognised Symptom Phrase: ${escapeHtml(msg.symptom || 'Reported')}
+            ? `<div style="margin-top:8px;padding:6px 10px;background:#fef3c7;border:1px solid #fde68a;border-radius:6px;color:#92400e;font-weight:700;font-size:12px;">
+                 ℹ️ Recognised Symptom Phrase: ${escapeHtml(msg.symptom)}
                </div>`
-            : (msg.isNegative && msg.symptom ? `<div class="cue-tag green" style="margin-top:8px;padding:6px 10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;color:#16a34a;font-weight:600;font-size:12px;">
-                 ✓ Patient indicates absence of ${escapeHtml(msg.symptom)}
+            : (msg.isNegative && msg.symptom ? `<div style="margin-top:8px;padding:6px 10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;color:#16a34a;font-weight:600;font-size:12px;">
+                 ✓ Recognised negative phrase: ${escapeHtml(msg.symptom)} — communication confirmation only
                </div>` : '');
 
         row.innerHTML = `
             <div class="msg-bubble patient" style="max-width:72%;background:#ffffff;border:1px solid #cbd5e1;border-left:4px solid #0284c7;border-radius:12px 12px 12px 2px;padding:14px 18px;text-align:left;box-shadow:0 2px 6px rgba(0,0,0,0.04);">
-                <div class="msg-title" style="font-size:11px;font-weight:800;color:#0284c7;text-transform:uppercase;margin-bottom:4px;letter-spacing:0.5px;">
-                    Patient Response (English Meaning for Staff)
+                <div style="font-size:11px;font-weight:800;color:#0284c7;text-transform:uppercase;margin-bottom:4px;letter-spacing:0.5px;">
+                    Patient Message (English for Staff Review)
                 </div>
-                <div class="msg-text main" style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:8px;">
+                <div style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:8px;">
                     ${escapeHtml(msg.englishMeaning || msg.translated)}
                 </div>
                 <div style="font-size:12px;color:#475569;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:6px;padding:8px 12px;display:flex;flex-direction:column;gap:3px;">
                     <div><strong style="color:#334155;">Patient Typed:</strong> <em>${escapeHtml(msg.typedInput || msg.original)}</em></div>
-                    <div><strong style="color:#334155;">Verified Native:</strong> ${escapeHtml(msg.nativeScript || msg.native)}</div>
+                    <!-- Replaced 'Verified Native' with 'Native-Script Mapping' -->
+                    <div ${dirAttr}><strong style="color:#334155;">Native-Script Mapping:</strong> ${escapeHtml(msg.nativeScript || msg.native)}</div>
                 </div>
                 ${badge}
             </div>
