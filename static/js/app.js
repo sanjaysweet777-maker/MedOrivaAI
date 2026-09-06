@@ -1,88 +1,241 @@
-/* Session-local display; never persist conversation text. */
-let selectedCtx=null, selectedLang=null, selectedCode=null, busy=false, generation=0;
-async function api(path,payload){
-  const res=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload||{})});
-  let data;
-  try{data=await res.json();}catch(_){throw new Error('The server could not complete this request. Please retry shortly.');}
-  if(!res.ok || data.error) throw new Error(data.error || 'Request failed. Please try again.');
-  return data;
-}
-function selectCtx(btn){document.querySelectorAll('.ctx-btn').forEach(b=>{b.classList.toggle('selected',b===btn);b.setAttribute('aria-pressed',b===btn);});selectedCtx=btn.dataset.ctx;updateStartBtn();}
-function selectLang(btn){document.querySelectorAll('.lang-btn').forEach(b=>{b.classList.toggle('selected',b===btn);b.setAttribute('aria-pressed',b===btn);});selectedLang=btn.dataset.lang;selectedCode=btn.dataset.code;updateStartBtn();}
-function updateStartBtn(){document.getElementById('startBtn').disabled=!(selectedCtx&&selectedCode);}
-async function startSession(){
- const btn=document.getElementById('startBtn');btn.disabled=true;
- try{const d=await api('/api/start_session',{context:selectedCtx,lang_code:selectedCode});generation++;
-  document.getElementById('sideCtx').textContent=d.context;document.getElementById('sideLang').textContent=d.lang;
-  document.getElementById('sideId').textContent=d.session_id.slice(0,8);document.getElementById('chatSubtitle').textContent=d.context+' · '+d.lang;
-  buildPromptList(d.prompts,d.prepared_prompts,d.provider_configured);
-  document.getElementById('setupScreen').classList.remove('active');document.getElementById('mainScreen').classList.add('active');
-  addSystemBubble('Demonstration session. Use fictional information only. '+(d.provider_configured?'Ready for your conversation. Confirm meaning together.':'Prepared phrases are ready. Use Translation connection on the setup screen to check full-text access.'));
- }catch(e){alert(e.message);}finally{updateStartBtn();}
-}
-async function endSession(){
- if(!confirm('End this session and clear the displayed conversation?'))return;
- try{await api('/api/end_session');generation++;
- document.getElementById('mainScreen').classList.remove('active');document.getElementById('setupScreen').classList.add('active');
- document.getElementById('chatArea').replaceChildren();
- ['freeInput','patientInput','confirmInput'].forEach(id=>document.getElementById(id).value='');
- document.getElementById('simplifyNote').style.display='none';document.getElementById('alertBanner').style.display='none';
- document.querySelectorAll('.ctx-btn,.lang-btn').forEach(b=>{b.classList.remove('selected');b.setAttribute('aria-pressed','false');});
- selectedCtx=null;selectedLang=null;selectedCode=null;updateStartBtn();
- }catch(e){addSystemBubble(e.message);}
-}
-function buildPromptList(prompts,prepared,configured){
- const list=document.getElementById('promptsList');list.replaceChildren();
- prompts.forEach(p=>{const b=document.createElement('button');b.className='prompt-item';b.textContent=p;
- b.title=prepared.includes(p)?'Prepared phrase':'Machine translation';
- b.disabled=!configured&&!prepared.includes(p);b.dataset.available=String(!b.disabled);
- b.onclick=()=>sendGuidedPrompt(p);list.appendChild(b);});
-}
-function setBusy(value){busy=value;document.querySelectorAll('.action-btn,.prompt-item').forEach(b=>b.disabled=value||b.dataset.available==='false');}
-function line(parent,label,value,lang){
- if(!value)return;const block=document.createElement('div');block.className='message-line';
- const caption=document.createElement('span');caption.className='message-caption';caption.textContent=label;
- const content=document.createElement('div');content.textContent=value;content.dir='auto';if(lang)content.lang=lang;
- block.append(caption,content);parent.appendChild(block);
-}
-function resultBubble(data,kind){
- document.getElementById('emptyChat')?.remove();
- const wrap=document.createElement('article');wrap.className='bubble-wrap '+(kind==='staff'?'staff':'patient');
- const label=document.createElement('div');label.className='bubble-label';label.textContent=kind==='staff'?'Staff → '+data.lang:kind==='confirm'?'Understanding check':data.lang+' → Staff';
- const bubble=document.createElement('div');bubble.className='bubble '+(kind==='staff'?'staff':'patient');
- line(bubble,'Original message',data.original,kind==='staff'?'en':selectedCode);
- line(bubble,'Translation',data.translated,kind==='staff'?selectedCode:'en');
- if(data.native && data.native!==data.original)line(bubble,'Prepared native-script form',data.native,selectedCode);
- const status=document.createElement('div');status.className='translation-status '+data.status;status.textContent=data.warning;status.setAttribute('role','status');bubble.appendChild(status);
- if(kind==='confirm')line(bubble,'Next step','Ask the speaker to explain the message in their own words, then confirm the meaning together.');
- wrap.append(label,bubble);document.getElementById('chatArea').appendChild(wrap);scrollChat();
-}
-async function translate(text,kind,input){
- if(busy||!text.trim())return;const ticket=generation;setBusy(true);document.getElementById('chatSubtitle').textContent='Translating…';
- try{const data=await api(kind==='staff'?'/api/translate_staff':'/api/translate_patient',{text:text.trim()});
- if(ticket!==generation)return;resultBubble(data,kind);if(input&&data.status!=='unavailable')input.value='';
- }catch(e){if(ticket===generation)addSystemBubble(e.message);}finally{setBusy(false);document.getElementById('chatSubtitle').textContent=selectedCtx&&selectedLang?selectedCtx+' · '+selectedLang:'Conversation';}
-}
-function sendGuidedPrompt(text){return translate(text,'staff');}
-function sendFreeText(){const i=document.getElementById('freeInput');return translate(i.value,'staff',i);}
-function translatePatient(){const i=document.getElementById('patientInput');return translate(i.value,'patient',i);}
-function checkUnderstanding(){const i=document.getElementById('confirmInput');return translate(i.value,'confirm',i);}
-function addSystemBubble(text){document.getElementById('emptyChat')?.remove();const w=document.createElement('div');w.className='bubble-wrap system';const b=document.createElement('div');b.className='bubble system';b.textContent=text;w.appendChild(b);document.getElementById('chatArea').appendChild(w);scrollChat();}
-function scrollChat(){const a=document.getElementById('chatArea');a.scrollTop=a.scrollHeight;}
-function dismissAlert(){document.getElementById('alertBanner').style.display='none';}
-function switchTab(btn){document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t===btn));document.querySelectorAll('.tab-pane').forEach(p=>p.classList.toggle('active',p.id==='tab-'+btn.dataset.tab));}
-async function suggestSimplification(){
- const input=document.getElementById('freeInput');if(!input.value.trim()||busy)return;
- try{const original=input.value;const d=await api('/api/simplify',{text:original});if(input.value!==original)return;
- if(d.changed && confirm('Review this suggested wording before using it:\n\n'+d.simplified))input.value=d.simplified;
- else if(!d.changed)addSystemBubble('No prepared wording suggestion. Keep the original meaning when editing.');
- }catch(e){addSystemBubble(e.message);}
+// MedOriva AI — Client Application Script
+let selectedContext = null;
+let selectedLang = null;
+let selectedLangCode = null;
+let sessionId = null;
+
+// 1. Context Selection
+function selectCtx(btn) {
+    const el = btn.closest('.ctx-btn') || btn;
+    document.querySelectorAll('.ctx-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    selectedContext = el.dataset.ctx || el.getAttribute('data-ctx');
+    checkReady();
 }
 
-async function checkTranslationConnection(){
- const btn=document.getElementById('checkConnectionBtn');const result=document.getElementById('connectionResult');
- btn.disabled=true;result.textContent='Checking the translation connection…';
- try{const d=await api('/api/translation_check',{lang_code:selectedCode||'ta'});
- result.textContent=d.message+(d.error_code?' Reference: '+d.error_code+'.':'')+(d.connected?' Sample ('+d.language+'): '+d.translated:'');
- }catch(e){result.textContent=e.message;}finally{btn.disabled=false;}
+// 2. Language Selection
+function selectLang(btn) {
+    const el = btn.closest('.lang-btn') || btn;
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    selectedLang = el.dataset.lang || el.getAttribute('data-lang');
+    selectedLangCode = el.dataset.code || el.getAttribute('data-code');
+    checkReady();
+}
+
+function checkReady() {
+    const startBtn = document.getElementById('startBtn');
+    if (startBtn) {
+        startBtn.disabled = !(selectedContext && selectedLang);
+    }
+}
+
+// 3. Start Session (Defensive against undefined .includes)
+async function startSession() {
+    const startBtn = document.getElementById('startBtn');
+    if (startBtn) startBtn.disabled = true;
+
+    try {
+        if (!selectedContext || !selectedLang) {
+            alert('Please select both a communication context and a patient language.');
+            if (startBtn) startBtn.disabled = false;
+            return;
+        }
+
+        const response = await fetch('/api/start_session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                context: selectedContext,
+                lang: selectedLang,
+                lang_code: selectedLangCode || 'ta'
+            })
+        });
+
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.message || errData.error || `Server responded with status ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (data.status !== 'ok') {
+            throw new Error(data.error || 'Failed to start session.');
+        }
+
+        // Session State
+        sessionId = data.session_id;
+        const currentContext = data.context || selectedContext;
+        const currentLang = data.lang || selectedLang;
+        const currentCode = data.lang_code || data.code || selectedLangCode || 'ta';
+
+        // Update Side Badges
+        const sideCtx = document.getElementById('sideCtx');
+        const sideLang = document.getElementById('sideLang');
+        const sideId = document.getElementById('sideId');
+        if (sideCtx) sideCtx.textContent = currentContext;
+        if (sideLang) sideLang.textContent = currentLang;
+        if (sideId) sideId.textContent = sessionId;
+
+        // Render Prompts
+        renderPrompts(data.prompts || []);
+
+        // Safe Direction Setting (Immune to undefined .includes)
+        const rtlLanguages = ['ar', 'ur'];
+        const isRtl = rtlLanguages.includes(String(currentCode).toLowerCase());
+        const chatArea = document.getElementById('chatArea');
+        if (chatArea) {
+            chatArea.setAttribute('dir', isRtl ? 'rtl' : 'ltr');
+        }
+
+        // Switch to Active Session Screen
+        const setupScreen = document.getElementById('setupScreen');
+        const mainScreen = document.getElementById('mainScreen');
+        if (setupScreen) setupScreen.classList.remove('active');
+        if (mainScreen) mainScreen.classList.add('active');
+
+    } catch (err) {
+        alert('Could not start session: ' + (err.message || 'Unknown error'));
+    } finally {
+        if (startBtn) startBtn.disabled = false;
+    }
+}
+
+// 4. Render Guided Prompts
+function renderPrompts(prompts) {
+    const list = document.getElementById('promptsList');
+    if (!list) return;
+    list.innerHTML = '';
+
+    prompts.forEach(pText => {
+        const btn = document.createElement('button');
+        btn.className = 'prompt-btn';
+        btn.textContent = pText;
+        btn.onclick = () => sendStaffPrompt(pText);
+        list.appendChild(btn);
+    });
+}
+
+// 5. Staff Prompt / Free Text
+async function sendStaffPrompt(text) {
+    const emptyChat = document.getElementById('emptyChat');
+    if (emptyChat) emptyChat.style.display = 'none';
+
+    try {
+        const res = await fetch('/api/translate_staff', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: text })
+        });
+        const data = await res.json();
+
+        appendMessage('staff', {
+            original: data.original || text,
+            translated: data.translated || text,
+            lang: data.lang || 'Patient'
+        });
+    } catch (e) {
+        alert('Translation error. Please try again.');
+    }
+}
+
+async function sendFreeText() {
+    const input = document.getElementById('freeInput');
+    if (!input || !input.value.trim()) return;
+    const text = input.value.trim();
+    input.value = '';
+    await sendStaffPrompt(text);
+}
+
+// 6. Patient Input Translation
+async function translatePatient() {
+    const input = document.getElementById('patientInput');
+    if (!input || !input.value.trim()) return;
+    const text = input.value.trim();
+    input.value = '';
+
+    const emptyChat = document.getElementById('emptyChat');
+    if (emptyChat) emptyChat.style.display = 'none';
+
+    try {
+        const res = await fetch('/api/translate_patient', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: text })
+        });
+        const data = await res.json();
+
+        appendMessage('patient', {
+            original: text,
+            native: data.native || text,
+            translated: data.translated || text,
+            lang: data.lang || 'English',
+            alert: data.medical_alert,
+            symptom: data.symptom_detected,
+            isNegative: data.is_negative
+        });
+
+        // Show Banner for Urgent Symptoms
+        const alertBanner = document.getElementById('alertBanner');
+        if (alertBanner) {
+            alertBanner.style.display = data.medical_alert ? 'flex' : 'none';
+        }
+    } catch (e) {
+        alert('Translation error. Please try again.');
+    }
+}
+
+// 7. Append Messages to UI
+function appendMessage(sender, msg) {
+    const chatArea = document.getElementById('chatArea');
+    if (!chatArea) return;
+
+    const row = document.createElement('div');
+    row.className = `msg-row ${sender}`;
+
+    if (sender === 'staff') {
+        row.innerHTML = `
+            <div class="msg-bubble staff">
+                <div class="msg-title">Staff → Patient</div>
+                <div class="msg-text main">${msg.original}</div>
+                <div class="msg-text sub"><strong>${msg.lang}:</strong> ${msg.translated}</div>
+            </div>
+        `;
+    } else {
+        const badge = msg.alert 
+            ? `<div class="triage-tag red">🔴 Medical Attention Needed: ${msg.symptom || 'Urgent Symptom'}</div>`
+            : (msg.isNegative ? `<div class="triage-tag green">✅ Patient reports no ${msg.symptom || 'symptom'}</div>` : '');
+
+        row.innerHTML = `
+            <div class="msg-bubble patient">
+                <div class="msg-title">Patient → Staff</div>
+                <div class="msg-text main">${msg.translated}</div>
+                <div class="msg-text sub"><strong>Native:</strong> ${msg.native}</div>
+                ${badge}
+            </div>
+        `;
+    }
+
+    chatArea.appendChild(row);
+    chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+// 8. Tab Navigation
+function switchTab(tabBtn) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+
+    tabBtn.classList.add('active');
+    const tabId = 'tab-' + tabBtn.dataset.tab;
+    const target = document.getElementById(tabId);
+    if (target) target.classList.add('active');
+}
+
+function dismissAlert() {
+    const banner = document.getElementById('alertBanner');
+    if (banner) banner.style.display = 'none';
+}
+
+async function endSession() {
+    await fetch('/api/end_session', { method: 'POST' }).catch(() => {});
+    window.location.reload();
 }
