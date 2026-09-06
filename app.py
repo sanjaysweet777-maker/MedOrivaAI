@@ -6,9 +6,6 @@ from flask import Flask, flash, jsonify, redirect, render_template, request, ses
 from flask_login import LoginManager, UserMixin, current_user, login_required, login_user, logout_user
 from translator import LANGUAGES, patient_translation, staff_translation
 
-# ============================================================
-# APP CONFIGURATION
-# ============================================================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 template_dir = os.path.join(BASE_DIR, 'templates')
 
@@ -49,9 +46,6 @@ def reset_translation_session():
     for key in ["session_id", "context", "lang", "lang_code", "active"]:
         session.pop(key, None)
 
-# ============================================================
-# CLINICAL SIMPLIFICATION RULES
-# ============================================================
 SIMPLIFY_RULES = [
     (r"require\s+further\s+diagnostic\s+evaluation", "need more tests"),
     (r"administer\s+medication", "give medicine"),
@@ -85,10 +79,6 @@ def simplify_text(text):
             changed = True
             simplified = result
     return simplified, changed
-
-# ============================================================
-# PUBLIC & WORKSPACE ROUTES
-# ============================================================
 
 @app.route("/")
 def index():
@@ -151,7 +141,6 @@ def submit_contact():
 
     return jsonify({"status": "ok", "message": "Inquiry received. Our clinical pilot team will contact you within 24 hours."}), 200
 
-# Health Checks for Render
 @app.route("/api/ping", methods=["GET"])
 def ping():
     return jsonify({"status": "ok", "service": "MedOriva AI", "healthy": True}), 200
@@ -159,10 +148,6 @@ def ping():
 @app.route("/healthz", methods=["GET"])
 def healthz():
     return jsonify({"status": "ok"}), 200
-
-# ============================================================
-# CLINICAL APIS
-# ============================================================
 
 @app.route("/api/start_session", methods=["POST"])
 @login_required
@@ -175,6 +160,7 @@ def start_session():
     session["lang_code"] = data.get("lang_code", "ta")
     session["active"] = True
 
+    # Prompt list updated with correct grammar
     prompts = [
         "Good morning. How can I help you?",
         "Do you have an appointment?",
@@ -182,14 +168,13 @@ def start_session():
         "Please take a seat. The doctor will see you shortly.",
         "Where is your pain?",
         "How long have you had this?",
-        "How long do you have chest pain?",
+        "How long have you had chest pain?",
         "Do you have chest pain?",
         "Do you have a fever?",
         "Are you having difficulty breathing?",
         "Do you need an interpreter?"
     ]
 
-    # Returns lang_code and code so app.js never hits undefined .includes
     return jsonify({
         "status": "ok",
         "session_id": session["session_id"],
@@ -250,7 +235,7 @@ def translate_patient():
 
     res = patient_translation(raw_text, lang_code)
 
-    # Medical alert: Urgent symptom present AND not negated
+    # Recognised symptom phrase trigger (Communication cue, not diagnosis)
     medical_alert = bool(res.symptom and not res.is_negative)
 
     return jsonify({
