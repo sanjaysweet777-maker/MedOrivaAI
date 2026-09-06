@@ -1,6 +1,6 @@
 """
 MedOriva AI — Multilingual Clinical Translation & Triage Engine
-Complete 9-Language Clinical Phrasebook, Safe Negation Parsing, and Resilient Online Fallback.
+Complete 9-Language Phrasebook with Phonetic Tolerance, Safe Negation, and Resilient Fallbacks.
 """
 import html
 import os
@@ -28,7 +28,7 @@ PREPARED = 'Clinical verified phrase · Confirmed.'
 def normalise(text):
     if not text:
         return ''
-    cleaned = re.sub(r'[^\w\s]', ' ', text.lower())
+    cleaned = re.sub(r'[^\w\s]', ' ', str(text).lower())
     return ' '.join(unicodedata.normalize('NFC', cleaned).casefold().split())
 
 def is_native_script(text):
@@ -47,7 +47,6 @@ class Translation:
 
 # ============================================================
 # 1. STAFF CLINICAL QUESTION SYNTHESIZER (ALL 9 LANGUAGES)
-# Guarantees common questions NEVER return untranslated English
 # ============================================================
 STAFF_SYNTHESIS = {
     "HOW_LONG_CHEST_PAIN": {
@@ -207,155 +206,156 @@ STAFF_SYNTHESIS = {
 }
 
 # ============================================================
-# 2. PATIENT PHRASEBOOK FOR ALL 9 LANGUAGES (Native + Romanised)
+# 2. SYMPTOM PHONETIC STEM REGISTRY (ALL 9 LANGUAGES)
+# Handles typos like 'thali', 'thala', 'enji', 'seene', etc.
 # ============================================================
-# Format: { lang_code: [ (trigger_phrase, english_translation, native_translation, symptom_name, is_negative) ] }
-# NOTE: Must be sorted by len(trigger_phrase) DESCENDING during match to prevent partial override!
-
-MASTER_PATIENT_PHRASES = {
-    "ta": [
-        ("enaku nenji vali illai", "I do not have chest pain.", "எனக்கு நெஞ்சு வலி இல்லை.", "chest pain", True),
-        ("nenji vali illai", "I do not have chest pain.", "எனக்கு நெஞ்சு வலி இல்லை.", "chest pain", True),
-        ("enaku nenji vali irukku", "I have chest pain.", "எனக்கு நெஞ்சு வலி இருக்கிறது.", "chest pain", False),
-        ("enakku nenju vali irukku", "I have chest pain.", "எனக்கு நெஞ்சு வலி இருக்கிறது.", "chest pain", False),
-        ("nenji vali irukku", "I have chest pain.", "எனக்கு நெஞ்சு வலி இருக்கிறது.", "chest pain", False),
-        ("nenji vali", "Chest pain.", "நெஞ்சு வலி.", "chest pain", False),
-        ("enaku thalai vali illai", "I do not have a headache.", "எனக்கு தலைவலி இல்லை.", "", True),
-        ("enaku thalai vali irukku", "I have a headache.", "எனக்கு தலைவலி இருக்கிறது.", "", False),
-        ("thalai vali irukku", "I have a headache.", "தலைவலி இருக்கிறது.", "", False),
-        ("thalai vali", "Headache.", "தலைவலி.", "", False),
-        ("enaku kaichal illai", "I do not have a fever.", "எனக்கு காய்ச்சல் இல்லை.", "", True),
-        ("enaku kaichal irukku", "I have a fever.", "எனக்கு காய்ச்சல் இருக்கிறது.", "", False),
-        ("kaichal irukku", "I have a fever.", "காய்ச்சல் இருக்கிறது.", "", False),
-        ("kaichal", "Fever.", "காய்ச்சல்.", "", False),
-        ("enaku moochu vida mudiyala", "I cannot breathe.", "எனக்கு மூச்சு விட முடியவில்லை.", "breathing difficulty", False),
-        ("enaku moochu varadhu", "I cannot breathe properly.", "எனக்கு மூச்சு வரவில்லை.", "breathing difficulty", False),
-        ("moochu pidikuthu", "I have difficulty breathing.", "எனக்கு மூச்சு பிடிக்கிறது.", "breathing difficulty", False),
-        ("enaku vayiru vali irukku", "I have stomach pain.", "எனக்கு வயிற்று வலி இருக்கிறது.", "", False),
-        ("vayiru vali irukku", "I have stomach pain.", "வயிற்று வலி இருக்கிறது.", "", False),
-        ("enaku thalai sutharuthu", "I feel dizzy.", "எனக்கு தலை சுற்றுகிறது.", "dizziness", False),
-        ("thalai sutharuthu", "I feel dizzy.", "தலை சுற்றுகிறது.", "dizziness", False),
-        ("enaku romba vali irukku", "I have severe pain.", "எனக்கு கடுமையான வலி இருக்கிறது.", "severe pain", False),
-        ("aama", "Yes.", "ஆம்.", "", False),
-        ("illai", "No.", "இல்லை.", "", True),
-        ("seri", "Okay.", "சரி.", "", False),
-        ("puriyuthu", "I understand.", "புரிகிறது.", "", False),
-        ("puriyala", "I do not understand.", "புரியவில்லை.", "", True),
-    ],
-    "hi": [
-        ("seene mein dard nahi hai", "I do not have chest pain.", "सीने में दर्द नहीं है।", "chest pain", True),
-        ("chest mein dard nahi hai", "I do not have chest pain.", "सीने में दर्द नहीं है।", "chest pain", True),
-        ("mujhe seene mein dard hai", "I have chest pain.", "मुझे सीने में दर्द है।", "chest pain", False),
-        ("seene mein dard hai", "I have chest pain.", "सीने में दर्द है।", "chest pain", False),
-        ("seene mein dard", "Chest pain.", "सीने में दर्द।", "chest pain", False),
-        ("sar dard nahi hai", "I do not have a headache.", "सिरदर्द नहीं है।", "", True),
-        ("mujhe sar dard hai", "I have a headache.", "मुझे सिरदर्द है।", "", False),
-        ("sar dard hai", "I have a headache.", "सिरदर्द है।", "", False),
-        ("bukhar nahi hai", "I do not have a fever.", "बुखार नहीं है।", "", True),
-        ("mujhe bukhar hai", "I have a fever.", "मुझे बुखार है।", "", False),
-        ("bukhar hai", "I have a fever.", "बुखार है।", "", False),
-        ("saans nahi aa rahi", "I cannot breathe.", "सांस नहीं आ रही है।", "breathing difficulty", False),
-        ("saans lene mein takleef hai", "I have difficulty breathing.", "सांस लेने में तकलीफ है।", "breathing difficulty", False),
-        ("pet mein dard hai", "I have stomach pain.", "पेट में दर्द है।", "", False),
-        ("chakkar aa raha hai", "I feel dizzy.", "चक्कर आ रहा है।", "dizziness", False),
-        ("bahut dard hai", "I have severe pain.", "बहुत तेज दर्द है।", "severe pain", False),
-        ("haan", "Yes.", "हाँ।", "", False),
-        ("nahi", "No.", "नहीं।", "", True),
-        ("theek hai", "Okay.", "ठीक है।", "", False),
-        ("samajh aa gaya", "I understand.", "समझ आ गया।", "", False),
-        ("samajh nahi aaya", "I do not understand.", "समझ नहीं आया।", "", True),
-    ],
-    "ml": [
-        ("nenjil vedana illa", "I do not have chest pain.", "നെഞ്ചിൽ വേദനയില്ല.", "chest pain", True),
-        ("nenjil vali illa", "I do not have chest pain.", "നെഞ്ചിൽ വേദനയില്ല.", "chest pain", True),
-        ("nenjil vedana undu", "I have chest pain.", "എനിക്ക് നെഞ്ചുവേദനയുണ്ട്.", "chest pain", False),
-        ("nenjil vali undu", "I have chest pain.", "എനിക്ക് നെഞ്ചുവേദനയുണ്ട്.", "chest pain", False),
-        ("thalavedana illa", "I do not have a headache.", "തലവേദനയില്ല.", "", True),
-        ("thalavedana undu", "I have a headache.", "എനിക്ക് തലവേദനയുണ്ട്.", "", False),
-        ("pani illa", "I do not have a fever.", "പനിയില്ല.", "", True),
-        ("pani undu", "I have a fever.", "എനിക്ക് പനിയുണ്ട്.", "", False),
-        ("shwasam muttunnu", "I have difficulty breathing.", "എനിക്ക് ശ്വാസതടസ്സമുണ്ട്.", "breathing difficulty", False),
-        ("vayaril vedana undu", "I have stomach pain.", "എനിക്ക് വയറുവേദനയുണ്ട്.", "", False),
-        ("athe", "Yes.", "അതെ.", "", False),
-        ("alla", "No.", "അല്ല.", "", True),
-    ],
-    "pl": [
-        ("nie mam bolu w klatce", "I do not have chest pain.", "Nie mam bólu w klatce piersiowej.", "chest pain", True),
-        ("nie boli mnie w klatce", "I do not have chest pain.", "Nie boli mnie w klatce piersiowej.", "chest pain", True),
-        ("mam bol w klatce piersiowej", "I have chest pain.", "Mam ból w klatce piersiowej.", "chest pain", False),
-        ("boli mnie w klatce piersiowej", "I have chest pain.", "Boli mnie w klatce piersiowej.", "chest pain", False),
-        ("boli mnie klatka", "I have chest pain.", "Boli mnie klatka piersiowa.", "chest pain", False),
-        ("nie mam goraczki", "I do not have a fever.", "Nie mam gorączki.", "", True),
-        ("mam goraczke", "I have a fever.", "Mam gorączkę.", "", False),
-        ("boli mnie glowa", "I have a headache.", "Boli mnie głowa.", "", False),
-        ("mam bol glowy", "I have a headache.", "Mam ból głowy.", "", False),
-        ("trudno mi oddychac", "I have difficulty breathing.", "Trudno mi oddychać.", "breathing difficulty", False),
-        ("mam dusznosci", "I have difficulty breathing.", "Mam duszności.", "breathing difficulty", False),
-        ("bardzo boli", "I have severe pain.", "Bardzo boli.", "severe pain", False),
-        ("tak", "Yes.", "Tak.", "", False),
-        ("nie", "No.", "Nie.", "", True),
-    ],
-    "ar": [
-        ("la ashur bi alam fi sadri", "I do not have chest pain.", "لا أشعر بألم في الصدر.", "chest pain", True),
-        ("laysa ladaya alam fi sadr", "I do not have chest pain.", "ليس لدي ألم في الصدر.", "chest pain", True),
-        ("andi alam fi sadri", "I have chest pain.", "عندي ألم في الصدر.", "chest pain", False),
-        ("alam fi al sadr", "Chest pain.", "ألم في الصدر.", "chest pain", False),
-        ("laysa ladaya humma", "I do not have a fever.", "ليس لدي حمى.", "", True),
-        ("andi humma", "I have a fever.", "عندي حمى.", "", False),
-        ("andi suda", "I have a headache.", "عندي صداع.", "", False),
-        ("suubat fi al tanaffus", "I have difficulty breathing.", "عندي صعوبة في التنفس.", "breathing difficulty", False),
-        ("la astatiu al tanaffus", "I cannot breathe.", "لا أستطيع التنفس.", "breathing difficulty", False),
-        ("naam", "Yes.", "نعم.", "", False),
-        ("la", "No.", "لا.", "", True),
-    ],
-    "ur": [
-        ("seenay mein dard nahi hai", "I do not have chest pain.", "سینے میں درد نہیں ہے۔", "chest pain", True),
-        ("mujhe seenay mein dard hai", "I have chest pain.", "میرے سینے میں درد ہے۔", "chest pain", False),
-        ("seenay mein dard", "Chest pain.", "سینے میں درد۔", "chest pain", False),
-        ("sar dard nahi hai", "I do not have a headache.", "سر میں درد نہیں ہے۔", "", True),
-        ("sar mein dard hai", "I have a headache.", "میرے سر میں درد ہے۔", "", False),
-        ("bukhar nahi hai", "I do not have a fever.", "بخار نہیں ہے۔", "", True),
-        ("mujhe bukhar hai", "I have a fever.", "مجھے بخار ہے۔", "", False),
-        ("saans lene mein dushwari hai", "I have difficulty breathing.", "مجھے سانس لینے میں دشواری ہے۔", "breathing difficulty", False),
-        ("saans ruk rahi hai", "I cannot breathe.", "میری سانس رک رہی ہے۔", "breathing difficulty", False),
-        ("haan", "Yes.", "ہاں۔", "", False),
-        ("nahi", "No.", "نہیں۔", "", True),
-    ],
-    "bn": [
-        ("buke betha nei", "I do not have chest pain.", "আমার বুকে ব্যথা নেই।", "chest pain", True),
-        ("amar buke betha", "I have chest pain.", "আমার বুকে ব্যথা আছে।", "chest pain", False),
-        ("buke betha", "Chest pain.", "বুকে ব্যথা।", "chest pain", False),
-        ("matha betha nei", "I do not have a headache.", "আমার মাথা ব্যথা নেই।", "", True),
-        ("amar matha betha", "I have a headache.", "আমার মাথা ব্যথা করছে।", "", False),
-        ("jhor nei", "I do not have a fever.", "আমার জ্বর নেই।", "", True),
-        ("amar jhor", "I have a fever.", "আমার জ্বর আছে।", "", False),
-        ("shwash nite koshto", "I have difficulty breathing.", "আমার শ্বাস নিতে কষ্ট হচ্ছে।", "breathing difficulty", False),
-        ("hae", "Yes.", "হ্যাঁ।", "", False),
-        ("na", "No.", "না।", "", True),
-    ],
-    "so": [
-        ("ma qabo xanuun laabta ah", "I do not have chest pain.", "Ma qabo xanuunka laabta ah.", "chest pain", True),
-        ("xanuun laabta", "I have chest pain.", "Waxaan dareemayaa xanuunka laabta.", "chest pain", False),
-        ("laab xanuun", "Chest pain.", "Xanuunka laabta.", "chest pain", False),
-        ("qandho ma qabo", "I do not have a fever.", "Ma qabo wax qandho ah.", "", True),
-        ("qandho ayaa i haysa", "I have a fever.", "Waxaan qabaa qandho.", "", False),
-        ("madax xanuun", "I have a headache.", "Waxaan qabaa madax xanuun.", "", False),
-        ("neefsasho dhib", "I have difficulty breathing.", "Waxaan dhib ku qabaa neefsashada.", "breathing difficulty", False),
-        ("haa", "Yes.", "Haa.", "", False),
-        ("maya", "No.", "Maya.", "", True),
-    ],
-    "ro": [
-        ("nu am dureri in piept", "I do not have chest pain.", "Nu am dureri în piept.", "chest pain", True),
-        ("am dureri in piept", "I have chest pain.", "Am dureri în piept.", "chest pain", False),
-        ("durere in piept", "Chest pain.", "Durere în piept.", "chest pain", False),
-        ("nu am febra", "I do not have a fever.", "Nu am febră.", "", True),
-        ("am febra", "I have a fever.", "Am febră.", "", False),
-        ("ma doare capul", "I have a headache.", "Am o durere de cap.", "", False),
-        ("dificultati de respiratie", "I have difficulty breathing.", "Am dificultăți de respirație.", "breathing difficulty", False),
-        ("da", "Yes.", "Da.", "", False),
-        ("nu", "No.", "Nu.", "", True),
-    ]
+PHONETIC_SYMPTOM_MAP = {
+    "chest pain": {
+        "urgent": True,
+        "keywords": {
+            "ta": ["nenji", "nenju", "nenjil", "enji", "enju", "maar", "நெஞ்சு", "நெஞ்சில்"],
+            "hi": ["seene", "chhati", "chest", "chati", "सीने"],
+            "ml": ["nenjil", "nenju", "നെഞ്ചിൽ", "നെഞ്ചു"],
+            "pl": ["klatce", "klatki", "klatka", "piersiowej"],
+            "ar": ["sadr", "sadri", "الصدر", "صدري"],
+            "ur": ["seenay", "seene", "سینے", "دل"],
+            "bn": ["buke", "buk", "বুকে"],
+            "so": ["laab", "laabta"],
+            "ro": ["piept", "pieptului"]
+        },
+        "responses": {
+            "ta": ("I have chest pain.", "I do not have chest pain.", "எனக்கு நெஞ்சு வலி இருக்கிறது.", "எனக்கு நெஞ்சு வலி இல்லை."),
+            "hi": ("I have chest pain.", "I do not have chest pain.", "मुझे सीने में दर्द है।", "मुझे सीने में दर्द नहीं है।"),
+            "ml": ("I have chest pain.", "I do not have chest pain.", "എനിക്ക് നെഞ്ചുവേദനയുണ്ട്.", "എനിക്ക് നെഞ്ചുവേദനയില്ല."),
+            "pl": ("I have chest pain.", "I do not have chest pain.", "Mam ból w klatce piersiowej.", "Nie mam bólu w klatce piersiowej."),
+            "ar": ("I have chest pain.", "I do not have chest pain.", "عندي ألم في الصدر.", "لا أشعر بألم في الصدر."),
+            "ur": ("I have chest pain.", "I do not have chest pain.", "میرے سینے میں درد ہے۔", "میرے سینے میں درد نہیں ہے۔"),
+            "bn": ("I have chest pain.", "I do not have chest pain.", "আমার বুকে ব্যথা আছে।", "আমার বুকে ব্যথা নেই।"),
+            "so": ("I have chest pain.", "I do not have chest pain.", "Waxaan dareemayaa xanuunka laabta.", "Ma qabo wax xanuun laabta ah."),
+            "ro": ("I have chest pain.", "I do not have chest pain.", "Am dureri în piept.", "Nu am dureri în piept.")
+        }
+    },
+    "headache": {
+        "urgent": False,
+        "keywords": {
+            "ta": ["thalai", "thala", "thali", "thalavali", "mandai", "தலை", "தலைவலி"],
+            "hi": ["sar", "sir", "matha", "mathay", "सिर", "सर"],
+            "ml": ["thala", "thalavedana", "തല", "തലവേദന"],
+            "pl": ["glowa", "glowy", "glowie", "głowa", "głowy"],
+            "ar": ["ras", "rasi", "suda", "sudaa", "صداع", "رأس"],
+            "ur": ["sar", "sir", "سر"],
+            "bn": ["matha", "mathay", "মাথা"],
+            "so": ["madax", "madaxa"],
+            "ro": ["cap", "capul", "capului"]
+        },
+        "responses": {
+            "ta": ("I have a headache.", "I do not have a headache.", "எனக்கு தலைவலி இருக்கிறது.", "எனக்கு தலைவலி இல்லை."),
+            "hi": ("I have a headache.", "I do not have a headache.", "मुझे सिरदर्द है।", "मुझे सिरदर्द नहीं है।"),
+            "ml": ("I have a headache.", "I do not have a headache.", "എനിക്ക് തലവേദനയുണ്ട്.", "എനിക്ക് തലവേദനയില്ല."),
+            "pl": ("I have a headache.", "I do not have a headache.", "Boli mnie głowa.", "Nie boli mnie głowa."),
+            "ar": ("I have a headache.", "I do not have a headache.", "عندي صداع.", "ليس لدي صداع."),
+            "ur": ("I have a headache.", "I do not have a headache.", "میرے سر میں درد ہے۔", "میرے سر میں درد نہیں ہے۔"),
+            "bn": ("I have a headache.", "I do not have a headache.", "আমার মাথা ব্যথা করছে।", "আমার মাথা ব্যথা নেই।"),
+            "so": ("I have a headache.", "I do not have a headache.", "Waxaan qabaa madax xanuun.", "Ma qabo madax xanuun."),
+            "ro": ("I have a headache.", "I do not have a headache.", "Am o durere de cap.", "Nu am dureri de cap.")
+        }
+    },
+    "stomach pain": {
+        "urgent": False,
+        "keywords": {
+            "ta": ["vayiru", "vayaru", "vathiru", "thoppai", "வயிறு"],
+            "hi": ["pet", "pait", "पेट"],
+            "ml": ["vayar", "vayaril", "വയർ"],
+            "pl": ["brzuch", "brzucha", "zoladek"],
+            "ar": ["batan", "batni", "meeda", "بطن", "معدة"],
+            "ur": ["pet", "pait", "پیٹ"],
+            "bn": ["pet", "pete", "পেট"],
+            "so": ["calool", "calosha"],
+            "ro": ["stomac", "stomacul", "burta"]
+        },
+        "responses": {
+            "ta": ("I have stomach pain.", "I do not have stomach pain.", "எனக்கு வயிற்று வலி இருக்கிறது.", "எனக்கு வயிற்று வலி இல்லை."),
+            "hi": ("I have stomach pain.", "I do not have stomach pain.", "मुझे पेट में दर्द है।", "मुझे पेट में दर्द नहीं है।"),
+            "ml": ("I have stomach pain.", "I do not have stomach pain.", "എനിക്ക് വയറുവേദനയുണ്ട്.", "എനിക്ക് വയറുവേദനയില്ല."),
+            "pl": ("I have stomach pain.", "I do not have stomach pain.", "Mam ból brzucha.", "Nie mam bólu brzucha."),
+            "ar": ("I have stomach pain.", "I do not have stomach pain.", "عندي ألم في المعدة.", "ليس لدي ألم في المعدة."),
+            "ur": ("I have stomach pain.", "I do not have stomach pain.", "میرے پیٹ میں درد ہے۔", "میرے پیٹ میں درد نہیں ہے۔"),
+            "bn": ("I have stomach pain.", "I do not have stomach pain.", "আমার পেটে ব্যথা করছে।", "আমার পেটে ব্যথা নেই।"),
+            "so": ("I have stomach pain.", "I do not have stomach pain.", "Waxaan qabaa calool xanuun.", "Ma qabo calool xanuun."),
+            "ro": ("I have stomach pain.", "I do not have stomach pain.", "Am dureri de stomac.", "Nu am dureri de stomac.")
+        }
+    },
+    "fever": {
+        "urgent": False,
+        "keywords": {
+            "ta": ["kaichal", "kaachal", "jwaram", "juram", "காய்ச்சல்"],
+            "hi": ["bukhar", "tap", "बुखार"],
+            "ml": ["pani", "പനി"],
+            "pl": ["goraczka", "gorączka", "temperature"],
+            "ar": ["humma", "harara", "sukhuna", "حمى"],
+            "ur": ["bukhar", "بخار"],
+            "bn": ["jhor", "jor", "জ্বর"],
+            "so": ["qandho", "qando"],
+            "ro": ["febra", "febră"]
+        },
+        "responses": {
+            "ta": ("I have a fever.", "I do not have a fever.", "எனக்கு காய்ச்சல் இருக்கிறது.", "எனக்கு காய்ச்சல் இல்லை."),
+            "hi": ("I have a fever.", "I do not have a fever.", "मुझे बुखार है।", "मुझे बुखार नहीं है।"),
+            "ml": ("I have a fever.", "I do not have a fever.", "എനിക്ക് പനിയുണ്ട്.", "എനിക്ക് പനിയില്ല."),
+            "pl": ("I have a fever.", "I do not have a fever.", "Mam gorączkę.", "Nie mam gorączki."),
+            "ar": ("I have a fever.", "I do not have a fever.", "عندي حمى.", "ليس لدي حمى."),
+            "ur": ("I have a fever.", "I do not have a fever.", "مجھے بخار ہے۔", "مجھے بخار نہیں ہے۔"),
+            "bn": ("I have a fever.", "I do not have a fever.", "আমার জ্বর আছে।", "আমার জ্বর নেই।"),
+            "so": ("I have a fever.", "I do not have a fever.", "Waxaan qabaa qandho.", "Ma qabo wax qandho ah."),
+            "ro": ("I have a fever.", "I do not have a fever.", "Am febră.", "Nu am febră.")
+        }
+    },
+    "breathing difficulty": {
+        "urgent": True,
+        "keywords": {
+            "ta": ["moochu", "swasam", "திணறல்", "மூச்சு"],
+            "hi": ["saans", "sans", "dam", "सांस"],
+            "ml": ["shwasam", "ശ്വാസം"],
+            "pl": ["oddychac", "oddychanie", "dusznosci", "duszno"],
+            "ar": ["tanaffus", "nafas", "تنفس"],
+            "ur": ["saans", "سانس"],
+            "bn": ["shwash", "dom", "শ্বাস"],
+            "so": ["neefsasho", "neefso"],
+            "ro": ["respiratie", "aer", "respira"]
+        },
+        "responses": {
+            "ta": ("I have difficulty breathing.", "I do not have difficulty breathing.", "எனக்கு மூச்சு விடுவதில் சிரமம் உள்ளது.", "எனக்கு மூச்சுத் திணறல் இல்லை."),
+            "hi": ("I have difficulty breathing.", "I do not have difficulty breathing.", "मुझे सांस लेने में तकलीफ है।", "मुझे सांस लेने में कोई तकलीफ नहीं है।"),
+            "ml": ("I have difficulty breathing.", "I do not have difficulty breathing.", "എനിക്ക് ശ്വാസതടസ്സമുണ്ട്.", "എനിക്ക് ശ്വാസതടസ്സമില്ല."),
+            "pl": ("I have difficulty breathing.", "I do not have difficulty breathing.", "Mam trudności z oddychaniem.", "Nie mam trudności z oddychaniem."),
+            "ar": ("I have difficulty breathing.", "I do not have difficulty breathing.", "عندي صعوبة في التنفس.", "لا أواجه صعوبة في التنفس."),
+            "ur": ("I have difficulty breathing.", "I do not have difficulty breathing.", "مجھے سانس لینے میں دشواری ہے۔", "مجھے سانس لینے میں کوئی دشواری نہیں ہے۔"),
+            "bn": ("I have difficulty breathing.", "I do not have difficulty breathing.", "আমার শ্বাস নিতে কষ্ট হচ্ছে।", "আমার শ্বাসকষ্ট নেই।"),
+            "so": ("I have difficulty breathing.", "I do not have difficulty breathing.", "Waxaan dhib ku qabaa neefsashada.", "Dhib kuma qabo neefsashada."),
+            "ro": ("I have difficulty breathing.", "I do not have difficulty breathing.", "Am dificultăți de respirație.", "Nu am dificultăți de respirație.")
+        }
+    }
 }
+
+NEGATION_PATTERNS = {
+    "ta": ["illai", "illa", "varadhu", "varala", "ila", "kidayathu", "இல்லை", "இல்ல"],
+    "hi": ["nahi", "nahin", "nhi", "mat", "na", "नहीं", "ना"],
+    "ml": ["illa", "alla", "ഇല്ല", "അല്ല"],
+    "pl": ["nie", "brak", "bez", "nie ma"],
+    "ar": ["la", "laysa", "mish", "ma", "لا", "ليس"],
+    "ur": ["nahi", "nahin", "na", "نہیں", "نہ"],
+    "bn": ["na", "ni", "nay", "nei", "না", "নেই"],
+    "so": ["ma", "maya"],
+    "ro": ["nu", "nici"]
+}
+
+def detect_negation(text, lang_code):
+    clean = normalise(text)
+    tokens = clean.split()
+    for word in NEGATION_PATTERNS.get(lang_code, []) + ["no", "not", "without", "never"]:
+        if word in tokens or word in clean:
+            return True
+    return False
 
 # ============================================================
 # 3. ROBUST MULTI-TIER ONLINE TRANSLATION ENGINE
@@ -368,16 +368,10 @@ def configured_key():
     return ''
 
 def online(text, source, target):
-    """
-    Tiered Online Translation:
-    Tier 1: Official Google Cloud Translation API (if API Key provided).
-    Tier 2: Deep-Translator Google Engine (free, reliable, no key required).
-    Tier 3: Deep-Translator MyMemory Engine.
-    """
     if not text:
         return Translation()
 
-    # Tier 1: Paid Google Cloud API
+    # Tier 1: Cloud API (if configured)
     key = configured_key()
     if key:
         try:
@@ -422,7 +416,7 @@ def staff_translation(text, language):
 
     clean = normalise(text)
 
-    # 1. Check Synthesizer for Staff inquiries
+    # Check Staff Synthesizer
     for key, phrases in STAFF_SYNTHESIS.items():
         if key == "HOW_LONG_CHEST_PAIN" and any(k in clean for k in ["how long", "when did"]) and "chest" in clean:
             return Translation(phrases[language], phrases[language], 'needs_review', 'prepared_phrase', PREPARED)
@@ -440,59 +434,68 @@ def staff_translation(text, language):
             return Translation(phrases[language], phrases[language], 'needs_review', 'prepared_phrase', PREPARED)
         if key == "TAKE_SEAT" and any(k in clean for k in ["seat", "sit down"]):
             return Translation(phrases[language], phrases[language], 'needs_review', 'prepared_phrase', PREPARED)
+        if key == "NAME_DOB" and any(k in clean for k in ["name", "date of birth", "dob"]):
+            return Translation(phrases[language], phrases[language], 'needs_review', 'prepared_phrase', PREPARED)
         if key == "INTERPRETER" and "interpreter" in clean:
             return Translation(phrases[language], phrases[language], 'needs_review', 'prepared_phrase', PREPARED)
         if key == "DOCTOR_NOW" and "see you now" in clean:
             return Translation(phrases[language], phrases[language], 'needs_review', 'prepared_phrase', PREPARED)
 
-    # 2. Resilient online translation
     return online(text, 'en', language)
 
 def patient_translation(text, language):
     if language not in LANGUAGES:
         return Translation(warning='Unsupported language.')
 
-    norm = normalise(text)
+    clean = normalise(text)
+    is_neg = detect_negation(clean, language)
 
-    # 1. Match against Prepared 9-Language Dictionary (SORTED BY LENGTH DESCENDING)
-    phrases = MASTER_PATIENT_PHRASES.get(language, [])
-    sorted_phrases = sorted(phrases, key=lambda x: len(x[0]), reverse=True)
+    # 1. Phonetic Stem Match across all 9 languages (Matches 'thali', 'thalai', 'seene', etc.)
+    for sym_name, sym_data in PHONETIC_SYMPTOM_MAP.items():
+        lang_keywords = sym_data["keywords"].get(language, [])
+        for kw in lang_keywords:
+            if kw in clean:
+                pos_eng, neg_eng, pos_nat, neg_nat = sym_data["responses"][language]
+                final_eng = neg_eng if is_neg else pos_eng
+                final_nat = neg_nat if is_neg else pos_nat
+                return Translation(
+                    text=final_eng,
+                    native=final_nat,
+                    status='needs_review',
+                    source='prepared_phrase',
+                    warning=PREPARED,
+                    symptom=sym_name if sym_data["urgent"] else "",
+                    is_negative=is_neg
+                )
 
-    for trigger, eng, nat, sym, is_neg in sorted_phrases:
-        if trigger in norm or norm.startswith(trigger) or norm.endswith(trigger):
-            return Translation(
-                text=eng,
-                native=nat,
-                status='needs_review',
-                source='prepared_phrase',
-                warning=PREPARED,
-                symptom=sym,
-                is_negative=is_neg
-            )
+    # 2. General Pain Match
+    pain_tokens = ["vali", "dard", "vedana", "bol", "alam", "xanuun", "durere", "ব্যথা", "வலி"]
+    if any(pt in clean for pt in pain_tokens):
+        return Translation(
+            text="I do not have pain." if is_neg else "I have pain.",
+            native="எனக்கு வலி இல்லை." if is_neg else "எனக்கு வலி இருக்கிறது.",
+            status='needs_review',
+            source='prepared_phrase',
+            warning=PREPARED,
+            symptom="",
+            is_negative=is_neg
+        )
 
-    # 2. Resilient Online Translation
-    # If text is already in native script, translate to English
+    # 3. Fallback to Online Engine
     if is_native_script(text):
         res = online(text, language, 'en')
         eng_text = res.text
         native_text = text
     else:
-        # Romanised input: translate to English, then reconstruct proper native script
         res = online(text, 'auto', 'en')
         eng_text = res.text
         native_res = online(eng_text, 'en', language)
         native_text = native_res.text if native_res.text else text
 
-    # Negation & Symptom Detection on translated English
     eng_lower = eng_text.lower()
-    is_neg = any(w in eng_lower.split() for w in ['no', 'not', 'none', 'denies', 'without', 'never'])
-    
-    urgent_flags = ['chest pain', 'breathing difficulty', 'cannot breathe', 'bleeding', 'unconscious', 'severe pain']
-    detected_sym = ''
-    for u in urgent_flags:
-        if u in eng_lower:
-            detected_sym = u
-            break
+    is_neg_eng = any(w in eng_lower.split() for w in ['no', 'not', 'none', 'denies', 'without'])
+    urgent_flags = ['chest pain', 'breathing difficulty', 'bleeding', 'unconscious']
+    detected_sym = next((u for u in urgent_flags if u in eng_lower), '')
 
     return Translation(
         text=eng_text,
@@ -501,5 +504,5 @@ def patient_translation(text, language):
         source='online_engine',
         warning=REVIEW,
         symptom=detected_sym,
-        is_negative=is_neg
+        is_negative=is_neg_eng or is_neg
     )
