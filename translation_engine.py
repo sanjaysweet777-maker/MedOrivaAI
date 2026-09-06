@@ -168,10 +168,23 @@ def patient_translation(text, language):
         return Translation(warning='Unsupported language.')
     if numeric_response(text):
         return Translation(text,text,'needs_review','original_value','Number or time · Confirm its meaning with the speaker.')
-    if language == 'ta' and normalise(text).rstrip('.!?') in TAMIL_ROMANISED:
-        english, native = TAMIL_ROMANISED[normalise(text).rstrip('.!?')]
-        return Translation(english,native,'needs_review','prepared_phrase',PREPARED)
-    if not script_matches(text,language):
+    
+    # Check Tamil romanised phrases — exact match AND partial match
+    if language == 'ta':
+        normalized = normalise(text).rstrip('.!?')
+        
+        # 1. Exact match first
+        if normalized in TAMIL_ROMANISED:
+            english, native = TAMIL_ROMANISED[normalized]
+            return Translation(english, native, 'needs_review', 'prepared_phrase', PREPARED)
+        
+        # 2. Partial match — check if any phrase is contained in the input
+        for phrase, (english, native) in TAMIL_ROMANISED.items():
+            if phrase in normalized:
+                return Translation(english, native, 'needs_review', 'prepared_phrase', PREPARED)
+    
+    if not script_matches(text, language):
         return unavailable('input_script')
-    result = online(text,language,'en')
-    return Translation(result.text,text,result.status,result.source,result.warning,result.error_code)
+    
+    result = online(text, language, 'en')
+    return Translation(result.text, text, result.status, result.source, result.warning, result.error_code)
