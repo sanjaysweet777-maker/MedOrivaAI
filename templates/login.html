@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MedOriva AI - Clinical Login</title>
+    <title>MedOriva AI — Demo login</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         body { background: #0f172a; min-height: 100vh; display: flex; flex-direction: column; color: #f8fafc; }
@@ -24,21 +24,21 @@
         .demo-box { margin-top: 24px; padding: 12px; background: #0f172a; border: 1px dashed #475569; border-radius: 8px; font-size: 12px; color: #94a3b8; }
         .demo-box strong { color: #e2e8f0; }
     </style>
-</head>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/public.css') }}"/></head>
 <body>
 
     <!-- Top Announcement Banner -->
     <div class="top-banner">
-        🚀 <strong>MedOriva AI Clinical Pilot:</strong> Early Access Version — Full Enterprise Suite Launching Soon.
+        <strong>MedOriva AI</strong> · Demonstration · Fictional information only
     </div>
 
     <div class="login-wrapper">
         <div class="login-card">
             <div class="brand">MedOriva AI</div>
-            <div class="subtitle">Clinical Translation & Triage Portal</div>
+            <div class="subtitle">Multilingual communication workspace</div>
             
             <div class="badge-container">
-                <span class="pilot-badge">● Clinical Pilot Preview</span>
+                <span class="pilot-badge">Demonstration access</span>
             </div>
 
             {% with messages = get_flashed_messages() %}
@@ -50,20 +50,20 @@
             <form method="POST" action="/login">
                 <div class="form-group">
                     <label for="email">Email Address</label>
-                    <input type="email" id="email" name="email" value="demo@medoriva.com" required autocomplete="email">
+                    <input type="email" id="email" name="email" value="{{ 'demo@medoriva.com' if public_demo else '' }}" required autocomplete="email">
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" value="medoriva2026" required autocomplete="current-password">
+                    <input type="password" id="password" name="password" value="{{ 'medoriva2026' if public_demo else '' }}" required autocomplete="current-password">
                 </div>
                 <button type="submit">Sign In</button>
             </form>
 
-            <div class="demo-box">
+            {% if public_demo %}<div class="demo-box">
                 <div><strong>Demo Access Credentials:</strong></div>
                 <div>Email: <code>demo@medoriva.com</code></div>
                 <div>Password: <code>medoriva2026</code></div>
-            </div>
+            </div>{% endif %}
         </div>
     </div>
 

@@ -636,3 +636,30 @@ textarea:focus, input[type="text"]:focus {
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #d0cec6; border-radius: 10px; }
+/* MedOriva workspace: readable messages and a quiet teal identity. */
+:root{--bg:#f2f6f8;--border:#d7e2e7;--text:#172d36;--text-muted:#526773;--radius:14px}
+body{font-size:16px;height:100dvh;overflow:auto;background:#f2f6f8}
+.screen{height:calc(100dvh - 44px);min-height:0}
+#setupScreen{background:#f2f6f8;align-items:flex-start}
+.setup-wrapper{max-width:960px;padding:48px 24px}
+.setup-card{border:1px solid var(--border);box-shadow:0 8px 30px #173b4710}
+.top-pilot-banner{background:#103e35!important;font-size:14px!important;box-shadow:none!important;letter-spacing:0!important}
+.lang-btn{display:flex;flex-direction:column;gap:3px;font-size:16px;min-height:76px}
+.lang-btn span{font-size:16px;font-weight:400}
+.ctx-btn,.prompt-item,.tab,.input-hint,.card-hint,.section-label,.no-storage-note,.setup-footer{font-size:14px}
+button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid #147cba;outline-offset:3px}
+button:disabled{cursor:not-allowed;opacity:.48}
+.app-layout{height:100%;min-height:0}
+.main-area{min-width:0;min-height:0}
+.sidebar{background:white;border-right:1px solid var(--border)}
+.chat-area{background:#f3f7f9;min-height:120px}
+.chat-header{padding:20px 24px}
+.bubble{max-width:100%;padding:20px;border:1px solid var(--border);border-radius:14px}
+.bubble-wrap{max-width:90%;width:640px}
+.message-line{margin-bottom:14px;font-size:18px;line-height:1.75;overflow-wrap:anywhere;white-space:pre-wrap}
+.message-caption{display:block;font-size:13px;font-weight:600;color:#536874;line-height:1.5;margin-bottom:4px;letter-spacing:.02em}
+.translation-status{border-top:1px solid #cbd9dc;padding-top:12px;font-size:14px;color:#674b12;line-height:1.6}
+.translation-status.unavailable{color:#8b2525;font-weight:600}
+textarea,input{font-size:16px!important;line-height:1.6}
+.suggest-btn{background:transparent;color:#0f6e56;border:1px solid #9ebfb4;padding:6px 12px;border-radius:6px;font-size:14px;margin:8px 0;cursor:pointer}
+@media(max-width:760px){.screen{height:auto;min-height:calc(100dvh - 64px)}.app-layout{display:flex;flex-direction:column;height:auto}.sidebar{width:100%;max-height:310px;overflow:auto}.main-area{width:100%}.chat-area{height:45dvh;min-height:240px}.tabs{overflow-x:auto}.tab{flex-shrink:0}.input-row{flex-wrap:wrap}.input-row textarea,.input-row input{width:100%}.bubble-wrap{max-width:100%}.setup-wrapper{padding:24px 16px}}
