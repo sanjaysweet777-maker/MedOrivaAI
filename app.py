@@ -1,269 +1,309 @@
-import os
-import re
-from datetime import timedelta
-import uuid
-from flask import Flask, flash, jsonify, redirect, render_template, request, session, url_for
-from flask_login import LoginManager, UserMixin, current_user, login_required, login_user, logout_user
-from translator import LANGUAGES, patient_translation, staff_translation
+// MedOriva AI — Client Application Script
+let selectedContext = null;
+let selectedLang = null;
+let selectedLangCode = null;
+let sessionId = null;
 
-# ============================================================
-# APP CONFIGURATION
-# ============================================================
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-template_dir = os.path.join(BASE_DIR, 'templates')
+// ============================================================
+// 1. SELECTION HANDLERS
+// ============================================================
+function selectCtx(btn) {
+    const el = btn.closest('.ctx-btn') || btn;
+    document.querySelectorAll('.ctx-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    selectedContext = el.getAttribute('data-ctx') || el.dataset.ctx;
+    checkReady();
+}
 
-app = Flask(__name__, template_folder=template_dir)
-app.secret_key = os.environ.get("SECRET_KEY", "medoriva-clinical-mvp-2026-v4")
+function selectLang(btn) {
+    const el = btn.closest('.lang-btn') || btn;
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    selectedLang = el.getAttribute('data-lang') || el.dataset.lang;
+    selectedLangCode = el.getAttribute('data-code') || el.dataset.code || 'en';
+    checkReady();
+}
 
-app.config["SESSION_COOKIE_HTTPONLY"] = True
-app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+function checkReady() {
+    const startBtn = document.getElementById('startBtn');
+    if (startBtn) {
+        startBtn.disabled = !(selectedContext && selectedLang);
+    }
+}
 
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
+// ============================================================
+// 2. SESSION LIFECYCLE
+// ============================================================
+async function startSession() {
+    const startBtn = document.getElementById('startBtn');
+    if (startBtn) startBtn.disabled = true;
 
-DEMO_EMAIL = "demo@medoriva.com"
-DEMO_PASSWORD = "medoriva2026"
+    try {
+        if (!selectedContext || !selectedLang) {
+            alert('Please select both a communication context and a patient language.');
+            if (startBtn) startBtn.disabled = false;
+            return;
+        }
 
-class User(UserMixin):
-    def __init__(self, email):
-        self.id = str(email).strip().lower()
-        self.email = str(email).strip().lower()
+        const res = await fetch('/api/start_session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                context: selectedContext,
+                lang: selectedLang,
+                lang_code: selectedLangCode || 'ta'
+            })
+        });
 
-    def get_id(self):
-        return self.id
+        const data = await res.json();
+        if (!res.ok || data.status !== 'ok') {
+            throw new Error(data.error || 'Failed to start session.');
+        }
 
-@login_manager.user_loader
-def load_user(user_id):
-    if user_id and str(user_id).strip().lower() == DEMO_EMAIL.lower():
-        return User(user_id)
-    return None
+        sessionId = data.session_id;
+        const currentCode = String(data.lang_code || data.code || 'en').toLowerCase();
 
-@login_manager.unauthorized_handler
-def unauthorized():
-    if request.path.startswith('/api/'):
-        return jsonify({"error": "Unauthorized", "message": "Session expired."}), 401
-    return redirect(url_for('login', next=request.path))
+        // Update Side badges
+        const sideCtx = document.getElementById('sideCtx');
+        const sideLang = document.getElementById('sideLang');
+        const sideId = document.getElementById('sideId');
+        if (sideCtx) sideCtx.textContent = data.context;
+        if (sideLang) sideLang.textContent = data.lang;
+        if (sideId) sideId.textContent = sessionId;
 
-def reset_translation_session():
-    for key in ["session_id", "context", "lang", "lang_code", "active"]:
-        session.pop(key, None)
+        renderPrompts(data.prompts || []);
 
-# ============================================================
-# CLINICAL SIMPLIFICATION RULES
-# ============================================================
-SIMPLIFY_RULES = [
-    (r"require\s+further\s+diagnostic\s+evaluation", "need more tests"),
-    (r"administer\s+medication", "give medicine"),
-    (r"experiencing\s+discomfort", "feeling pain"),
-    (r"prior\s+to", "before"),
-    (r"in\s+order\s+to", "to"),
-    (r"approximately", "about"),
-    (r"at\s+this\s+point\s+in\s+time", "now"),
-    (r"due\s+to\s+the\s+fact\s+that", "because"),
-    (r"facilitate", "help"),
-    (r"commence", "start"),
-    (r"terminate", "end"),
-    (r"endeavour", "try"),
-    (r"obtain", "get"),
-    (r"sufficient", "enough"),
-    (r"physician", "doctor"),
-    (r"hypertension", "high blood pressure"),
-    (r"hypotension", "low blood pressure"),
-    (r"myocardial\s+infarction", "heart attack"),
-    (r"cerebrovascular\s+accident", "stroke"),
-    (r"dyspnea", "shortness of breath"),
-    (r"fracture", "broken bone"),
-]
+        const rtlLanguages = ['ar', 'ur'];
+        const chatArea = document.getElementById('chatArea');
+        if (chatArea) {
+            chatArea.setAttribute('dir', rtlLanguages.includes(currentCode) ? 'rtl' : 'ltr');
+        }
 
-def simplify_text(text):
-    simplified = text
-    changed = False
-    for pattern, replacement in SIMPLIFY_RULES:
-        result = re.sub(pattern, replacement, simplified, flags=re.IGNORECASE)
-        if result != simplified:
-            changed = True
-            simplified = result
-    return simplified, changed
+        document.getElementById('setupScreen').classList.remove('active');
+        document.getElementById('mainScreen').classList.add('active');
 
-# ============================================================
-# PUBLIC & WORKSPACE ROUTES
-# ============================================================
+    } catch (err) {
+        alert('Could not start session: ' + (err.message || 'Unknown error'));
+    } finally {
+        if (startBtn) startBtn.disabled = false;
+    }
+}
 
-@app.route("/")
-def index():
-    return render_template("landing.html")
+async function endSession() {
+    try {
+        await fetch('/api/end_session', { method: 'POST' });
+    } catch (e) {}
+    window.location.reload();
+}
 
-@app.route("/portal")
-@login_required
-def portal():
-    return render_template("index.html")
+// ============================================================
+// 3. STAFF & PATIENT CHAT LOGIC
+// ============================================================
+function renderPrompts(prompts) {
+    const list = document.getElementById('promptsList');
+    if (!list) return;
+    list.innerHTML = '';
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('portal'))
+    prompts.forEach(pText => {
+        const btn = document.createElement('button');
+        btn.className = 'prompt-btn';
+        btn.textContent = pText;
+        btn.onclick = () => sendStaffPrompt(pText);
+        list.appendChild(btn);
+    });
+}
 
-    if request.method == 'POST':
-        if request.is_json:
-            data = request.get_json() or {}
-            email = str(data.get('email') or data.get('username') or '').strip().lower()
-            password = str(data.get('password') or '').strip()
-        else:
-            email = str(request.form.get('email') or request.form.get('username') or '').strip().lower()
-            password = str(request.form.get('password') or '').strip()
+async function sendStaffPrompt(text) {
+    const emptyChat = document.getElementById('emptyChat');
+    if (emptyChat) emptyChat.style.display = 'none';
 
-        if email == DEMO_EMAIL.lower() and password == DEMO_PASSWORD:
-            user = User(email)
-            login_user(user, remember=False)
+    try {
+        const res = await fetch('/api/translate_staff', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: text })
+        });
+        const data = await res.json();
 
-            if request.is_json:
-                return jsonify({"status": "ok", "redirect": url_for('portal')})
+        appendMessage('staff', {
+            original: data.original || text,
+            translated: data.translated || text,
+            lang: data.lang || selectedLang || 'Patient'
+        });
+    } catch (e) {
+        alert('Translation error. Please try again.');
+    }
+}
 
-            next_url = request.args.get('next')
-            if next_url and next_url.startswith('/') and next_url not in ['/', '/login']:
-                return redirect(next_url)
-            return redirect(url_for('portal'))
+async function sendFreeText() {
+    const input = document.getElementById('freeInput');
+    if (!input || !input.value.trim()) return;
+    const text = input.value.trim();
+    input.value = '';
+    await sendStaffPrompt(text);
+}
 
-        if request.is_json:
-            return jsonify({"status": "error", "message": "Invalid email or password"}), 401
+async function suggestSimplification() {
+    const input = document.getElementById('freeInput');
+    const note = document.getElementById('simplifyNote');
+    if (!input || !input.value.trim()) return;
 
-        flash('Invalid email or password', 'error')
+    try {
+        const res = await fetch('/api/simplify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: input.value.trim() })
+        });
+        const data = await res.json();
+        if (data.simplified) {
+            input.value = data.simplified;
+            if (note) note.style.display = data.changed ? 'block' : 'none';
+        }
+    } catch (e) {}
+}
 
-    return render_template('login.html')
+async function translatePatient() {
+    const input = document.getElementById('patientInput');
+    if (!input || !input.value.trim()) return;
+    const text = input.value.trim();
+    input.value = '';
 
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    session.clear()
-    return redirect(url_for('login'))
+    const emptyChat = document.getElementById('emptyChat');
+    if (emptyChat) emptyChat.style.display = 'none';
 
-@app.route("/api/contact", methods=["POST"])
-def submit_contact():
-    data = request.get_json() or {}
-    name = data.get("name", "").strip()
-    email = data.get("email", "").strip()
-    message = data.get("message", "").strip()
+    try {
+        const res = await fetch('/api/translate_patient', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: text })
+        });
+        const data = await res.json();
 
-    if not name or not email or not message:
-        return jsonify({"status": "error", "message": "All fields are required."}), 400
+        appendMessage('patient', {
+            typedInput: text,
+            englishMeaning: data.translated || text,
+            nativeScript: data.native || text,
+            lang: data.lang || 'English',
+            alert: data.medical_alert,
+            symptom: data.symptom_detected,
+            isNegative: data.is_negative
+        });
 
-    return jsonify({"status": "ok", "message": "Inquiry received. Our clinical pilot team will contact you within 24 hours."}), 200
+        const alertBanner = document.getElementById('alertBanner');
+        if (alertBanner) {
+            alertBanner.style.display = data.medical_alert ? 'flex' : 'none';
+        }
+    } catch (e) {
+        alert('Translation error. Please try again.');
+    }
+}
 
-# Health Checks for Render
-@app.route("/api/ping", methods=["GET"])
-def ping():
-    return jsonify({"status": "ok", "service": "MedOriva AI", "healthy": True}), 200
+async function checkUnderstanding() {
+    const input = document.getElementById('confirmInput');
+    if (!input || !input.value.trim()) return;
+    const text = input.value.trim();
+    input.value = '';
 
-@app.route("/healthz", methods=["GET"])
-def healthz():
-    return jsonify({"status": "ok"}), 200
+    const emptyChat = document.getElementById('emptyChat');
+    if (emptyChat) emptyChat.style.display = 'none';
 
-# ============================================================
-# CLINICAL APIS
-# ============================================================
+    try {
+        const res = await fetch('/api/translate_patient', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: text })
+        });
+        const data = await res.json();
 
-@app.route("/api/start_session", methods=["POST"])
-@login_required
-def start_session():
-    data = request.get_json() or {}
-    reset_translation_session()
-    session["session_id"] = str(uuid.uuid4())[:8]
-    session["context"] = data.get("context", "Reception")
-    session["lang"] = data.get("lang", "Tamil")
-    session["lang_code"] = data.get("lang_code", "ta")
-    session["active"] = True
+        appendMessage('patient', {
+            typedInput: text,
+            englishMeaning: `[Understanding Check]: ${data.translated || text}`,
+            nativeScript: data.native || text,
+            lang: data.lang || 'English',
+            alert: data.medical_alert,
+            symptom: data.symptom_detected,
+            isNegative: data.is_negative
+        });
+    } catch (e) {
+        alert('Translation verification error.');
+    }
+}
 
-    prompts = [
-        "Good morning. How can I help you?",
-        "Do you have an appointment?",
-        "Can I take your name and date of birth?",
-        "Please take a seat. The doctor will see you shortly.",
-        "Where is your pain?",
-        "How long have you had this?",
-        "How long do you have chest pain?",
-        "Do you have chest pain?",
-        "Do you have a fever?",
-        "Are you having difficulty breathing?",
-        "Do you need an interpreter?"
-    ]
+// ============================================================
+// 4. CLEAN CLINICAL BUBBLE RENDERING
+// ============================================================
+function appendMessage(sender, msg) {
+    const chatArea = document.getElementById('chatArea');
+    if (!chatArea) return;
 
-    # Returns lang_code and code so app.js never hits undefined .includes
-    return jsonify({
-        "status": "ok",
-        "session_id": session["session_id"],
-        "prompts": prompts,
-        "context": session["context"],
-        "lang": session["lang"],
-        "lang_code": session["lang_code"],
-        "code": session["lang_code"]
-    })
+    const row = document.createElement('div');
+    row.className = `msg-row ${sender}`;
 
-@app.route("/api/end_session", methods=["POST"])
-@login_required
-def end_session():
-    reset_translation_session()
-    return jsonify({"status": "ok"})
+    if (sender === 'staff') {
+        row.innerHTML = `
+            <div class="msg-bubble staff">
+                <div class="msg-title" style="font-size:11px;font-weight:700;color:#0F6E56;text-transform:uppercase;margin-bottom:4px;">
+                    Staff Question (English)
+                </div>
+                <div class="msg-text main" style="font-size:15px;font-weight:600;margin-bottom:6px;">
+                    ${escapeHtml(msg.original)}
+                </div>
+                <div class="msg-text sub" style="font-size:13px;color:#334155;background:rgba(15,110,86,0.08);padding:8px 10px;border-radius:6px;">
+                    <strong>${escapeHtml(msg.lang)}:</strong> ${escapeHtml(msg.translated)}
+                </div>
+            </div>
+        `;
+    } else {
+        const badge = msg.alert 
+            ? `<div class="triage-tag red" style="color:#dc2626;background:#fef2f2;border:1px solid #fecaca;padding:6px 10px;border-radius:6px;font-weight:700;font-size:12px;margin-top:8px;">
+                 🔴 Urgent Symptom Detected: ${escapeHtml(msg.symptom)}
+               </div>`
+            : (msg.isNegative && msg.symptom ? `<div class="triage-tag green" style="color:#15803d;background:#f0fdf4;border:1px solid #bbf7d0;padding:6px 10px;border-radius:6px;font-weight:600;font-size:12px;margin-top:8px;">
+                 ✅ Patient confirms NO ${escapeHtml(msg.symptom)}
+               </div>` : '');
 
-@app.route("/api/simplify", methods=["POST"])
-@login_required
-def simplify_endpoint():
-    data = request.get_json() or {}
-    text = data.get("text", "")
-    simplified, changed = simplify_text(text)
-    return jsonify({"simplified": simplified, "changed": changed})
+        row.innerHTML = `
+            <div class="msg-bubble patient">
+                <div class="msg-title" style="font-size:11px;font-weight:700;color:#0369a1;text-transform:uppercase;margin-bottom:4px;">
+                    Patient Statement (Translated for Staff)
+                </div>
+                <div class="msg-text main" style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:8px;">
+                    ${escapeHtml(msg.englishMeaning)}
+                </div>
+                <div style="font-size:12px;color:#64748b;background:#f8fafc;border:1px solid #e2e8f0;padding:8px 10px;border-radius:6px;display:flex;flex-direction:column;gap:4px;">
+                    <div><strong>Patient Typed:</strong> <em>${escapeHtml(msg.typedInput)}</em></div>
+                    <div><strong>Verified Native:</strong> ${escapeHtml(msg.nativeScript)}</div>
+                </div>
+                ${badge}
+            </div>
+        `;
+    }
 
-@app.route("/api/translate_staff", methods=["POST"])
-@login_required
-def translate_staff():
-    data = request.get_json() or {}
-    raw_text = data.get("text", "").strip()
-    if not raw_text:
-        return jsonify({"error": "No text provided"}), 400
+    chatArea.appendChild(row);
+    chatArea.scrollTop = chatArea.scrollHeight;
+}
 
-    lang_code = session.get("lang_code", "ta")
-    lang_name = session.get("lang", "Tamil")
+function switchTab(tabBtn) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
 
-    res = staff_translation(raw_text, lang_code)
+    tabBtn.classList.add('active');
+    const tabId = 'tab-' + tabBtn.getAttribute('data-tab');
+    const target = document.getElementById(tabId);
+    if (target) target.classList.add('active');
+}
 
-    return jsonify({
-        "original": raw_text,
-        "simplified": raw_text,
-        "was_simplified": False,
-        "translated": res.text,
-        "lang": lang_name,
-        "urgent": False,
-        "warning": res.warning
-    })
+function dismissAlert() {
+    const banner = document.getElementById('alertBanner');
+    if (banner) banner.style.display = 'none';
+}
 
-@app.route("/api/translate_patient", methods=["POST"])
-@login_required
-def translate_patient():
-    data = request.get_json() or {}
-    raw_text = data.get("text", "").strip()
-    if not raw_text:
-        return jsonify({"error": "No text provided"}), 400
-
-    lang_code = session.get("lang_code", "ta")
-    lang_name = session.get("lang", "Tamil")
-
-    res = patient_translation(raw_text, lang_code)
-
-    # Medical alert: Urgent symptom present AND not negated
-    medical_alert = bool(res.symptom and not res.is_negative)
-
-    return jsonify({
-        "original": raw_text,
-        "native": res.native,
-        "translated": res.text,
-        "lang": lang_name,
-        "symptom_detected": res.symptom,
-        "is_negative": res.is_negative,
-        "medical_alert": medical_alert,
-        "warning": res.warning
-    })
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(debug=False, host="0.0.0.0", port=port)
+function escapeHtml(text) {
+    if (!text) return '';
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
