@@ -6,7 +6,16 @@
 <title>MedOriva AI — Clinical Communication Workspace</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
 <style>
-  /* ── Dedicated Setup Screen Enhancements ── */
+  /* ── Structural Layout Fix for Viewport & Scrolling ── */
+  body {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100vh !important;
+    overflow: hidden !important;
+    margin: 0;
+    padding: 0;
+  }
+
   .portal-header-bar {
     background: #092e26;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -16,7 +25,10 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex: 0 0 auto !important;
+    z-index: 100;
   }
+
   .portal-header-bar .compliance-pill {
     background: rgba(20, 184, 166, 0.15);
     border: 1px solid rgba(20, 184, 166, 0.35);
@@ -27,12 +39,46 @@
     font-size: 11px;
     letter-spacing: 0.3px;
   }
-  .setup-container {
-    max-width: 900px;
-    margin: 32px auto;
-    width: 100%;
-    padding: 0 20px;
+
+  /* ── Setup Screen: Aligned to top to prevent vertical cropping ── */
+  #setupScreen {
+    display: none;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    background: linear-gradient(160deg, #e6f2f7 0%, #f2f6f8 50%, #dbeaf0 100%);
+    padding: 24px 0 60px 0 !important;
   }
+
+  #setupScreen.active {
+    display: flex !important;
+  }
+
+  #mainScreen {
+    display: none;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: hidden !important;
+  }
+
+  #mainScreen.active {
+    display: flex !important;
+  }
+
+  .setup-container {
+    max-width: 900px !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    padding: 0 20px !important;
+    box-sizing: border-box;
+  }
+
   .setup-title-box {
     background: #ffffff;
     border: 1px solid #cbd5e1;
@@ -45,22 +91,26 @@
     align-items: center;
     gap: 20px;
   }
+
   .setup-title-box .brand-heading {
     display: flex;
     align-items: center;
     gap: 14px;
   }
+
   .setup-title-box h1 {
     font-size: 20px;
     font-weight: 800;
     color: #0f172a;
     letter-spacing: -0.3px;
   }
+
   .setup-title-box p {
     font-size: 13px;
     color: #64748b;
     margin-top: 2px;
   }
+
   .step-label {
     display: flex;
     align-items: center;
@@ -70,6 +120,7 @@
     color: #0f172a;
     margin-bottom: 6px;
   }
+
   .step-label .num {
     background: #0F6E56;
     color: #fff;
@@ -90,6 +141,7 @@
     gap: 14px;
     margin-top: 10px;
   }
+
   .ctx-card {
     background: #ffffff;
     border: 1.5px solid #e2e8f0;
@@ -99,26 +151,31 @@
     text-align: left;
     transition: all 0.15s ease-in-out;
   }
+
   .ctx-card:hover {
     border-color: #0F6E56;
     background: #f0fdf4;
   }
+
   .ctx-card.active {
     border-color: #0F6E56;
     background: #f0fdf4;
     box-shadow: 0 0 0 2px rgba(15, 110, 86, 0.2);
   }
+
   .ctx-card .icon {
     font-size: 22px;
     margin-bottom: 8px;
     display: block;
   }
+
   .ctx-card .title {
     font-size: 14px;
     font-weight: 700;
     color: #0f172a;
     display: block;
   }
+
   .ctx-card .desc {
     font-size: 11.5px;
     color: #64748b;
@@ -134,6 +191,7 @@
     gap: 10px;
     margin-top: 10px;
   }
+
   .lang-card {
     background: #ffffff;
     border: 1.5px solid #e2e8f0;
@@ -146,25 +204,30 @@
     align-items: center;
     transition: all 0.15s ease-in-out;
   }
+
   .lang-card:hover {
     border-color: #0284c7;
     background: #f0f9ff;
   }
+
   .lang-card.active {
     border-color: #0284c7;
     background: #f0f9ff;
     box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
   }
+
   .lang-card .eng-name {
     font-size: 13.5px;
     font-weight: 700;
     color: #0f172a;
     display: block;
   }
+
   .lang-card .meta {
     font-size: 11px;
     color: #64748b;
   }
+
   .lang-card .native-name {
     font-size: 15px;
     font-weight: 600;
@@ -189,6 +252,7 @@
     flex-direction: column;
     gap: 12px;
   }
+
   .start-btn-primary {
     background: #0F6E56;
     color: #ffffff;
@@ -205,6 +269,7 @@
     justify-content: center;
     gap: 8px;
   }
+
   .start-btn-primary:hover { background: #0a5240; }
   .start-btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
 </style>
