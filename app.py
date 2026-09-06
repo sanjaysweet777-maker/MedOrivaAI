@@ -3,12 +3,12 @@ import os
 import re
 import secrets
 import uuid
-from datetime import timedelta
+from datetime import timedelta, datetime, timezone
 from urllib.parse import urlsplit
 from flask import Flask, flash, jsonify, redirect, render_template, request, session, url_for
 from flask_login import LoginManager, UserMixin, current_user, login_required, login_user, logout_user
 from clinical_phrases import GUIDED_PROMPTS
-from translation_engine import LANGUAGES, STAFF_LOOKUP, normalise, staff_translation, patient_translation
+from translation_engine import LANGUAGES, STAFF_LOOKUP, normalise, staff_translation, patient_translation, configured_key, online
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or secrets.token_hex(32)
@@ -45,7 +45,7 @@ def headers(response):
     response.headers.update({'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','X-Frame-Options':'DENY','Referrer-Policy':'same-origin'})
     return response
 @app.route('/')
-def index(): return render_template('landing.html')
+def index(): return render_template('landing.html', year=datetime.now(timezone.utc).year)
 @app.route('/portal')
 @login_required
 def portal(): return render_template('index.html')
@@ -85,7 +85,20 @@ def start_session():
     session.update(session_id=str(uuid.uuid4()),context=context,lang_code=code,lang=LANGUAGES[code],active=True)
     prompts=[p.replace('How long do you have pain?','How long have you had pain?').replace('How long do you have chest pain?','How long have you had chest pain?') for p in GUIDED_PROMPTS[context] if '[time]' not in p]
     return jsonify(status='ok',session_id=session['session_id'],context=context,lang=session['lang'],prompts=prompts,
-        prepared_prompts=[p for p in prompts if normalise(p) in STAFF_LOOKUP],provider_configured=bool(os.environ.get('GOOGLE_TRANSLATE_API_KEY')),disclaimer=DISCLAIMER)
+        prepared_prompts=[p for p in prompts if normalise(p) in STAFF_LOOKUP],provider_configured=bool(configured_key()),disclaimer=DISCLAIMER)
+@app.route('/api/translation_check', methods=['POST'])
+@login_required
+def translation_check():
+    code = request.get_json().get('lang_code', 'ta')
+    if not isinstance(code,str) or code not in LANGUAGES:
+        return jsonify(error='Select a supported language.'),400
+    # Fixed fictional text only; this deliberately bypasses the prepared lookup.
+    result = online('Do you have an appointment?', 'en', code)
+    return jsonify(configured=bool(configured_key()),connected=result.source=='google_cloud',
+        message='Translation service connected.' if result.source=='google_cloud' else result.warning,
+        error_code=result.error_code,language=LANGUAGES[code],
+        translated=result.text, build='compact-workspace-v2')
+
 @app.route('/api/end_session',methods=['POST'])
 @login_required
 def end_session():
@@ -108,7 +121,7 @@ def translate_staff():
     if error is not None: return error
     result=staff_translation(text,session['lang_code'])
     return jsonify(original=text,simplified=text,was_simplified=False,translated=result.text,lang=session['lang'],
-        status=result.status,translation_source=result.source,warning=result.warning,urgent=False,disclaimer=DISCLAIMER)
+        status=result.status,translation_source=result.source,warning=result.warning,error_code=result.error_code,urgent=False,disclaimer=DISCLAIMER)
 @app.route('/api/translate_patient',methods=['POST'])
 @login_required
 def translate_patient():
@@ -116,7 +129,7 @@ def translate_patient():
     if error is not None: return error
     result=patient_translation(text,session['lang_code'])
     return jsonify(original=text,native=result.native,translated=result.text,lang=session['lang'],status=result.status,
-        translation_source=result.source,warning=result.warning,symptom_detected=None,is_negative=None,medical_alert=False,
+        translation_source=result.source,warning=result.warning,error_code=result.error_code,symptom_detected=None,is_negative=None,medical_alert=False,
         staff_notification=None,disclaimer=DISCLAIMER)
 @app.route('/api/simplify',methods=['POST'])
 @login_required

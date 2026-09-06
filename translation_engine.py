@@ -9,8 +9,8 @@ from clinical_phrases import CLINICAL_STAFF_SYNTHESIZER
 
 LANGUAGES = {'ta':'Tamil','hi':'Hindi','ml':'Malayalam','pl':'Polish','ar':'Arabic','ur':'Urdu','bn':'Bengali','so':'Somali','ro':'Romanian'}
 SCRIPT_RANGES = {'ta':(0x0B80,0x0BFF),'hi':(0x0900,0x097F),'ml':(0x0D00,0x0D7F),'bn':(0x0980,0x09FF),'ar':(0x0600,0x06FF),'ur':(0x0600,0x06FF)}
-REVIEW = 'Machine translation — not independently reviewed. Confirm the complete meaning with the speaker; use a qualified interpreter if uncertain.'
-PREPARED = 'Prepared demo phrase — independent bilingual review is still required.'
+REVIEW = 'Machine translation · Confirm meaning with the speaker.'
+PREPARED = 'Prepared phrase · Confirm meaning with the speaker.'
 
 def normalise(text):
     # Preserve vowel signs, combining marks, punctuation and numeric separators.
@@ -52,7 +52,8 @@ class Translation:
     native: str = ''
     status: str = 'unavailable'
     source: str = 'none'
-    warning: str = 'Translation unavailable. Rephrase or use a qualified interpreter.'
+    warning: str = 'Translation is temporarily unavailable. Please try again.'
+    error_code: str = ''
 
 
 def script_matches(text, language):
@@ -68,26 +69,89 @@ def numeric_tokens(text):
     return sorted(re.findall(r'\d+(?:[.,:/]\d+)*', text))
 
 
+def configured_key():
+    # Accept common deployment names; never expose the value in a response or log.
+    for name in ('GOOGLE_TRANSLATE_API_KEY', 'GOOGLE_CLOUD_TRANSLATION_API_KEY', 'GOOGLE_API_KEY'):
+        value = os.environ.get(name, '').strip()
+        if value:
+            return value
+    return ''
+
+ERROR_MESSAGES = {
+    'not_configured': 'Translation service setup is pending. Prepared phrases are available.',
+    'invalid_key': 'The translation service could not authenticate. Ask the administrator to check the API key.',
+    'api_disabled': 'The translation API needs to be enabled in the connected Google Cloud project.',
+    'billing': 'The translation service needs an active Google Cloud billing account.',
+    'access_denied': 'The translation service could not authorise this request. Ask the administrator to check API permissions and key restrictions.',
+    'quota': 'The translation service has reached its current usage limit. Please try again later.',
+    'timeout': 'The translation service took too long to respond. Please try again.',
+    'connection': 'The translation service could not be reached. Please try again.',
+    'provider_error': 'The translation service is temporarily unavailable. Please try again.',
+    'invalid_response': 'A complete translation was not returned. Please try again.',
+    'unchanged': 'Please check the selected language and rephrase this message.',
+    'script_mismatch': 'Please check the selected language and try this message again.',
+    'numbers_changed': 'Please confirm the numbers and rephrase this message before continuing.',
+    'input_script': 'Enter the response in the selected language’s usual writing system. Selected Thanglish phrases are also available for Tamil.',
+}
+
+
+def unavailable(code):
+    return Translation(warning=ERROR_MESSAGES[code], error_code=code)
+
+
+def provider_error(response):
+    # Read only reason codes, never return raw provider errors (which may contain
+    # input, project identifiers or credentials). Keep logs free of request text.
+    try:
+        error = response.json().get('error', {})
+        reasons = {detail.get('reason', '') for detail in error.get('details', []) if isinstance(detail, dict)}
+        reasons.update(detail.get('reason', '') for detail in error.get('errors', []) if isinstance(detail, dict))
+    except (ValueError, AttributeError, TypeError):
+        reasons = set()
+    if reasons & {'API_KEY_INVALID', 'API_KEY_EXPIRED'} or response.status_code == 401:
+        return unavailable('invalid_key')
+    if reasons & {'SERVICE_DISABLED', 'accessNotConfigured'}:
+        return unavailable('api_disabled')
+    if reasons & {'BILLING_DISABLED', 'PROJECT_BILLING_INFO_NOT_FOUND'}:
+        return unavailable('billing')
+    if reasons & {'RATE_LIMIT_EXCEEDED', 'QUOTA_EXCEEDED', 'dailyLimitExceeded', 'userRateLimitExceeded'} or response.status_code == 429:
+        return unavailable('quota')
+    return unavailable('access_denied' if response.status_code == 403 else 'provider_error')
+
+
 def online(text, source, target):
-    key = os.environ.get('GOOGLE_TRANSLATE_API_KEY')
+    key = configured_key()
     if not key:
-        return Translation(warning='Full-text translation is not configured. Use a prepared demo phrase or ask the administrator to configure the translation service.')
+        return unavailable('not_configured')
     try:
         response = requests.post('https://translation.googleapis.com/language/translate/v2',
             headers={'X-Goog-Api-Key':key},
             json={'q':text,'source':source,'target':target,'format':'text'}, timeout=(3,12))
         response.raise_for_status()
         translated = html.unescape(response.json()['data']['translations'][0]['translatedText']).strip()
-        if not translated or normalise(translated) == normalise(text):
-            return Translation(warning='The service did not return a distinct translation. Confirm the input language or use an interpreter.')
+        if not translated:
+            return unavailable('invalid_response')
+        if normalise(translated) == normalise(text):
+            return unavailable('unchanged')
         if not script_matches(translated, target):
-            return Translation(warning='The output writing system did not match the selected language. Translation withheld.')
+            return unavailable('script_mismatch')
         if numeric_tokens(text) != numeric_tokens(translated):
-            return Translation(warning='Numbers changed during translation. Translation withheld; confirm the numbers with an interpreter.')
+            return unavailable('numbers_changed')
         return Translation(translated, status='needs_review',source='google_cloud',warning=REVIEW)
-    except (requests.RequestException, ValueError, KeyError, IndexError, TypeError, AttributeError):
-        # Do not log provider bodies or input, or send to an undisclosed fallback.
-        return Translation()
+    except requests.HTTPError as exc:
+        return provider_error(exc.response) if exc.response is not None else unavailable('provider_error')
+    except requests.Timeout:
+        return unavailable('timeout')
+    except requests.RequestException:
+        return unavailable('connection')
+    except (ValueError, KeyError, IndexError, TypeError, AttributeError):
+        return unavailable('invalid_response')
+
+
+def numeric_response(text):
+    # An answer consisting only of digits and separators needs no language model.
+    # Preserve its exact spelling: do not interpret ambiguous dates or times.
+    return bool(re.fullmatch(r"[0-9٠-٩۰-۹०-९০-৯௦-௯൦-൯]+(?:[ .,:/–—-][0-9٠-٩۰-۹०-९০-৯௦-௯൦-൯]+)*", text))
 
 
 def staff_translation(text, language):
@@ -102,10 +166,12 @@ def staff_translation(text, language):
 def patient_translation(text, language):
     if language not in LANGUAGES:
         return Translation(warning='Unsupported language.')
+    if numeric_response(text):
+        return Translation(text,text,'needs_review','original_value','Number or time · Confirm its meaning with the speaker.')
     if language == 'ta' and normalise(text).rstrip('.!?') in TAMIL_ROMANISED:
         english, native = TAMIL_ROMANISED[normalise(text).rstrip('.!?')]
         return Translation(english,native,'needs_review','prepared_phrase',PREPARED)
     if not script_matches(text,language):
-        return Translation(warning='Please enter the selected language in its normal written form. Romanised Tamil is limited to the prepared demo phrases.')
+        return unavailable('input_script')
     result = online(text,language,'en')
-    return Translation(result.text,text,result.status,result.source,result.warning)
+    return Translation(result.text,text,result.status,result.source,result.warning,result.error_code)
