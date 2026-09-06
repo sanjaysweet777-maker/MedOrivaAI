@@ -81,3 +81,23 @@ NHS approval, DCB0129 conformity and DTAC assessment are not claimed.
 
 Provider reference:
 https://docs.cloud.google.com/translate/docs/reference/rest/v2/translate
+
+DEPLOYMENT FOLLOW-UP
+The setup screen now includes Translation connection > Check connection. This
+makes one real provider call with a fixed appointment question, bypassing the
+prepared phrase bank. A configured key is not treated as proof of a working
+connection. The result distinguishes missing configuration, invalid credentials,
+API disabled, billing, key restrictions/permissions, quota, timeouts and response
+validation failures. Raw provider messages, keys and project IDs are not exposed.
+The endpoint requires a signed-in user. Do not paste API keys into chat or GitHub.
+GOOGLE_CLOUD_TRANSLATION_API_KEY and GOOGLE_API_KEY are also accepted as deployment
+aliases; GOOGLE_TRANSLATE_API_KEY takes precedence. Surrounding whitespace is
+removed. The provider's permissions, service enablement, billing and account-level
+settings still need to be configured in Google Cloud.
+Numbers and numeric times/dates entered as patient answers are preserved verbatim
+without unnecessary translation or script rejection. Their interpretation still
+needs confirmation; no date conversion or numeric meaning is inferred.
+The compact layout uses the available viewport height with independently scrolling
+conversation content. Contact email/phone are restored from the original public
+site. Copyright year is generated on the server. Public wording focuses on shared
+understanding, while development/validation details remain available on expansion.

@@ -53,11 +53,11 @@
         </div>
         <div>
           <h1>MedOriva AI</h1>
-          <p class="tagline">NHS Multilingual Communication Support — MVP</p>
+          <p class="tagline">Multilingual communication workspace</p>
         </div>
       </div>
       <div class="disclaimer">
-        ⚠ Not a medical device. Does not provide diagnosis or clinical advice.
+        Communication support · Confirm meaning together and follow your practice’s interpreter arrangements.
       </div>
     </div>
 
@@ -120,6 +120,7 @@
       Start session
     </button>
 
+    <details class="connection-tools"><summary>Translation connection</summary><p>Check the connection using a sample appointment question.</p><button type="button" id="checkConnectionBtn" onclick="checkTranslationConnection()">Check connection</button><p id="connectionResult" role="status" aria-live="polite"></p></details>
     <div class="setup-footer">
       Nine community languages in their normal written forms. Limited prepared Thanglish phrases are also available.
     </div>
@@ -236,7 +237,7 @@
               Translate for review
             </button>
           </div>
-          <div class="input-hint">Translate the speaker’s explanation for staff review. This does not automatically confirm understanding.</div>
+          <div class="input-hint">Ask the speaker to explain the message in their own words, then confirm the meaning together.</div>
         </div>
       </div>
     </main>

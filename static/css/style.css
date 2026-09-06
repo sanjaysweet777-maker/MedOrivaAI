@@ -663,3 +663,48 @@ button:disabled{cursor:not-allowed;opacity:.48}
 textarea,input{font-size:16px!important;line-height:1.6}
 .suggest-btn{background:transparent;color:#0f6e56;border:1px solid #9ebfb4;padding:6px 12px;border-radius:6px;font-size:14px;margin:8px 0;cursor:pointer}
 @media(max-width:760px){.screen{height:auto;min-height:calc(100dvh - 64px)}.app-layout{display:flex;flex-direction:column;height:auto}.sidebar{width:100%;max-height:310px;overflow:auto}.main-area{width:100%}.chat-area{height:45dvh;min-height:240px}.tabs{overflow-x:auto}.tab{flex-shrink:0}.input-row{flex-wrap:wrap}.input-row textarea,.input-row input{width:100%}.bubble-wrap{max-width:100%}.setup-wrapper{padding:24px 16px}}
+/* Compact workspace: fit the available height without scaling down the page. */
+body{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
+.top-pilot-banner{position:static!important;flex:0 0 auto;padding:6px 12px!important;line-height:1.4}
+.screen{height:auto;flex:1;min-height:0}
+.setup-wrapper{max-width:780px;padding:20px 20px 24px}
+.setup-header{margin-bottom:14px}
+.setup-grid{gap:12px;margin-bottom:14px}
+.setup-card{padding:12px 16px;box-shadow:none}
+.card-hint{margin-bottom:10px}
+.ctx-btn{padding:9px 8px;gap:2px}
+.ctx-icon{font-size:19px}
+.lang-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.lang-btn{min-height:52px;padding:6px 8px;gap:1px;font-size:14px;line-height:1.45}
+.lang-btn span{font-size:15px}
+.start-btn{padding:10px}
+.disclaimer{background:#eef5f2;border-color:#d0e0d8;color:#345c4b;font-size:14px}
+.setup-footer{margin-top:10px;font-size:13px}
+.connection-tools{margin-top:12px;font-size:14px;color:#425c50}
+.connection-tools summary{cursor:pointer}
+.connection-tools p{margin:6px 0;overflow-wrap:anywhere}
+.connection-tools button{font:inherit;border:1px solid #a7c3b5;border-radius:6px;background:#fff;padding:6px 12px;cursor:pointer}
+.app-layout{max-width:1280px;margin:0 auto;height:100%;border-inline:1px solid var(--border)}
+.sidebar{width:235px}
+.chat-header{padding:10px 16px;flex-wrap:wrap;gap:6px}
+.bubble-wrap{width:auto;max-width:88%;flex-shrink:0}
+.bubble-wrap.staff{align-self:flex-end}
+.bubble-wrap.patient{align-self:flex-start}
+.bubble-wrap.system{align-self:center}
+.bubble{padding:12px 14px;border-radius:10px}
+.message-line{font-size:16px;line-height:1.55;margin-bottom:9px}
+.message-caption{font-size:13px;margin-bottom:2px}
+.translation-status{font-size:13px;padding-top:7px;line-height:1.45;color:#526773}
+.bubble.staff .message-caption,.bubble.staff .translation-status{color:#e1f5ee}
+.bubble.staff:has(.unavailable){background:#fff;color:var(--text)}
+.bubble.staff:has(.unavailable) .message-caption{color:#526773}
+.bubble.staff .translation-status.unavailable{color:#8b2525}
+.chat-area{padding:12px 16px;gap:10px}
+.input-panel{max-height:48%;overflow-y:auto}
+.tab{font-size:14px;padding:8px}
+.tab-pane{padding:10px 12px}
+.input-row{align-items:center}
+.input-row textarea,.input-row input{min-width:0}
+.action-btn{font-size:14px}
+@media(max-width:760px){body{height:auto;min-height:100dvh;overflow:auto}.screen{min-height:0;flex:auto}.setup-wrapper{padding:16px 14px}.app-layout{max-width:100%;height:auto}.sidebar{width:100%;max-height:230px}.sidebar-section{min-height:50px}.main-area{min-height:420px}.chat-area{height:42dvh;max-height:480px;flex:none}.input-panel{max-height:none}.bubble-wrap{max-width:100%}.input-row{align-items:stretch}.input-row textarea,.input-row input{flex-basis:100%}.connection-tools{font-size:14px}}
+@media(max-width:400px){.lang-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ctx-grid{grid-template-columns:1fr}.ctx-btn{flex-direction:row;justify-content:center}}

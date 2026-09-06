@@ -2,7 +2,8 @@
 let selectedCtx=null, selectedLang=null, selectedCode=null, busy=false, generation=0;
 async function api(path,payload){
   const res=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload||{})});
-  const data=await res.json();
+  let data;
+  try{data=await res.json();}catch(_){throw new Error('The server could not complete this request. Please retry shortly.');}
   if(!res.ok || data.error) throw new Error(data.error || 'Request failed. Please try again.');
   return data;
 }
@@ -16,7 +17,7 @@ async function startSession(){
   document.getElementById('sideId').textContent=d.session_id.slice(0,8);document.getElementById('chatSubtitle').textContent=d.context+' · '+d.lang;
   buildPromptList(d.prompts,d.prepared_prompts,d.provider_configured);
   document.getElementById('setupScreen').classList.remove('active');document.getElementById('mainScreen').classList.add('active');
-  addSystemBubble('Demonstration session. Use fictional information only. '+(d.provider_configured?'Full-text machine translation available; outputs require review.':'Prepared phrases available. Full-text translation needs administrator setup.'));
+  addSystemBubble('Demonstration session. Use fictional information only. '+(d.provider_configured?'Ready for your conversation. Confirm meaning together.':'Prepared phrases are ready. Use Translation connection on the setup screen to check full-text access.'));
  }catch(e){alert(e.message);}finally{updateStartBtn();}
 }
 async function endSession(){
@@ -33,7 +34,7 @@ async function endSession(){
 function buildPromptList(prompts,prepared,configured){
  const list=document.getElementById('promptsList');list.replaceChildren();
  prompts.forEach(p=>{const b=document.createElement('button');b.className='prompt-item';b.textContent=p;
- b.title=prepared.includes(p)?'Prepared demo phrase; review required':'Full-text translation; review required';
+ b.title=prepared.includes(p)?'Prepared phrase':'Machine translation';
  b.disabled=!configured&&!prepared.includes(p);b.dataset.available=String(!b.disabled);
  b.onclick=()=>sendGuidedPrompt(p);list.appendChild(b);});
 }
@@ -47,20 +48,20 @@ function line(parent,label,value,lang){
 function resultBubble(data,kind){
  document.getElementById('emptyChat')?.remove();
  const wrap=document.createElement('article');wrap.className='bubble-wrap '+(kind==='staff'?'staff':'patient');
- const label=document.createElement('div');label.className='bubble-label';label.textContent=kind==='staff'?'Staff → '+data.lang:kind==='confirm'?'Understanding check · staff review required':data.lang+' → Staff';
+ const label=document.createElement('div');label.className='bubble-label';label.textContent=kind==='staff'?'Staff → '+data.lang:kind==='confirm'?'Understanding check':data.lang+' → Staff';
  const bubble=document.createElement('div');bubble.className='bubble '+(kind==='staff'?'staff':'patient');
  line(bubble,'Original message',data.original,kind==='staff'?'en':selectedCode);
  line(bubble,'Translation',data.translated,kind==='staff'?selectedCode:'en');
  if(data.native && data.native!==data.original)line(bubble,'Prepared native-script form',data.native,selectedCode);
  const status=document.createElement('div');status.className='translation-status '+data.status;status.textContent=data.warning;status.setAttribute('role','status');bubble.appendChild(status);
- if(kind==='confirm')line(bubble,'Next step','Ask the speaker to explain the message in their own words. Staff must assess understanding; this translation does not verify it.');
+ if(kind==='confirm')line(bubble,'Next step','Ask the speaker to explain the message in their own words, then confirm the meaning together.');
  wrap.append(label,bubble);document.getElementById('chatArea').appendChild(wrap);scrollChat();
 }
 async function translate(text,kind,input){
- if(busy||!text.trim())return;const ticket=generation;setBusy(true);
+ if(busy||!text.trim())return;const ticket=generation;setBusy(true);document.getElementById('chatSubtitle').textContent='Translating…';
  try{const data=await api(kind==='staff'?'/api/translate_staff':'/api/translate_patient',{text:text.trim()});
  if(ticket!==generation)return;resultBubble(data,kind);if(input&&data.status!=='unavailable')input.value='';
- }catch(e){if(ticket===generation)addSystemBubble(e.message);}finally{setBusy(false);}
+ }catch(e){if(ticket===generation)addSystemBubble(e.message);}finally{setBusy(false);document.getElementById('chatSubtitle').textContent=selectedCtx&&selectedLang?selectedCtx+' · '+selectedLang:'Conversation';}
 }
 function sendGuidedPrompt(text){return translate(text,'staff');}
 function sendFreeText(){const i=document.getElementById('freeInput');return translate(i.value,'staff',i);}
@@ -76,4 +77,12 @@ async function suggestSimplification(){
  if(d.changed && confirm('Review this suggested wording before using it:\n\n'+d.simplified))input.value=d.simplified;
  else if(!d.changed)addSystemBubble('No prepared wording suggestion. Keep the original meaning when editing.');
  }catch(e){addSystemBubble(e.message);}
+}
+
+async function checkTranslationConnection(){
+ const btn=document.getElementById('checkConnectionBtn');const result=document.getElementById('connectionResult');
+ btn.disabled=true;result.textContent='Checking the translation connection…';
+ try{const d=await api('/api/translation_check',{lang_code:selectedCode||'ta'});
+ result.textContent=d.message+(d.error_code?' Reference: '+d.error_code+'.':'')+(d.connected?' Sample ('+d.language+'): '+d.translated:'');
+ }catch(e){result.textContent=e.message;}finally{btn.disabled=false;}
 }
