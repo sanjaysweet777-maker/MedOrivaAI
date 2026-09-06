@@ -1,13 +1,680 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MedOriva AI | Clearer conversations in primary care</title><meta name="description" content="Explore MedOriva AI’s multilingual communication prototype: guided conversations, native-script output and staff-led understanding checks."><link rel="stylesheet" href="{{ url_for('static',filename='css/public.css') }}"></head>
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MedOriva AI | Clearer conversations in primary care</title>
+    <meta name="description" content="Explore MedOriva AI’s multilingual communication prototype: guided conversations, native-script output, and staff-led understanding checks.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0F6E56;
+            --primary-dark: #0a5240;
+            --primary-light: #14b8a6;
+            --primary-glow: rgba(15, 110, 86, 0.18);
+            --bg-page: #f8fafc;
+            --bg-surface: #ffffff;
+            --bg-dark: #0f172a;
+            --border: #e2e8f0;
+            --border-dark: #334155;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --text-light: #f8fafc;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
+        body { background-color: var(--bg-page); color: var(--text-main); line-height: 1.6; }
+
+        /* Announcement Strip */
+        .top-banner {
+            background: linear-gradient(90deg, #0a5240 0%, #0F6E56 60%, #14b8a6 100%);
+            color: #ffffff;
+            text-align: center;
+            padding: 9px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+        }
+
+        /* Navigation */
+        .site-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 48px;
+            background: #ffffff;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .wordmark {
+            font-size: 20px;
+            font-weight: 800;
+            text-decoration: none;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .wordmark span { color: var(--primary); }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 600;
+            transition: color 0.2s ease;
+        }
+        .nav-links a:hover { color: var(--primary); }
+        
+        .button {
+            background: var(--primary);
+            color: #fff !important;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.2s, transform 0.1s;
+            border: none;
+            cursor: pointer;
+        }
+        .button:hover { background: var(--primary-dark); transform: translateY(-1px); }
+        .button.small { padding: 8px 16px; font-size: 13px; }
+        .button.secondary {
+            background: #ffffff;
+            color: var(--primary) !important;
+            border: 1px solid var(--primary);
+        }
+        .button.secondary:hover { background: #f0fdf4; }
+
+        /* Hero Section */
+        .hero {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 72px 24px 60px;
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 48px;
+            align-items: center;
+        }
+        .eyebrow {
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--primary);
+            margin-bottom: 16px;
+        }
+        .hero h1 {
+            font-size: 46px;
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -1px;
+            margin-bottom: 20px;
+            color: #0f172a;
+        }
+        .hero h1 em { font-style: normal; color: var(--primary); }
+        .hero p.lead {
+            font-size: 18px;
+            color: var(--text-muted);
+            margin-bottom: 28px;
+            line-height: 1.6;
+        }
+        .actions { display: flex; gap: 16px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+        .fine { font-size: 12px; color: #94a3b8; }
+
+        /* Clinical Preview Box */
+        .conversation-preview {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow: 0 10px 25px -5px rgba(15, 110, 86, 0.08);
+        }
+        .preview-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 20px;
+            color: #0f172a;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 12px;
+        }
+        .preview-heading span { font-size: 12px; color: var(--primary); background: #f0fdf4; padding: 4px 10px; border-radius: 9999px; }
+        .example { margin-bottom: 16px; padding: 14px 18px; border-radius: 10px; }
+        .example small { display: block; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .example.staff { background: #f1f5f9; color: #1e293b; }
+        .example.staff small { color: #64748b; }
+        .example.native { background: #f0fdf4; border-left: 3px solid var(--primary); color: #064e3b; }
+        .example.native small { color: var(--primary); }
+        .example p { font-size: 15px; font-weight: 600; }
+        .review-note {
+            font-size: 13px;
+            color: var(--text-muted);
+            background: #fffbeb;
+            border: 1px solid #fef3c7;
+            padding: 12px 14px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        /* Sections Global */
+        .section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 80px 24px;
+        }
+        .section h2 { font-size: 34px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 40px; }
+
+        /* Cards Grid */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 28px;
+        }
+        .cards article {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 32px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .cards article:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.06);
+            border-color: #cbd5e1;
+        }
+        .step {
+            display: inline-block;
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--primary);
+            background: #f0fdf4;
+            padding: 4px 10px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+        .cards article h3 { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+        .cards article p { color: var(--text-muted); font-size: 14px; line-height: 1.6; }
+
+        /* Language Grid Section */
+        .language-section {
+            background: #ffffff;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            padding: 80px 24px;
+        }
+        .language-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            align-items: center;
+        }
+        .language-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 12px;
+        }
+        .language-list span {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            padding: 12px 14px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 15px;
+            color: #0f172a;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .language-list span small { font-size: 11px; font-weight: 500; color: var(--text-muted); }
+
+        /* Safety & Governance */
+        .safety { background: #f8fafc; }
+        .scope {
+            margin-top: 36px;
+            padding: 16px 20px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #475569;
+            border-left: 3px solid #64748b;
+        }
+        .assurance-details {
+            margin-top: 16px;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px 18px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .assurance-details summary { font-weight: 700; color: var(--text-main); cursor: pointer; }
+
+        /* Contact Section */
+        .contact-section {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 80px 24px;
+            text-align: center;
+        }
+        .contact-box {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 36px;
+            margin-top: 32px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04);
+            text-align: left;
+        }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #334155; }
+        .form-control {
+            width: 100%;
+            padding: 12px 14px;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
+        .form-control:focus { border-color: var(--primary); background: #ffffff; }
+
+        /* Footer */
+        footer {
+            background: #0b1329;
+            color: #94a3b8;
+            padding: 48px 24px 32px;
+            border-top: 1px solid #1e293b;
+            font-size: 13px;
+        }
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .footer-content a { color: #cbd5e1; text-decoration: none; cursor: pointer; }
+        .footer-content a:hover { color: #ffffff; }
+        .footer-legal {
+            max-width: 1200px;
+            margin: 24px auto 0;
+            padding-top: 20px;
+            border-top: 1px solid #1e293b;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        /* Cookie Banner */
+        .cookie-banner {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            max-width: 520px;
+            background: #0f172a;
+            color: #fff;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            z-index: 99999;
+            display: none;
+        }
+        .cookie-banner h4 { font-size: 14px; margin-bottom: 6px; }
+        .cookie-banner p { font-size: 12px; color: #94a3b8; margin-bottom: 14px; }
+        .cookie-actions { display: flex; gap: 10px; }
+
+        /* Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 100000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-content {
+            background: #ffffff;
+            border-radius: 14px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 32px;
+            position: relative;
+            color: #1e293b;
+        }
+        .modal-close {
+            position: absolute;
+            top: 18px; right: 18px;
+            background: none; border: none; font-size: 24px; cursor: pointer; color: #64748b;
+        }
+        .modal-content h3 { font-size: 20px; margin-bottom: 14px; color: #0f172a; }
+        .modal-content p, .modal-content li { font-size: 13px; color: #475569; margin-bottom: 10px; line-height: 1.6; }
+        .modal-content ul { padding-left: 20px; }
+
+        @media(max-width: 860px) {
+            .hero { grid-template-columns: 1fr; }
+            .language-wrapper { grid-template-columns: 1fr; }
+            .site-nav { padding: 14px 20px; }
+            .nav-links { display: none; }
+            .form-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
 <body class="public-page">
-<nav class="site-nav"><a class="wordmark" href="/">MedOriva <span>AI</span></a><div><a href="#approach">Our approach</a><a href="#languages">Languages</a><a href="#safety">Responsible development</a><a href="#contact">Contact</a><a class="button small" href="/login">Open demo</a></div></nav>
-<main>
-<section class="hero"><div><p class="eyebrow">COMMUNICATION SUPPORT FOR PRIMARY CARE</p><h1>Every conversation<br>starts with<br><em>understanding.</em></h1><p class="lead">Helping staff and patients communicate across languages, with guided questions, native-script text and a clear place for human review.</p><div class="actions"><a class="button" href="/login">Explore the working demo</a><a href="#approach">See how it works ↗</a></div><p class="fine">Interactive demonstration · Please use fictional examples</p></div>
-<aside class="conversation-preview" aria-label="Prepared Tamil demonstration"><div class="preview-heading">A clearer exchange <span>English / தமிழ்</span></div><div class="example staff"><small>STAFF QUESTION</small><p>Do you have chest pain?</p></div><div class="example native" lang="ta"><small lang="en">PREPARED TAMIL PHRASE</small><p>உங்களுக்கு நெஞ்சு வலி உள்ளதா?</p></div><div class="review-note">The next step is human: ask the speaker to explain their meaning and confirm what was understood.</div><p class="fine">Prepared phrase example · Understanding confirmed through conversation.</p></aside></section>
-<section class="section" id="approach"><p class="eyebrow">DESIGNED AROUND THE CONVERSATION</p><h2>Structure where it helps.<br>Original meaning always visible.</h2><div class="cards"><article><span class="step">01</span><h3>Choose the context</h3><p>Reception, appointments or basic symptom communication. Guided questions follow the selected context.</p></article><article><span class="step">02</span><h3>Translate the full message</h3><p>Read the original beside the translation. Prepared phrases and machine-generated results are clearly labelled, with unavailable results flagged.</p></article><article><span class="step">03</span><h3>Check understanding</h3><p>Invite the speaker to explain the message in their own words. Staff assess meaning; the software does not certify understanding.</p></article></div></section>
-<section class="language-section" id="languages"><div><p class="eyebrow">NATIVE SCRIPTS. COMMUNITY LANGUAGES.</p><h2>Nine languages.<br>One shared workspace.</h2><p>The MVP interface supports Tamil, Hindi, Malayalam, Polish, Arabic, Urdu, Bengali, Somali and Romanian. Full-text translation requires a configured translation provider.</p><p>Selected prepared Thanglish phrases supplement Tamil’s native script. General romanised-language translation is not claimed.</p></div><div class="language-list"><span lang="ta">தமிழ் <small>Tamil</small></span><span lang="hi">हिन्दी <small>Hindi</small></span><span lang="ml">മലയാളം <small>Malayalam</small></span><span lang="pl">Polski <small>Polish</small></span><span lang="ar" dir="auto">العربية <small>Arabic</small></span><span lang="ur" dir="auto">اردو <small>Urdu</small></span><span lang="bn">বাংলা <small>Bengali</small></span><span lang="so">Soomaali <small>Somali</small></span><span lang="ro">Română <small>Romanian</small></span></div></section>
-<section class="section safety" id="safety"><p class="eyebrow">RESPONSIBLE DEVELOPMENT</p><h2>Designed for clear communication.<br>Developed with care.</h2><div class="cards"><article><h3>Built for shared understanding</h3><p>Original messages, native-script translations and understanding checks help staff and patients clarify meaning together. The workflow supports access to qualified interpreters for sensitive or complex conversations.</p></article><article><h3>Demonstrate with fictional data</h3><p>This prototype does not save conversation transcripts to its database. Configured full-text requests are sent to Google Cloud Translation. Provider and hosting data handling must be assessed before any real patient use.</p></article><article><h3>A measured roadmap</h3><p>130+ provider-supported languages is a commercial-launch target, subject to provider availability and configuration. It is not a claim of healthcare validation. Formal safety and governance assessments remain pre-deployment work.</p></article></div><p class="scope">MedOriva AI is intended to support communication. This demonstration does not provide diagnosis, clinical triage or treatment advice. NHS approval, DCB0129 conformity and DTAC assessment are not claimed.</p><details class="assurance-details"><summary>Development and evaluation</summary><p>The current prototype is being developed for practice evaluation. Independent bilingual validation and formal safety assessment are required before clinical deployment.</p></details></section>
-<section class="contact-section" id="contact"><p class="eyebrow">MEDORIVA AI LTD</p><h2>Let’s talk about your practice.</h2><p>Contact MedOriva AI Ltd to discuss the platform or a practice evaluation.</p><div class="contact-links"><a href="mailto:sanjaythillai@gmail.com">sanjaythillai@gmail.com</a><a href="tel:+447778095553">07778 095553</a></div><a class="button" href="mailto:sanjaythillai@gmail.com?subject=MedOriva%20AI%20practice%20enquiry">Email a practice enquiry</a></section>
-</main><footer><a class="wordmark" href="/">MedOriva <span>AI</span></a><p>© {{ year }} MedOriva AI Ltd. All rights reserved.</p><a href="#safety">Data handling &amp; limitations</a></footer>
-</body></html>
+
+    <!-- Top Announcement Strip -->
+    <div class="top-banner">
+        MedOriva AI · Demonstration workspace — Use fictional information only.
+    </div>
+
+    <!-- Navigation -->
+    <nav class="site-nav">
+        <a class="wordmark" href="/">MedOriva <span>AI</span></a>
+        <div class="nav-links">
+            <a href="#approach">Our approach</a>
+            <a href="#languages">Languages</a>
+            <a href="#safety">Responsible development</a>
+            <a href="#contact">Contact</a>
+            <a class="button small" href="/login">Open demo</a>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero">
+            <div>
+                <p class="eyebrow">COMMUNICATION SUPPORT FOR PRIMARY CARE</p>
+                <h1>Every conversation<br>starts with<br><em>understanding.</em></h1>
+                <p class="lead">
+                    Helping staff and patients communicate across languages, with guided questions, native-script text, and a clear place for human review.
+                </p>
+                <div class="actions">
+                    <a class="button" href="/login">Explore the working demo</a>
+                    <a class="button secondary" href="#approach">See how it works ↗</a>
+                </div>
+                <p class="fine">Interactive demonstration · Please use fictional examples</p>
+            </div>
+
+            <aside class="conversation-preview" aria-label="Prepared Tamil demonstration">
+                <div class="preview-heading">
+                    A clearer exchange <span>English / தமிழ்</span>
+                </div>
+                <div class="example staff">
+                    <small>STAFF QUESTION</small>
+                    <p>Do you have chest pain?</p>
+                </div>
+                <div class="example native" lang="ta">
+                    <small lang="en">PREPARED TAMIL PHRASE</small>
+                    <p>உங்களுக்கு நெஞ்சு வலி உள்ளதா?</p>
+                </div>
+                <div class="review-note">
+                    The next step is human: ask the speaker to explain their meaning and confirm what was understood.
+                </div>
+                <p class="fine">Prepared phrase example · Understanding confirmed through conversation.</p>
+            </aside>
+        </section>
+
+        <!-- Approach Section -->
+        <section class="section" id="approach">
+            <p class="eyebrow">DESIGNED AROUND THE CONVERSATION</p>
+            <h2>Structure where it helps.<br>Original meaning always visible.</h2>
+            <div class="cards">
+                <article>
+                    <span class="step">01</span>
+                    <h3>Choose the context</h3>
+                    <p>Reception, appointments or basic symptom communication. Guided questions follow the selected context.</p>
+                </article>
+                <article>
+                    <span class="step">02</span>
+                    <h3>Translate the full message</h3>
+                    <p>Read the original beside the translation. Prepared phrases and machine-generated results are clearly labelled, with unavailable results flagged.</p>
+                </article>
+                <article>
+                    <span class="step">03</span>
+                    <h3>Check understanding</h3>
+                    <p>Invite the speaker to explain the message in their own words. Staff assess meaning; the software does not certify understanding.</p>
+                </article>
+            </div>
+        </section>
+
+        <!-- Languages Section -->
+        <section class="language-section" id="languages">
+            <div class="language-wrapper">
+                <div>
+                    <p class="eyebrow">NATIVE SCRIPTS. COMMUNITY LANGUAGES.</p>
+                    <h2>Nine languages.<br>One shared workspace.</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 14px;">
+                        The MVP interface supports Tamil, Hindi, Malayalam, Polish, Arabic, Urdu, Bengali, Somali and Romanian. Full-text translation operates via verified clinical dictionaries with machine translation fallback.
+                    </p>
+                    <p style="color: var(--text-muted); font-size: 14px;">
+                        Selected prepared Romanised phrases supplement Tamil's native script. General romanised-language translation is not claimed.
+                    </p>
+                </div>
+                <div class="language-list">
+                    <span lang="ta">தமிழ் <small>Tamil</small></span>
+                    <span lang="hi">हिन्दी <small>Hindi</small></span>
+                    <span lang="ml">മലയാളം <small>Malayalam</small></span>
+                    <span lang="pl">Polski <small>Polish</small></span>
+                    <span lang="ar" dir="auto">العربية <small>Arabic</small></span>
+                    <span lang="ur" dir="auto">اردو <small>Urdu</small></span>
+                    <span lang="bn">বাংলা <small>Bengali</small></span>
+                    <span lang="so">Soomaali <small>Somali</small></span>
+                    <span lang="ro">Română <small>Romanian</small></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Responsible Development Section -->
+        <section class="section safety" id="safety">
+            <p class="eyebrow">RESPONSIBLE DEVELOPMENT</p>
+            <h2>Designed for clear communication.<br>Developed with care.</h2>
+            <div class="cards">
+                <article>
+                    <h3>Built for shared understanding</h3>
+                    <p>Original messages, native-script translations and understanding checks help staff and patients clarify meaning together. The workflow supports access to qualified interpreters for sensitive or complex conversations.</p>
+                </article>
+                <article>
+                    <h3>Demonstrate with fictional data</h3>
+                    <p>This prototype does not save conversation transcripts to its database. Data processing occurs in volatile memory during active sessions. Provider and hosting data handling must be assessed before real patient use.</p>
+                </article>
+                <article>
+                    <h3>A measured roadmap</h3>
+                    <p>120+ provider-supported languages is a commercial-launch target, subject to provider availability and configuration. It is not a claim of healthcare validation. Formal safety and governance assessments remain pre-deployment work.</p>
+                </article>
+            </div>
+
+            <p class="scope">
+                <strong>Scope Notice:</strong> MedOriva AI is intended to support communication. This demonstration does not provide diagnosis, clinical triage or treatment advice. NHS approval, DCB0129 conformity and DTAC assessment are not claimed.
+            </p>
+
+            <details class="assurance-details">
+                <summary>Development and clinical evaluation notes</summary>
+                <p style="margin-top: 10px;">
+                    The current prototype is being developed for practice evaluation. Independent bilingual validation and formal safety assessment are required before clinical deployment in live NHS settings.
+                </p>
+            </details>
+        </section>
+
+        <!-- Contact Section -->
+        <section class="contact-section" id="contact">
+            <p class="eyebrow">MEDORIVA AI LTD</p>
+            <h2>Let’s talk about your practice.</h2>
+            <p style="color: var(--text-muted); margin-bottom: 24px;">
+                Contact MedOriva AI Ltd to discuss the platform or request an early practice evaluation.
+            </p>
+
+            <div class="contact-box">
+                <form id="contactForm" onsubmit="handleContact(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="name">Your Name</label>
+                            <input type="text" id="name" class="form-control" placeholder="Dr. Jane Smith" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Work Email</label>
+                            <input type="email" id="email" class="form-control" placeholder="j.smith@nhs.net" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Enquiry</label>
+                        <textarea id="message" rows="3" class="form-control" placeholder="Tell us about your practice or evaluation requirements..." required></textarea>
+                    </div>
+                    <button type="submit" id="contactBtn" class="button" style="width: 100%;">Submit Practice Enquiry</button>
+                    <div id="contactMsg" style="display:none; margin-top: 14px; padding: 10px; border-radius: 6px; font-size: 13px; text-align: center;"></div>
+                </form>
+                
+                <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                    <span>Direct: <a href="mailto:sanjaythillai@gmail.com" style="color: var(--primary); font-weight: 600;">sanjaythillai@gmail.com</a></span>
+                    <span>Telephone: <a href="tel:+447778095553" style="color: var(--primary); font-weight: 600;">07778 095553</a></span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <a class="wordmark" href="/" style="color: #fff;">MedOriva <span style="color: var(--primary-light);">AI</span></a>
+            <div>
+                <a onclick="openModal('privacyModal')">Privacy</a> &nbsp;·&nbsp;
+                <a onclick="openModal('termsModal')">Terms</a> &nbsp;·&nbsp;
+                <a onclick="openModal('cookieModal')">Cookies</a> &nbsp;·&nbsp;
+                <a href="#safety">Data Handling &amp; Limitations</a>
+            </div>
+        </div>
+        <div class="footer-legal">
+            <div>&copy; 2026 <strong>MedOriva AI Ltd</strong>. All rights reserved.</div>
+            <div>Company Number: <strong>17428312</strong> | Registered in England and Wales</div>
+        </div>
+    </footer>
+
+    <!-- Essential Cookie Banner -->
+    <div class="cookie-banner" id="cookieBanner">
+        <h4>Essential Cookies Notice</h4>
+        <p>This workspace uses strictly necessary cookies to maintain secure staff demonstration sessions. We do not use tracking or advertising cookies.</p>
+        <div class="cookie-actions">
+            <button class="button small" onclick="acceptCookies()">Understood</button>
+            <button class="button small secondary" onclick="openModal('cookieModal')">Cookie Details</button>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="privacyModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('privacyModal')">&times;</button>
+            <h3>Privacy &amp; Data Handling</h3>
+            <p><strong>Demonstration Scope:</strong></p>
+            <ul>
+                <li>MedOriva AI operates on an in-memory ephemeral processing architecture.</li>
+                <li>No patient health records, names, or conversational transcripts are saved to permanent databases during this prototype demonstration.</li>
+                <li>Use fictional examples exclusively during demonstration evaluations.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="modal" id="termsModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('termsModal')">&times;</button>
+            <h3>Terms of Demonstration</h3>
+            <p><strong>Prototype Scope:</strong> MedOriva AI is provided strictly as a communication support aid. It does not provide medical diagnosis, autonomous clinical triage, or prescribing instructions.</p>
+            <p>All clinical responsibility remains with registered healthcare staff. Qualified interpreters should be arranged for formal diagnostic consultations in accordance with your practice's policy.</p>
+        </div>
+    </div>
+
+    <div class="modal" id="cookieModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('cookieModal')">&times;</button>
+            <h3>Cookie Policy</h3>
+            <p>MedOriva AI deploys strictly necessary session cookies required for authentication and security token transmission. In accordance with UK PECR regulations, essential technical cookies do not require prior consent, but are documented here for full transparency.</p>
+        </div>
+    </div>
+
+    <script>
+        // Cookie Banner
+        document.addEventListener("DOMContentLoaded", function() {
+            if (!localStorage.getItem("medoriva_cookie_notice")) {
+                document.getElementById("cookieBanner").style.display = "block";
+            }
+        });
+
+        function acceptCookies() {
+            localStorage.setItem("medoriva_cookie_notice", "dismissed");
+            document.getElementById("cookieBanner").style.display = "none";
+        }
+
+        // Modals
+        function openModal(id) { document.getElementById(id).style.display = "flex"; }
+        function closeModal(id) { document.getElementById(id).style.display = "none"; }
+        window.onclick = function(e) {
+            if (e.target.classList.contains('modal')) { e.target.style.display = "none"; }
+        };
+
+        // Contact Form
+        async function handleContact(e) {
+            e.preventDefault();
+            const btn = document.getElementById("contactBtn");
+            const msg = document.getElementById("contactMsg");
+            btn.disabled = true;
+            btn.innerText = "Sending...";
+
+            try {
+                const res = await fetch("/api/contact", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        name: document.getElementById("name").value,
+                        email: document.getElementById("email").value,
+                        message: document.getElementById("message").value
+                    })
+                });
+                const data = await res.json();
+                msg.style.display = "block";
+                if (res.ok && data.status === "ok") {
+                    msg.style.background = "#f0fdf4";
+                    msg.style.color = "#15803d";
+                    msg.innerText = data.message || "Thank you. Your practice enquiry has been received.";
+                    document.getElementById("contactForm").reset();
+                } else {
+                    msg.style.background = "#fef2f2";
+                    msg.style.color = "#b91c1c";
+                    msg.innerText = data.message || "Could not send enquiry. Please email sanjaythillai@gmail.com directly.";
+                }
+            } catch (err) {
+                msg.style.display = "block";
+                msg.style.background = "#fef2f2";
+                msg.style.color = "#b91c1c";
+                msg.innerText = "Network error. Please email sanjaythillai@gmail.com directly.";
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Submit Practice Enquiry";
+            }
+        }
+    </script>
+</body>
+</html>
