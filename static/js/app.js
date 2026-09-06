@@ -317,14 +317,25 @@ function appendMessage(sender, msg) {
         `;
     } else {
         const badge = msg.alert 
-            ? `<div class="triage-tag red" style="color:#ef4444;font-weight:600;margin-top:6px;">🔴 Symptom detected: ${escapeHtml(msg.symptom || 'Urgent')}</div>`
-            : (msg.isNegative && msg.symptom ? `<div class="triage-tag green" style="color:#10b981;font-weight:600;margin-top:6px;">✅ Patient reports no ${escapeHtml(msg.symptom)}</div>` : '');
+            ? `<div class="cue-tag amber" style="margin-top:8px;padding:6px 10px;background:#fef3c7;border:1px solid #fde68a;border-radius:6px;color:#92400e;font-weight:700;font-size:12px;">
+                 ℹ️ Recognised Symptom Phrase: ${escapeHtml(msg.symptom || 'Reported')}
+               </div>`
+            : (msg.isNegative && msg.symptom ? `<div class="cue-tag green" style="margin-top:8px;padding:6px 10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;color:#16a34a;font-weight:600;font-size:12px;">
+                 ✓ Patient indicates absence of ${escapeHtml(msg.symptom)}
+               </div>` : '');
 
         row.innerHTML = `
-            <div class="msg-bubble patient">
-                <div class="msg-title">Patient → Staff</div>
-                <div class="msg-text main">${escapeHtml(msg.translated)}</div>
-                <div class="msg-text sub"><strong>Original:</strong> ${escapeHtml(msg.native || msg.original)}</div>
+            <div class="msg-bubble patient" style="max-width:72%;background:#ffffff;border:1px solid #cbd5e1;border-left:4px solid #0284c7;border-radius:12px 12px 12px 2px;padding:14px 18px;text-align:left;box-shadow:0 2px 6px rgba(0,0,0,0.04);">
+                <div class="msg-title" style="font-size:11px;font-weight:800;color:#0284c7;text-transform:uppercase;margin-bottom:4px;letter-spacing:0.5px;">
+                    Patient Response (English Meaning for Staff)
+                </div>
+                <div class="msg-text main" style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:8px;">
+                    ${escapeHtml(msg.englishMeaning || msg.translated)}
+                </div>
+                <div style="font-size:12px;color:#475569;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:6px;padding:8px 12px;display:flex;flex-direction:column;gap:3px;">
+                    <div><strong style="color:#334155;">Patient Typed:</strong> <em>${escapeHtml(msg.typedInput || msg.original)}</em></div>
+                    <div><strong style="color:#334155;">Verified Native:</strong> ${escapeHtml(msg.nativeScript || msg.native)}</div>
+                </div>
                 ${badge}
             </div>
         `;
