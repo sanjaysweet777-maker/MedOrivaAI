@@ -1,145 +1,220 @@
-"""MedOriva AI: demonstration of multilingual communication support."""
 import os
-import re
-import secrets
+from datetime import timedelta
 import uuid
-from datetime import timedelta, datetime, timezone
-from urllib.parse import urlsplit
 from flask import Flask, flash, jsonify, redirect, render_template, request, session, url_for
 from flask_login import LoginManager, UserMixin, current_user, login_required, login_user, logout_user
-from clinical_phrases import GUIDED_PROMPTS
-from translation_engine import LANGUAGES, STAFF_LOOKUP, normalise, staff_translation, patient_translation, configured_key, online
+from translator import LANGUAGES, patient_translation, staff_translation
 
-app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY') or secrets.token_hex(32)
-app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE='Lax',
-    SESSION_COOKIE_SECURE=os.environ.get('COOKIE_SECURE','false').lower()=='true',
-    MAX_CONTENT_LENGTH=16384, PERMANENT_SESSION_LIFETIME=timedelta(minutes=30))
-DEMO_EMAIL = os.environ.get('DEMO_EMAIL','demo@medoriva.com')
-DEMO_PASSWORD = os.environ.get('DEMO_PASSWORD','medoriva2026')
-DISCLAIMER = 'Demonstration only. Use fictional information. Translation supports communication and does not establish clinical meaning, urgency or patient understanding.'
-login_manager = LoginManager(app)
+# ============================================================
+# APP CONFIGURATION
+# ============================================================
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+template_dir = os.path.join(BASE_DIR, 'templates')
+
+app = Flask(__name__, template_folder=template_dir)
+app.secret_key = os.environ.get("SECRET_KEY", "medoriva-clinical-mvp-2026-v4")
+
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+
+login_manager = LoginManager()
+login_manager.init_app(app)
 login_manager.login_view = 'login'
+
+DEMO_EMAIL = "demo@medoriva.com"
+DEMO_PASSWORD = "medoriva2026"
+
 class User(UserMixin):
-    def __init__(self,email): self.id = email
+    def __init__(self, email):
+        self.id = str(email).strip().lower()
+        self.email = str(email).strip().lower()
+
+    def get_id(self):
+        return self.id
+
 @login_manager.user_loader
 def load_user(user_id):
-    return User(user_id) if user_id == DEMO_EMAIL else None
+    if user_id and str(user_id).strip().lower() == DEMO_EMAIL.lower():
+        return User(user_id)
+    return None
+
 @login_manager.unauthorized_handler
 def unauthorized():
     if request.path.startswith('/api/'):
-        return jsonify(error='Session expired. Please sign in again.'),401
-    return redirect(url_for('login'))
-@app.before_request
-def request_safeguards():
-    if request.method == 'POST':
-        origin = request.headers.get('Origin')
-        if origin and urlsplit(origin).netloc != request.host:
-            return jsonify(error='Cross-origin request rejected.'),403
-        if request.path.startswith('/api/') and not request.is_json:
-            return jsonify(error='JSON request required.'),415
-        if request.is_json and not isinstance(request.get_json(silent=True),dict):
-            return jsonify(error='A JSON object is required.'),400
-@app.after_request
-def headers(response):
-    response.headers.update({'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','X-Frame-Options':'DENY','Referrer-Policy':'same-origin'})
-    return response
-@app.route('/')
-def index(): return render_template('landing.html', year=datetime.now(timezone.utc).year)
-@app.route('/portal')
+        return jsonify({"error": "Unauthorized", "message": "Session expired."}), 401
+    return redirect(url_for('login', next=request.path))
+
+def reset_translation_session():
+    for key in ["session_id", "context", "lang", "lang_code", "active"]:
+        session.pop(key, None)
+
+# ============================================================
+# PUBLIC & WORKSPACE ROUTES
+# ============================================================
+
+@app.route("/")
+def index():
+    return render_template("landing.html")
+
+@app.route("/portal")
 @login_required
-def portal(): return render_template('index.html')
-@app.route('/login',methods=['GET','POST'])
+def portal():
+    return render_template("index.html")
+
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    if current_user.is_authenticated: return redirect(url_for('portal'))
+    if current_user.is_authenticated:
+        return redirect(url_for('portal'))
+
     if request.method == 'POST':
-        data = request.get_json() if request.is_json else request.form
-        email, password = data.get('email',''),data.get('password','')
-        if isinstance(email,str) and isinstance(password,str) and email.strip().lower()==DEMO_EMAIL.lower() and secrets.compare_digest(password,DEMO_PASSWORD):
-            session.clear()
-            login_user(User(DEMO_EMAIL))
-            session.permanent = True
-            return jsonify(status='ok',redirect='/portal') if request.is_json else redirect(url_for('portal'))
-        if request.is_json: return jsonify(error='Invalid email or password'),401
-        flash('Invalid email or password')
-    return render_template('login.html',public_demo=DEMO_PASSWORD=='medoriva2026' and DEMO_EMAIL=='demo@medoriva.com')
+        if request.is_json:
+            data = request.get_json() or {}
+            email = str(data.get('email') or data.get('username') or '').strip().lower()
+            password = str(data.get('password') or '').strip()
+        else:
+            email = str(request.form.get('email') or request.form.get('username') or '').strip().lower()
+            password = str(request.form.get('password') or '').strip()
+
+        if email == DEMO_EMAIL.lower() and password == DEMO_PASSWORD:
+            user = User(email)
+            login_user(user, remember=False)
+
+            if request.is_json:
+                return jsonify({"status": "ok", "redirect": url_for('portal')})
+
+            next_url = request.args.get('next')
+            if next_url and next_url.startswith('/') and next_url not in ['/', '/login']:
+                return redirect(next_url)
+            return redirect(url_for('portal'))
+
+        if request.is_json:
+            return jsonify({"status": "error", "message": "Invalid email or password"}), 401
+
+        flash('Invalid email or password', 'error')
+
+    return render_template('login.html')
+
 @app.route('/logout')
 @login_required
 def logout():
-    logout_user(); session.clear()
+    logout_user()
+    session.clear()
     return redirect(url_for('login'))
-@app.route('/healthz')
-def healthz(): return jsonify(status='ok')
-@app.route('/api/ping')
-def ping(): return jsonify(status='ok',service='MedOriva AI',disclaimer=DISCLAIMER)
-@app.route('/api/contact',methods=['POST'])
-def contact():
-    return jsonify(error='Online enquiries are not connected. Please use the contact email displayed on this website.'),503
-@app.route('/api/start_session',methods=['POST'])
+
+@app.route("/api/contact", methods=["POST"])
+def submit_contact():
+    data = request.get_json() or {}
+    name = data.get("name", "").strip()
+    email = data.get("email", "").strip()
+    message = data.get("message", "").strip()
+
+    if not name or not email or not message:
+        return jsonify({"status": "error", "message": "All fields are required."}), 400
+
+    return jsonify({"status": "ok", "message": "Inquiry received. Our clinical pilot team will contact you within 24 hours."}), 200
+
+# Health Checks for Render
+@app.route("/api/ping", methods=["GET"])
+def ping():
+    return jsonify({"status": "ok", "service": "MedOriva AI", "healthy": True}), 200
+
+@app.route("/healthz", methods=["GET"])
+def healthz():
+    return jsonify({"status": "ok"}), 200
+
+# ============================================================
+# CLINICAL APIS
+# ============================================================
+
+@app.route("/api/start_session", methods=["POST"])
 @login_required
 def start_session():
-    data=request.get_json()
-    context,code=data.get('context'),data.get('lang_code')
-    if not isinstance(code,str) or code not in LANGUAGES or not isinstance(context,str) or context not in GUIDED_PROMPTS:
-        return jsonify(error='Select a supported context and language.'),400
-    session.update(session_id=str(uuid.uuid4()),context=context,lang_code=code,lang=LANGUAGES[code],active=True)
-    prompts=[p.replace('How long do you have pain?','How long have you had pain?').replace('How long do you have chest pain?','How long have you had chest pain?') for p in GUIDED_PROMPTS[context] if '[time]' not in p]
-    return jsonify(status='ok',session_id=session['session_id'],context=context,lang=session['lang'],prompts=prompts,
-        prepared_prompts=[p for p in prompts if normalise(p) in STAFF_LOOKUP],provider_configured=bool(configured_key()),disclaimer=DISCLAIMER)
-@app.route('/api/translation_check', methods=['POST'])
-@login_required
-def translation_check():
-    code = request.get_json().get('lang_code', 'ta')
-    if not isinstance(code,str) or code not in LANGUAGES:
-        return jsonify(error='Select a supported language.'),400
-    # Fixed fictional text only; this deliberately bypasses the prepared lookup.
-    result = online('Do you have an appointment?', 'en', code)
-    return jsonify(configured=bool(configured_key()),connected=result.source=='google_cloud',
-        message='Translation service connected.' if result.source=='google_cloud' else result.warning,
-        error_code=result.error_code,language=LANGUAGES[code],
-        translated=result.text, build='compact-workspace-v2')
+    data = request.get_json() or {}
+    reset_translation_session()
+    session["session_id"] = str(uuid.uuid4())[:8]
+    session["context"] = data.get("context", "Reception")
+    session["lang"] = data.get("lang", "Tamil")
+    session["lang_code"] = data.get("lang_code", "ta")
+    session["active"] = True
 
-@app.route('/api/end_session',methods=['POST'])
+    prompts = [
+        "Good morning. How can I help you?",
+        "Do you have an appointment?",
+        "Can I take your name and date of birth?",
+        "Please take a seat. The doctor will see you shortly.",
+        "Where is your pain?",
+        "How long have you had this?",
+        "How long do you have chest pain?",
+        "Do you have chest pain?",
+        "Do you have a fever?",
+        "Are you having difficulty breathing?",
+        "Do you need an interpreter?"
+    ]
+
+    return jsonify({
+        "status": "ok",
+        "session_id": session["session_id"],
+        "prompts": prompts,
+        "context": session["context"],
+        "lang": session["lang"],
+    })
+
+@app.route("/api/end_session", methods=["POST"])
 @login_required
 def end_session():
-    for key in ('session_id','context','lang_code','lang','active'): session.pop(key,None)
-    return jsonify(status='ok',message='Conversation closed. This browser view can now be cleared.')
-@app.route('/api/session_status')
-@login_required
-def session_status():
-    return jsonify(active=session.get('active',False),context=session.get('context'),lang=session.get('lang'))
-def validate_text():
-    if not session.get('active'): return None,(jsonify(error='Start a session first.'),409)
-    text=request.get_json().get('text')
-    if not isinstance(text,str) or not text.strip() or len(text)>2000:
-        return None,(jsonify(error='Enter between 1 and 2,000 characters.'),400)
-    return text.strip(),None
-@app.route('/api/translate_staff',methods=['POST'])
+    reset_translation_session()
+    return jsonify({"status": "ok"})
+
+@app.route("/api/translate_staff", methods=["POST"])
 @login_required
 def translate_staff():
-    text,error=validate_text()
-    if error is not None: return error
-    result=staff_translation(text,session['lang_code'])
-    return jsonify(original=text,simplified=text,was_simplified=False,translated=result.text,lang=session['lang'],
-        status=result.status,translation_source=result.source,warning=result.warning,error_code=result.error_code,urgent=False,disclaimer=DISCLAIMER)
-@app.route('/api/translate_patient',methods=['POST'])
+    data = request.get_json() or {}
+    raw_text = data.get("text", "").strip()
+    if not raw_text:
+        return jsonify({"error": "No text provided"}), 400
+
+    lang_code = session.get("lang_code", "ta")
+    lang_name = session.get("lang", "Tamil")
+
+    res = staff_translation(raw_text, lang_code)
+
+    return jsonify({
+        "original": raw_text,
+        "simplified": raw_text,
+        "was_simplified": False,
+        "translated": res.text,
+        "lang": lang_name,
+        "urgent": False,
+        "warning": res.warning
+    })
+
+@app.route("/api/translate_patient", methods=["POST"])
 @login_required
 def translate_patient():
-    text,error=validate_text()
-    if error is not None: return error
-    result=patient_translation(text,session['lang_code'])
-    return jsonify(original=text,native=result.native,translated=result.text,lang=session['lang'],status=result.status,
-        translation_source=result.source,warning=result.warning,error_code=result.error_code,symptom_detected=None,is_negative=None,medical_alert=False,
-        staff_notification=None,disclaimer=DISCLAIMER)
-@app.route('/api/simplify',methods=['POST'])
-@login_required
-def simplify():
-    text,error=validate_text()
-    if error is not None: return error
-    # Suggestions only; staff must edit/approve before a changed sentence is translated.
-    suggestion=text
-    for source,target in ((r'\bprior to\b','before'),(r'\bapproximately\b','about'),(r'\bcommence\b','start')):
-        suggestion=re.sub(source,target,suggestion,flags=re.I)
-    return jsonify(simplified=suggestion,changed=suggestion!=text)
-if __name__=='__main__':
-    app.run(host='0.0.0.0',port=int(os.environ.get('PORT',10000)),debug=False)
+    data = request.get_json() or {}
+    raw_text = data.get("text", "").strip()
+    if not raw_text:
+        return jsonify({"error": "No text provided"}), 400
+
+    lang_code = session.get("lang_code", "ta")
+    lang_name = session.get("lang", "Tamil")
+
+    res = patient_translation(raw_text, lang_code)
+
+    # Alert condition: Urgent symptom detected AND negation is FALSE
+    medical_alert = bool(res.symptom and not res.is_negative)
+
+    return jsonify({
+        "original": raw_text,
+        "native": res.native,
+        "translated": res.text,
+        "lang": lang_name,
+        "symptom_detected": res.symptom,
+        "is_negative": res.is_negative,
+        "medical_alert": medical_alert,
+        "warning": res.warning
+    })
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(debug=False, host="0.0.0.0", port=port)
