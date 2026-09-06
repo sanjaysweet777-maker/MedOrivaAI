@@ -40,10 +40,100 @@ for english, translations in ADMIN_PHRASES.items():
 
 # Deliberately finite whole utterances. Never apply these to a substring.
 TAMIL_ROMANISED = {
+    # ===== CHEST PAIN =====
     'enaku nenji vali irukku': ('I have chest pain.', 'எனக்கு நெஞ்சு வலி இருக்கிறது.'),
     'enakku nenju vali irukku': ('I have chest pain.', 'எனக்கு நெஞ்சு வலி இருக்கிறது.'),
-    'enaku nenji vali illa': ('I do not have chest pain.', 'எனக்கு நெஞ்சு வலி இல்லை.'),
+    'enaku nenji vali iruku': ('I have chest pain.', 'எனக்கு நெஞ்சு வலி இருக்கிறது.'),
+    'enakku nenji vali iruku': ('I have chest pain.', 'எனக்கு நெஞ்சு வலி இருக்கிறது.'),
+    'enaku nenji vali irukkuthu': ('I have chest pain.', 'எனக்கு நெஞ்சு வலி இருக்கிறது.'),
+    'nenji vali irukku': ('I have chest pain.', 'எனக்கு நெஞ்சு வலி இருக்கிறது.'),
+    'nenji vali iruku': ('I have chest pain.', 'எனக்கு நெஞ்சு வலி இருக்கிறது.'),
+    'nenji vali irukkuthu': ('I have chest pain.', 'எனக்கு நெஞ்சு வலி இருக்கிறது.'),
+    
+    # ===== CHEST PAIN - NEGATIVE =====
+    'enaku nenji vali illai': ('I do not have chest pain.', 'எனக்கு நெஞ்சு வலி இல்லை.'),
     'enakku nenju vali illai': ('I do not have chest pain.', 'எனக்கு நெஞ்சு வலி இல்லை.'),
+    'enaku nenji vali illa': ('I do not have chest pain.', 'எனக்கு நெஞ்சு வலி இல்லை.'),
+    'enakku nenji vali illa': ('I do not have chest pain.', 'எனக்கு நெஞ்சு வலி இல்லை.'),
+    'nenji vali illai': ('I do not have chest pain.', 'எனக்கு நெஞ்சு வலி இல்லை.'),
+    'nenji vali illa': ('I do not have chest pain.', 'எனக்கு நெஞ்சு வலி இல்லை.'),
+    
+    # ===== HEADACHE =====
+    'enaku thalai vali irukku': ('I have a headache.', 'எனக்கு தலை வலி இருக்கிறது.'),
+    'enakku thalai vali irukku': ('I have a headache.', 'எனக்கு தலை வலி இருக்கிறது.'),
+    'enaku thalai vali iruku': ('I have a headache.', 'எனக்கு தலை வலி இருக்கிறது.'),
+    'enakku thalai vali iruku': ('I have a headache.', 'எனக்கு தலை வலி இருக்கிறது.'),
+    'thalai vali irukku': ('I have a headache.', 'எனக்கு தலை வலி இருக்கிறது.'),
+    'thalai vali iruku': ('I have a headache.', 'எனக்கு தலை வலி இருக்கிறது.'),
+    'enaku thalai valikuthu': ('I have a headache.', 'எனக்கு தலை வலி இருக்கிறது.'),
+    'thalai valikuthu': ('I have a headache.', 'எனக்கு தலை வலி இருக்கிறது.'),
+    'thalai vali': ('I have a headache.', 'எனக்கு தலை வலி இருக்கிறது.'),
+    
+    # ===== HEADACHE - NEGATIVE =====
+    'enaku thalai vali illai': ('I do not have a headache.', 'எனக்கு தலை வலி இல்லை.'),
+    'thalai vali illai': ('I do not have a headache.', 'எனக்கு தலை வலி இல்லை.'),
+    'enaku thalai vali illa': ('I do not have a headache.', 'எனக்கு தலை வலி இல்லை.'),
+    'thalai vali illa': ('I do not have a headache.', 'எனக்கு தலை வலி இல்லை.'),
+    
+    # ===== FEVER =====
+    'enaku kaichal irukku': ('I have a fever.', 'எனக்கு காய்ச்சல் இருக்கிறது.'),
+    'enakku kaichal irukku': ('I have a fever.', 'எனக்கு காய்ச்சல் இருக்கிறது.'),
+    'enaku kaichal iruku': ('I have a fever.', 'எனக்கு காய்ச்சல் இருக்கிறது.'),
+    'enakku kaichal iruku': ('I have a fever.', 'எனக்கு காய்ச்சல் இருக்கிறது.'),
+    'kaichal irukku': ('I have a fever.', 'எனக்கு காய்ச்சல் இருக்கிறது.'),
+    'kaichal iruku': ('I have a fever.', 'எனக்கு காய்ச்சல் இருக்கிறது.'),
+    
+    # ===== FEVER - NEGATIVE =====
+    'enaku kaichal illai': ('I do not have a fever.', 'எனக்கு காய்ச்சல் இல்லை.'),
+    'kaichal illai': ('I do not have a fever.', 'எனக்கு காய்ச்சல் இல்லை.'),
+    'enaku kaichal illa': ('I do not have a fever.', 'எனக்கு காய்ச்சல் இல்லை.'),
+    'kaichal illa': ('I do not have a fever.', 'எனக்கு காய்ச்சல் இல்லை.'),
+    
+    # ===== STOMACH PAIN =====
+    'enaku vayiru vali irukku': ('I have stomach pain.', 'எனக்கு வயிறு வலி இருக்கிறது.'),
+    'enakku vayiru vali irukku': ('I have stomach pain.', 'எனக்கு வயிறு வலி இருக்கிறது.'),
+    'vayiru vali irukku': ('I have stomach pain.', 'எனக்கு வயிறு வலி இருக்கிறது.'),
+    'vayiru vali iruku': ('I have stomach pain.', 'எனக்கு வயிறு வலி இருக்கிறது.'),
+    'enaku vayiru valikuthu': ('I have stomach pain.', 'எனக்கு வயிறு வலி இருக்கிறது.'),
+    'vayiru valikuthu': ('I have stomach pain.', 'எனக்கு வயிறு வலி இருக்கிறது.'),
+    
+    # ===== STOMACH PAIN - NEGATIVE =====
+    'enaku vayiru vali illai': ('I do not have stomach pain.', 'எனக்கு வயிறு வலி இல்லை.'),
+    'vayiru vali illai': ('I do not have stomach pain.', 'எனக்கு வயிறு வலி இல்லை.'),
+    'enaku vayiru vali illa': ('I do not have stomach pain.', 'எனக்கு வயிறு வலி இல்லை.'),
+    'vayiru vali illa': ('I do not have stomach pain.', 'எனக்கு வயிறு வலி இல்லை.'),
+    
+    # ===== BREATHING DIFFICULTY =====
+    'enaku moochu varadhu': ('I cannot breathe properly.', 'எனக்கு மூச்சு வரவில்லை.'),
+    'enakku moochu varadhu': ('I cannot breathe properly.', 'எனக்கு மூச்சு வரவில்லை.'),
+    'moochu varadhu': ('I cannot breathe properly.', 'எனக்கு மூச்சு வரவில்லை.'),
+    'enaku moochu pidikuthu': ('I am having difficulty breathing.', 'எனக்கு மூச்சு பிடிக்கிறது.'),
+    'moochu pidikuthu': ('I am having difficulty breathing.', 'எனக்கு மூச்சு பிடிக்கிறது.'),
+    'enala moochu vida mudiyala': ('I cannot breathe.', 'எனக்கு மூச்சு விட முடியவில்லை.'),
+    'moochu varala': ('I cannot breathe.', 'எனக்கு மூச்சு வரவில்லை.'),
+    
+    # ===== DIZZINESS =====
+    'enaku thalai sutharuthu': ('I feel dizzy.', 'எனக்கு தலை சுற்றுகிறது.'),
+    'thalai sutharuthu': ('I feel dizzy.', 'எனக்கு தலை சுற்றுகிறது.'),
+    'thalai sutru': ('I feel dizzy.', 'எனக்கு தலை சுற்றுகிறது.'),
+    
+    # ===== VOMITING =====
+    'enaku vanthi varuthu': ('I feel like vomiting.', 'எனக்கு வாந்தி வருகிறது.'),
+    'vanthi varuthu': ('I feel like vomiting.', 'எனக்கு வாந்தி வருகிறது.'),
+    
+    # ===== SEVERE PAIN =====
+    'enaku romba vali irukku': ('I have severe pain.', 'எனக்கு ரொம்ப வலி இருக்கிறது.'),
+    'romba vali irukku': ('I have severe pain.', 'எனக்கு ரொம்ப வலி இருக்கிறது.'),
+    'enakku romba vali': ('I have severe pain.', 'எனக்கு ரொம்ப வலி இருக்கிறது.'),
+    
+    # ===== GENERAL =====
+    'aama': ('Yes.', 'ஆம்.'),
+    'illai': ('No.', 'இல்லை.'),
+    'seri': ('Okay.', 'சரி.'),
+    'puriyuthu': ('I understand.', 'எனக்கு புரிகிறது.'),
+    'puriyala': ('I do not understand.', 'எனக்கு புரியவில்லை.'),
+    'help pannunga': ('Please help me.', 'எனக்கு உதவுங்கள்.'),
+    'nalla irukken': ('I am fine.', 'நன்றாக இருக்கிறேன்.'),
 }
 
 @dataclass(frozen=True)
