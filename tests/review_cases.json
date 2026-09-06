@@ -1,0 +1,20 @@
+{
+  "purpose": "Independent bilingual review checklist; no pass results claimed",
+  "languages": ["ta", "hi", "ml", "pl", "ar", "ur", "bn", "so", "ro"],
+  "review_fields": ["source_language", "original", "expected_meaning", "actual_translation", "meaning_preserved", "reviewer", "review_date", "comments"],
+  "english_meanings_to_prepare_and_review_in_each_language": [
+    "I do not have a fever, but I have chest pain.",
+    "My mother has had chest pain for three days; I do not have any pain.",
+    "I had a headache yesterday, but it has stopped today.",
+    "I am not sure whether I am allergic to this medicine.",
+    "Please do not take 2.5 mg until the doctor has checked the prescription.",
+    "My appointment is on 12/09 at 10:30.",
+    "The pain is on my left side, not my right side.",
+    "I have pain in my chest and stomach, and I feel dizzy.",
+    "I cannot breathe normally.",
+    "I need an interpreter who speaks my dialect.",
+    "Could you explain that again in simpler words?",
+    "Do you have chest pain, or does someone else have it?"
+  ],
+  "gate": "A qualified bilingual reviewer must assess the actual output. Back-translation alone is not evidence of correctness. Any changed negation, subject, dose, side, time or symptom fails the case."
+}

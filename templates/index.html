@@ -30,7 +30,7 @@
 
 <!-- ═══ TOP PILOT BANNER ═════════════════════════════════════════════════ -->
 <div class="top-pilot-banner">
-  🚀 <strong>MedOriva AI Primary Care Pilot:</strong> Early Access Version — Full Enterprise Suite Launching Soon.
+  <strong>MedOriva AI · Demonstration workspace</strong> — Use fictional information only.
 </div>
 
 <!-- ═══ SETUP SCREEN ═══════════════════════════════════════════════════════ -->
@@ -86,31 +86,31 @@
         <p class="card-hint">Select the language the patient speaks.</p>
         <div class="lang-grid">
           <button class="lang-btn" data-lang="Tamil" data-code="ta" onclick="selectLang(this)">
-            <span class="flag">🇮🇳</span> Tamil
+            Tamil <span lang="ta" dir="auto">தமிழ்</span>
           </button>
           <button class="lang-btn" data-lang="Hindi" data-code="hi" onclick="selectLang(this)">
-            <span class="flag">🇮🇳</span> Hindi
+            Hindi <span lang="hi" dir="auto">हिन्दी</span>
           </button>
           <button class="lang-btn" data-lang="Malayalam" data-code="ml" onclick="selectLang(this)">
-            <span class="flag">🇮🇳</span> Malayalam
+            Malayalam <span lang="ml" dir="auto">മലയാളം</span>
           </button>
           <button class="lang-btn" data-lang="Polish" data-code="pl" onclick="selectLang(this)">
-            <span class="flag">🇵🇱</span> Polish
+            Polish <span lang="pl" dir="auto">Polski</span>
           </button>
           <button class="lang-btn" data-lang="Arabic" data-code="ar" onclick="selectLang(this)">
-            <span class="flag">🇸🇦</span> Arabic
+            Arabic <span lang="ar" dir="auto">العربية</span>
           </button>
           <button class="lang-btn" data-lang="Urdu" data-code="ur" onclick="selectLang(this)">
-            <span class="flag">🇵🇰</span> Urdu
+            Urdu <span lang="ur" dir="auto">اردو</span>
           </button>
           <button class="lang-btn" data-lang="Bengali" data-code="bn" onclick="selectLang(this)">
-            <span class="flag">🇧🇩</span> Bengali
+            Bengali <span lang="bn" dir="auto">বাংলা</span>
           </button>
           <button class="lang-btn" data-lang="Somali" data-code="so" onclick="selectLang(this)">
-            <span class="flag">🇸🇴</span> Somali
+            Somali <span lang="so" dir="auto">Soomaali</span>
           </button>
           <button class="lang-btn" data-lang="Romanian" data-code="ro" onclick="selectLang(this)">
-            <span class="flag">🇷🇴</span> Romanian
+            Romanian <span lang="ro" dir="auto">Română</span>
           </button>
         </div>
       </div>
@@ -121,7 +121,7 @@
     </button>
 
     <div class="setup-footer">
-      Ephemeral session processing: conversational content clears immediately on session end.
+      Nine community languages in their normal written forms. Limited prepared Thanglish phrases are also available.
     </div>
   </div>
 </div>
@@ -168,7 +168,7 @@
 
       <div class="sidebar-bottom">
         <div class="no-storage-note">
-          🔒 Ephemeral Session — Cleared on Exit
+          Conversation displayed in this browser session
         </div>
         <button class="end-btn" onclick="endSession()">End session</button>
       </div>
@@ -181,7 +181,7 @@
         <span class="chat-subtitle" id="chatSubtitle">Staff ↔ Patient communication</span>
       </div>
 
-      <div class="chat-area" id="chatArea">
+      <div class="chat-area" id="chatArea" role="log" aria-live="polite" aria-label="Conversation">
         <div class="empty-chat" id="emptyChat">
           <div class="empty-icon">💬</div>
           <div class="empty-title">Ready to communicate</div>
@@ -206,7 +206,7 @@
         <!-- Free text tab -->
         <div class="tab-pane active" id="tab-free">
           <div class="input-row">
-            <textarea id="freeInput" placeholder="Type a simple message for the patient..." rows="2"></textarea>
+            <textarea id="freeInput" aria-label="Staff message" maxlength="2000" placeholder="Type a simple message for the patient..." rows="2"></textarea>
             <button class="action-btn teal" onclick="sendFreeText()" id="freeBtn">
               Translate &amp; send
             </button>
@@ -214,13 +214,13 @@
           <div class="simplify-note" id="simplifyNote" style="display:none">
             ✓ Plain language simplification applied
           </div>
-          <div class="input-hint">Staff messages are automatically simplified before translation.</div>
+          <button class="suggest-btn" onclick="suggestSimplification()">Suggest simpler wording</button><div class="input-hint">Your full message is translated as written. Review suggested wording before sending.</div>
         </div>
 
         <!-- Patient response tab -->
         <div class="tab-pane" id="tab-patient">
           <div class="input-row">
-            <textarea id="patientInput" placeholder="Enter patient's spoken or typed response here..." rows="2"></textarea>
+            <textarea id="patientInput" aria-label="Patient response" maxlength="2000" placeholder="Enter patient's spoken or typed response here..." rows="2"></textarea>
             <button class="action-btn blue" onclick="translatePatient()" id="patientBtn">
               Translate to English
             </button>
@@ -231,12 +231,12 @@
         <!-- Understanding check tab -->
         <div class="tab-pane" id="tab-confirm">
           <div class="input-row">
-            <input type="text" id="confirmInput" placeholder="Enter patient's response to verify they understood..."/>
+            <input type="text" id="confirmInput" aria-label="Patient explanation" maxlength="2000" placeholder="Enter the speaker’s explanation in their own words..."/>
             <button class="action-btn amber" onclick="checkUnderstanding()" id="confirmBtn">
-              Verify understanding
+              Translate for review
             </button>
           </div>
-          <div class="input-hint">Translates and confirms the patient has understood the communication.</div>
+          <div class="input-hint">Translate the speaker’s explanation for staff review. This does not automatically confirm understanding.</div>
         </div>
       </div>
     </main>

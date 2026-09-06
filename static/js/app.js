@@ -1,364 +1,79 @@
-/* MedOriva AI — Frontend Logic */
-
-let selectedCtx = null;
-let selectedLang = null;
-let selectedCode = null;
-
-function selectCtx(btn) {
-  document.querySelectorAll('.ctx-btn').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-  selectedCtx = btn.dataset.ctx;
-  updateStartBtn();
+/* Session-local display; never persist conversation text. */
+let selectedCtx=null, selectedLang=null, selectedCode=null, busy=false, generation=0;
+async function api(path,payload){
+  const res=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload||{})});
+  const data=await res.json();
+  if(!res.ok || data.error) throw new Error(data.error || 'Request failed. Please try again.');
+  return data;
 }
-
-function selectLang(btn) {
-  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-  selectedLang = btn.dataset.lang;
-  selectedCode = btn.dataset.code;
-  updateStartBtn();
+function selectCtx(btn){document.querySelectorAll('.ctx-btn').forEach(b=>{b.classList.toggle('selected',b===btn);b.setAttribute('aria-pressed',b===btn);});selectedCtx=btn.dataset.ctx;updateStartBtn();}
+function selectLang(btn){document.querySelectorAll('.lang-btn').forEach(b=>{b.classList.toggle('selected',b===btn);b.setAttribute('aria-pressed',b===btn);});selectedLang=btn.dataset.lang;selectedCode=btn.dataset.code;updateStartBtn();}
+function updateStartBtn(){document.getElementById('startBtn').disabled=!(selectedCtx&&selectedCode);}
+async function startSession(){
+ const btn=document.getElementById('startBtn');btn.disabled=true;
+ try{const d=await api('/api/start_session',{context:selectedCtx,lang_code:selectedCode});generation++;
+  document.getElementById('sideCtx').textContent=d.context;document.getElementById('sideLang').textContent=d.lang;
+  document.getElementById('sideId').textContent=d.session_id.slice(0,8);document.getElementById('chatSubtitle').textContent=d.context+' · '+d.lang;
+  buildPromptList(d.prompts,d.prepared_prompts,d.provider_configured);
+  document.getElementById('setupScreen').classList.remove('active');document.getElementById('mainScreen').classList.add('active');
+  addSystemBubble('Demonstration session. Use fictional information only. '+(d.provider_configured?'Full-text machine translation available; outputs require review.':'Prepared phrases available. Full-text translation needs administrator setup.'));
+ }catch(e){alert(e.message);}finally{updateStartBtn();}
 }
-
-function updateStartBtn() {
-  document.getElementById('startBtn').disabled = !(selectedCtx && selectedLang);
+async function endSession(){
+ if(!confirm('End this session and clear the displayed conversation?'))return;
+ try{await api('/api/end_session');generation++;
+ document.getElementById('mainScreen').classList.remove('active');document.getElementById('setupScreen').classList.add('active');
+ document.getElementById('chatArea').replaceChildren();
+ ['freeInput','patientInput','confirmInput'].forEach(id=>document.getElementById(id).value='');
+ document.getElementById('simplifyNote').style.display='none';document.getElementById('alertBanner').style.display='none';
+ document.querySelectorAll('.ctx-btn,.lang-btn').forEach(b=>{b.classList.remove('selected');b.setAttribute('aria-pressed','false');});
+ selectedCtx=null;selectedLang=null;selectedCode=null;updateStartBtn();
+ }catch(e){addSystemBubble(e.message);}
 }
-
-async function startSession() {
-  const btn = document.getElementById('startBtn');
-  btn.textContent = 'Starting...';
-  btn.disabled = true;
-  try {
-    const res = await fetch('/api/start_session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ context: selectedCtx, lang: selectedLang, lang_code: selectedCode })
-    });
-    const data = await res.json();
-    document.getElementById('sideCtx').textContent = data.context;
-    document.getElementById('sideLang').textContent = data.lang;
-    document.getElementById('sideId').textContent = data.session_id;
-    document.getElementById('chatSubtitle').textContent = data.context + ' · ' + data.lang;
-    buildPromptList(data.prompts);
-    document.getElementById('setupScreen').classList.remove('active');
-    document.getElementById('mainScreen').classList.add('active');
-    addSystemBubble('Session started — Context: ' + data.context + ' | Language: ' + data.lang + '. No patient data stored.');
-  } catch (e) {
-    btn.textContent = 'Start session';
-    btn.disabled = false;
-    alert('Could not start session. Is Flask running?');
-  }
+function buildPromptList(prompts,prepared,configured){
+ const list=document.getElementById('promptsList');list.replaceChildren();
+ prompts.forEach(p=>{const b=document.createElement('button');b.className='prompt-item';b.textContent=p;
+ b.title=prepared.includes(p)?'Prepared demo phrase; review required':'Full-text translation; review required';
+ b.disabled=!configured&&!prepared.includes(p);b.dataset.available=String(!b.disabled);
+ b.onclick=()=>sendGuidedPrompt(p);list.appendChild(b);});
 }
-
-async function endSession() {
-  if (!confirm('End session? All data will be cleared.')) return;
-  await fetch('/api/end_session', { method: 'POST' });
-  document.getElementById('mainScreen').classList.remove('active');
-  document.getElementById('setupScreen').classList.add('active');
-  document.getElementById('chatArea').innerHTML =
-    '<div class="empty-chat" id="emptyChat">' +
-    '<div class="empty-icon">💬</div>' +
-    '<div class="empty-title">Ready to communicate</div>' +
-    '<div class="empty-hint">Use guided prompts or type below.</div>' +
-    '</div>';
-  document.getElementById('alertBanner').style.display = 'none';
-  document.getElementById('freeInput').value = '';
-  document.getElementById('patientInput').value = '';
-  document.getElementById('confirmInput').value = '';
-  document.getElementById('startBtn').disabled = true;
-  document.getElementById('startBtn').textContent = 'Start session';
-  document.querySelectorAll('.ctx-btn, .lang-btn').forEach(b => b.classList.remove('selected'));
-  selectedCtx = null; selectedLang = null; selectedCode = null;
-  switchTab(document.querySelector('.tab'));
+function setBusy(value){busy=value;document.querySelectorAll('.action-btn,.prompt-item').forEach(b=>b.disabled=value||b.dataset.available==='false');}
+function line(parent,label,value,lang){
+ if(!value)return;const block=document.createElement('div');block.className='message-line';
+ const caption=document.createElement('span');caption.className='message-caption';caption.textContent=label;
+ const content=document.createElement('div');content.textContent=value;content.dir='auto';if(lang)content.lang=lang;
+ block.append(caption,content);parent.appendChild(block);
 }
-
-function buildPromptList(prompts) {
-  const list = document.getElementById('promptsList');
-  list.innerHTML = '';
-  prompts.forEach(function(p) {
-    const btn = document.createElement('button');
-    btn.className = 'prompt-item';
-    btn.textContent = p;
-    btn.onclick = function() { sendGuidedPrompt(p, btn); };
-    list.appendChild(btn);
-  });
+function resultBubble(data,kind){
+ document.getElementById('emptyChat')?.remove();
+ const wrap=document.createElement('article');wrap.className='bubble-wrap '+(kind==='staff'?'staff':'patient');
+ const label=document.createElement('div');label.className='bubble-label';label.textContent=kind==='staff'?'Staff → '+data.lang:kind==='confirm'?'Understanding check · staff review required':data.lang+' → Staff';
+ const bubble=document.createElement('div');bubble.className='bubble '+(kind==='staff'?'staff':'patient');
+ line(bubble,'Original message',data.original,kind==='staff'?'en':selectedCode);
+ line(bubble,'Translation',data.translated,kind==='staff'?selectedCode:'en');
+ if(data.native && data.native!==data.original)line(bubble,'Prepared native-script form',data.native,selectedCode);
+ const status=document.createElement('div');status.className='translation-status '+data.status;status.textContent=data.warning;status.setAttribute('role','status');bubble.appendChild(status);
+ if(kind==='confirm')line(bubble,'Next step','Ask the speaker to explain the message in their own words. Staff must assess understanding; this translation does not verify it.');
+ wrap.append(label,bubble);document.getElementById('chatArea').appendChild(wrap);scrollChat();
 }
-
-async function sendGuidedPrompt(text, btn) {
-  if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
-  addStaffBubble(text, null, false, true);
-  try {
-    const res = await fetch('/api/translate_staff', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: text })
-    });
-    const data = await res.json();
-    if (data.error) { addSystemBubble('Error: ' + data.error); return; }
-    updateLastStaffBubble(data.simplified, data.translated, data.lang, data.was_simplified);
-  } finally {
-    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
-  }
+async function translate(text,kind,input){
+ if(busy||!text.trim())return;const ticket=generation;setBusy(true);
+ try{const data=await api(kind==='staff'?'/api/translate_staff':'/api/translate_patient',{text:text.trim()});
+ if(ticket!==generation)return;resultBubble(data,kind);if(input&&data.status!=='unavailable')input.value='';
+ }catch(e){if(ticket===generation)addSystemBubble(e.message);}finally{setBusy(false);}
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-  const fi = document.getElementById('freeInput');
-  if (fi) {
-    fi.addEventListener('input', async function() {
-      const text = fi.value.trim();
-      if (!text) { document.getElementById('simplifyNote').style.display = 'none'; return; }
-      const res = await fetch('/api/simplify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: text })
-      });
-      const data = await res.json();
-      document.getElementById('simplifyNote').style.display = data.changed ? 'block' : 'none';
-    });
-  }
-});
-
-async function sendFreeText() {
-  const input = document.getElementById('freeInput');
-  const text = input.value.trim();
-  if (!text) return;
-  const btn = document.getElementById('freeBtn');
-  btn.innerHTML = '<span class="spinner"></span>Translating...';
-  btn.disabled = true;
-  input.value = '';
-  document.getElementById('simplifyNote').style.display = 'none';
-  try {
-    const res = await fetch('/api/translate_staff', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: text })
-    });
-    const data = await res.json();
-    if (data.error) { addSystemBubble('Error: ' + data.error); return; }
-    addStaffBubble(data.simplified, data.translated, data.was_simplified, false);
-  } finally {
-    btn.innerHTML = 'Translate &amp; send';
-    btn.disabled = false;
-  }
-}
-
-async function translatePatient() {
-  const input = document.getElementById('patientInput');
-  const text = input.value.trim();
-  if (!text) return;
-  const btn = document.getElementById('patientBtn');
-  btn.innerHTML = '<span class="spinner"></span>Translating...';
-  btn.disabled = true;
-  try {
-    const res = await fetch('/api/translate_patient', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: text })
-    });
-    const data = await res.json();
-    if (data.error) { addSystemBubble('Error: ' + data.error); return; }
-    // data.original  = what patient typed  (e.g. enaku nenji vali irukku)
-    // data.native    = proper native script (e.g. எனக்கு நெஞ்சு வலி இருக்கு)
-    // data.translated = English for staff   (e.g. I have chest pain)
-    addPatientBubble(data.original, data.native, data.translated, data.lang, data.symptom_detected, data.medical_alert);
-    input.value = '';
-  } finally {
-    btn.innerHTML = 'Translate to English';
-    btn.disabled = false;
-  }
-}
-
-async function checkUnderstanding() {
-  const input = document.getElementById('confirmInput');
-  const text = input.value.trim();
-  if (!text) return;
-  const btn = document.getElementById('confirmBtn');
-  btn.innerHTML = '<span class="spinner"></span>Verifying...';
-  btn.disabled = true;
-  try {
-    const res = await fetch('/api/translate_patient', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: text })
-    });
-    const data = await res.json();
-    if (data.error) { addSystemBubble('Error: ' + data.error); return; }
-    addConfirmBubble(data.original, data.native, data.translated);
-    input.value = '';
-  } finally {
-    btn.innerHTML = 'Verify understanding';
-    btn.disabled = false;
-  }
-}
-
-// ── Bubble helpers ────────────────────────────────────────────────────────
-
-function removeEmpty() {
-  const e = document.getElementById('emptyChat');
-  if (e) e.remove();
-}
-
-function scrollChat() {
-  const area = document.getElementById('chatArea');
-  area.scrollTop = area.scrollHeight;
-}
-
-let lastStaffBubble = null;
-
-function addStaffBubble(text, translated, wasSimplified, pending) {
-  removeEmpty();
-  const wrap = document.createElement('div');
-  wrap.className = 'bubble-wrap staff';
-  const label = document.createElement('div');
-  label.className = 'bubble-label';
-  label.textContent = pending ? 'Staff (sending...)' : 'Staff → Patient';
-  wrap.appendChild(label);
-  const bub = document.createElement('div');
-  bub.className = 'bubble staff';
-  bub.textContent = text;
-  if (wasSimplified) {
-    const note = document.createElement('div');
-    note.className = 'simplified-note';
-    note.textContent = '✓ Simplified';
-    bub.appendChild(note);
-  }
-  if (translated) {
-    const tr = document.createElement('div');
-    tr.className = 'translated-line';
-    tr.textContent = '→ ' + translated;
-    bub.appendChild(tr);
-  }
-  wrap.appendChild(bub);
-  document.getElementById('chatArea').appendChild(wrap);
-  lastStaffBubble = { label: label, bub: bub };
-  scrollChat();
-}
-
-function updateLastStaffBubble(text, translated, lang, wasSimplified) {
-  if (!lastStaffBubble) return;
-  lastStaffBubble.label.textContent = 'Staff → Patient';
-  lastStaffBubble.bub.textContent = text;
-  if (wasSimplified) {
-    const note = document.createElement('div');
-    note.className = 'simplified-note';
-    note.textContent = '✓ Simplified';
-    lastStaffBubble.bub.appendChild(note);
-  }
-  const tr = document.createElement('div');
-  tr.className = 'translated-line';
-  tr.textContent = '→ ' + lang + ': ' + translated;
-  lastStaffBubble.bub.appendChild(tr);
-  scrollChat();
-}
-
-function addPatientBubble(original, native, translated, lang, symptom, medicalAlert) {
-  removeEmpty();
-  const wrap = document.createElement('div');
-  wrap.className = 'bubble-wrap patient';
-
-  // Label
-  const label = document.createElement('div');
-  label.className = 'bubble-label';
-  label.textContent = 'Patient (' + lang + ') → Staff';
-  wrap.appendChild(label);
-
-  const bub = document.createElement('div');
-  bub.className = 'bubble patient';
-
-  // 1. ENGLISH — big and bold for staff
-  const engDiv = document.createElement('div');
-  engDiv.style.cssText = 'font-size:15px;font-weight:700;color:#0a3d52;line-height:1.5;margin-bottom:6px;';
-  engDiv.textContent = (translated && translated.trim() !== '') ? translated : original;
-  bub.appendChild(engDiv);
-
-  // 2. NATIVE SCRIPT — proper Tamil/Hindi/Malayalam/Polish script
-  const nativeDiv = document.createElement('div');
-  nativeDiv.style.cssText = 'font-size:13px;color:#1a4a5a;margin-top:4px;padding-top:5px;border-top:1px solid #b8d8ea;font-weight:500;';
-  nativeDiv.textContent = lang + ': ' + (native && native.trim() !== '' ? native : original);
-  bub.appendChild(nativeDiv);
-
-  // 3. TYPED INPUT — tiny, only shown if different from native
-  if (original && native && original.trim().toLowerCase() !== native.trim().toLowerCase()) {
-    const typedDiv = document.createElement('div');
-    typedDiv.style.cssText = 'font-size:10px;color:#6a8a9a;font-style:italic;margin-top:3px;';
-    typedDiv.textContent = 'Typed: ' + original;
-    bub.appendChild(typedDiv);
-  }
-
-  wrap.appendChild(bub);
-  document.getElementById('chatArea').appendChild(wrap);
-
-  // Medical alert — positive symptom
-  if (medicalAlert) {
-    const alertWrap = document.createElement('div');
-    alertWrap.className = 'bubble-wrap system';
-    const alertBub = document.createElement('div');
-    alertBub.className = 'bubble medical-alert';
-    alertBub.innerHTML =
-      '<div style="font-size:15px;font-weight:700;margin-bottom:4px;">🔴 Medical consultation needed</div>' +
-      '<div style="font-size:12.5px;">Patient has reported a symptom that requires staff attention. Please follow your clinical protocol.</div>' +
-      (symptom ? '<div style="margin-top:6px;font-size:12px;opacity:0.85;">Symptom detected: <strong>' + symptom + '</strong></div>' : '');
-    alertWrap.appendChild(alertBub);
-    document.getElementById('chatArea').appendChild(alertWrap);
-  }
-
-  // Green confirmation — negative symptom
-  if (!medicalAlert && symptom) {
-    const okWrap = document.createElement('div');
-    okWrap.className = 'bubble-wrap system';
-    const okBub = document.createElement('div');
-    okBub.className = 'bubble no-alert';
-    okBub.innerHTML =
-      '<div style="font-size:13px;font-weight:600;">✅ Patient reports no ' + symptom + '</div>' +
-      '<div style="font-size:11.5px;margin-top:3px;opacity:0.8;">No immediate action required for this symptom.</div>';
-    okWrap.appendChild(okBub);
-    document.getElementById('chatArea').appendChild(okWrap);
-  }
-
-  scrollChat();
-}
-
-function addConfirmBubble(original, native, translated) {
-  removeEmpty();
-  const wrap = document.createElement('div');
-  wrap.className = 'bubble-wrap system';
-  const label = document.createElement('div');
-  label.className = 'bubble-label';
-  label.textContent = 'Understanding check — English for staff';
-  wrap.appendChild(label);
-  const bub = document.createElement('div');
-  bub.className = 'bubble confirm-result';
-  bub.innerHTML =
-    '<div style="font-size:14px;font-weight:700;color:#0a3d52;margin-bottom:4px;">English: ' + (translated || original) + '</div>' +
-    '<div style="font-size:12px;color:#1a4a5a;margin-bottom:3px;">' + (native && native !== original ? native : '') + '</div>' +
-    '<div style="font-size:11px;color:#6a8a9a;font-style:italic;">Typed: ' + original + '</div>';
-  wrap.appendChild(bub);
-  document.getElementById('chatArea').appendChild(wrap);
-  scrollChat();
-}
-
-function addSystemBubble(text) {
-  removeEmpty();
-  const wrap = document.createElement('div');
-  wrap.className = 'bubble-wrap system';
-  const bub = document.createElement('div');
-  bub.className = 'bubble system';
-  bub.textContent = text;
-  wrap.appendChild(bub);
-  document.getElementById('chatArea').appendChild(wrap);
-  scrollChat();
-}
-
-function showAlert() {
-  document.getElementById('alertBanner').style.display = 'flex';
-}
-
-function dismissAlert() {
-  document.getElementById('alertBanner').style.display = 'none';
-}
-
-function switchTab(clickedTab) {
-  document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
-  document.querySelectorAll('.tab-pane').forEach(function(p) { p.classList.remove('active'); });
-  clickedTab.classList.add('active');
-  document.getElementById('tab-' + clickedTab.dataset.tab).classList.add('active');
+function sendGuidedPrompt(text){return translate(text,'staff');}
+function sendFreeText(){const i=document.getElementById('freeInput');return translate(i.value,'staff',i);}
+function translatePatient(){const i=document.getElementById('patientInput');return translate(i.value,'patient',i);}
+function checkUnderstanding(){const i=document.getElementById('confirmInput');return translate(i.value,'confirm',i);}
+function addSystemBubble(text){document.getElementById('emptyChat')?.remove();const w=document.createElement('div');w.className='bubble-wrap system';const b=document.createElement('div');b.className='bubble system';b.textContent=text;w.appendChild(b);document.getElementById('chatArea').appendChild(w);scrollChat();}
+function scrollChat(){const a=document.getElementById('chatArea');a.scrollTop=a.scrollHeight;}
+function dismissAlert(){document.getElementById('alertBanner').style.display='none';}
+function switchTab(btn){document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t===btn));document.querySelectorAll('.tab-pane').forEach(p=>p.classList.toggle('active',p.id==='tab-'+btn.dataset.tab));}
+async function suggestSimplification(){
+ const input=document.getElementById('freeInput');if(!input.value.trim()||busy)return;
+ try{const original=input.value;const d=await api('/api/simplify',{text:original});if(input.value!==original)return;
+ if(d.changed && confirm('Review this suggested wording before using it:\n\n'+d.simplified))input.value=d.simplified;
+ else if(!d.changed)addSystemBubble('No prepared wording suggestion. Keep the original meaning when editing.');
+ }catch(e){addSystemBubble(e.message);}
 }
