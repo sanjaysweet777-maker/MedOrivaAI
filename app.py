@@ -1,7 +1,7 @@
 import os
 import re
-from datetime import timedelta
 import uuid
+from datetime import timedelta
 from flask import Flask, flash, jsonify, redirect, render_template, request, session, url_for
 from flask_login import LoginManager, UserMixin, current_user, login_required, login_user, logout_user
 from translator import LANGUAGES, patient_translation, staff_translation
@@ -12,6 +12,7 @@ template_dir = os.path.join(BASE_DIR, 'templates')
 app = Flask(__name__, template_folder=template_dir)
 app.secret_key = os.environ.get("SECRET_KEY", "medoriva-clinical-mvp-2026-v4")
 
+# Ephemeral session security configuration
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
@@ -42,10 +43,25 @@ def unauthorized():
         return jsonify({"error": "Unauthorized", "message": "Session expired."}), 401
     return redirect(url_for('login', next=request.path))
 
+@app.after_request
+def add_security_headers(response):
+    """
+    NHS DSPT & UK GDPR Compliance: Prevents shared reception workstations
+    from caching sensitive conversational text in local browser disk memory.
+    """
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    return response
+
 def reset_translation_session():
     for key in ["session_id", "context", "lang", "lang_code", "active"]:
         session.pop(key, None)
 
+# ============================================================
+# CLINICAL SIMPLIFICATION RULES (21 Standard Intake Terms)
+# ============================================================
 SIMPLIFY_RULES = [
     (r"require\s+further\s+diagnostic\s+evaluation", "need more tests"),
     (r"administer\s+medication", "give medicine"),
@@ -80,6 +96,45 @@ def simplify_text(text):
             simplified = result
     return simplified, changed
 
+# ============================================================
+# CONTEXT-LOCKED GUIDED PROMPT REGISTRY
+# ============================================================
+CONTEXT_PROMPTS = {
+    "Reception": [
+        "Good morning. How can I help you?",
+        "Do you have an appointment?",
+        "Can I take your name and date of birth?",
+        "Please take a seat. The doctor will see you shortly.",
+        "Do you have your NHS number?",
+        "Please fill in this form.",
+        "Do you need an interpreter?"
+    ],
+    "Appointment": [
+        "Your appointment is confirmed.",
+        "The doctor will see you now.",
+        "Do you have your appointment letter?",
+        "Please bring your medication list.",
+        "Is anyone with you today?",
+        "Please wait in the waiting area.",
+        "The appointment will take about 15 minutes.",
+        "Do you need an interpreter?"
+    ],
+    "Basic Symptoms": [
+        "Where is your pain?",
+        "How long have you had this?",
+        "How long have you had chest pain?",
+        "Do you have a fever?",
+        "Are you having difficulty breathing?",
+        "Do you feel dizzy or faint?",
+        "Do you have chest pain?",
+        "Is there any bleeding?",
+        "When did the symptoms start?"
+    ]
+}
+
+# ============================================================
+# CORE PAGE ROUTES
+# ============================================================
 @app.route("/")
 def index():
     return render_template("landing.html")
@@ -129,17 +184,21 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
+# ============================================================
+# API ENDPOINTS
+# ============================================================
 @app.route("/api/contact", methods=["POST"])
 def submit_contact():
     data = request.get_json() or {}
     name = data.get("name", "").strip()
     email = data.get("email", "").strip()
+    org = (data.get("organization") or data.get("org") or "").strip()
     message = data.get("message", "").strip()
 
     if not name or not email or not message:
         return jsonify({"status": "error", "message": "All fields are required."}), 400
 
-    return jsonify({"status": "ok", "message": "Inquiry received. Our clinical pilot team will contact you within 24 hours."}), 200
+    return jsonify({"status": "ok", "message": "Inquiry received. Our practice pilot team will contact you within 24 hours."}), 200
 
 @app.route("/api/ping", methods=["GET"])
 def ping():
@@ -154,26 +213,21 @@ def healthz():
 def start_session():
     data = request.get_json() or {}
     reset_translation_session()
+    
+    raw_context = data.get("context", "Reception")
+    context_key = "Reception"
+    for k in CONTEXT_PROMPTS.keys():
+        if k.lower() in raw_context.lower():
+            context_key = k
+            break
+
     session["session_id"] = str(uuid.uuid4())[:8]
-    session["context"] = data.get("context", "Reception")
+    session["context"] = context_key
     session["lang"] = data.get("lang", "Tamil")
     session["lang_code"] = data.get("lang_code", "ta")
     session["active"] = True
 
-    # Prompt list updated with correct grammar
-    prompts = [
-        "Good morning. How can I help you?",
-        "Do you have an appointment?",
-        "Can I take your name and date of birth?",
-        "Please take a seat. The doctor will see you shortly.",
-        "Where is your pain?",
-        "How long have you had this?",
-        "How long have you had chest pain?",
-        "Do you have chest pain?",
-        "Do you have a fever?",
-        "Are you having difficulty breathing?",
-        "Do you need an interpreter?"
-    ]
+    prompts = CONTEXT_PROMPTS.get(context_key, CONTEXT_PROMPTS["Reception"])
 
     return jsonify({
         "status": "ok",
@@ -210,12 +264,16 @@ def translate_staff():
     lang_code = session.get("lang_code", "ta")
     lang_name = session.get("lang", "Tamil")
 
-    res = staff_translation(raw_text, lang_code)
+    # Automatically run plain-language conversion before transmission
+    simplified_text, was_simplified = simplify_text(raw_text)
+    text_to_translate = simplified_text if was_simplified else raw_text
+
+    res = staff_translation(text_to_translate, lang_code)
 
     return jsonify({
         "original": raw_text,
-        "simplified": raw_text,
-        "was_simplified": False,
+        "simplified": simplified_text,
+        "was_simplified": was_simplified,
         "translated": res.text,
         "lang": lang_name,
         "urgent": False,
@@ -235,7 +293,7 @@ def translate_patient():
 
     res = patient_translation(raw_text, lang_code)
 
-    # Recognised symptom phrase trigger (Communication cue, not diagnosis)
+    # Communication cue trigger (Staff attention notification only; non-clinical)
     medical_alert = bool(res.symptom and not res.is_negative)
 
     return jsonify({
