@@ -1,3 +1,5 @@
+import re
+
 # ============================================================
 # SUPPORTED LANGUAGES REGISTRY (9 MVP CORE LANGUAGES)
 # Compatible as both strings and dictionary objects
@@ -40,7 +42,6 @@ LANGUAGES = {
     "ro": _LangEntry("Romanian", "Română", "ro"),
     "en": _LangEntry("English", "English", "en"),
 }
-import re
 
 # ============================================================
 # CLINICAL SIMPLIFICATION RULES
@@ -131,7 +132,6 @@ DURATION_PATTERNS = [
 
 # ============================================================
 # COMPREHENSIVE CLINICAL SYMPTOM REGISTRY (ALL 9 LANGUAGES)
-# Explicit specific anatomical phrases with phonetic transliteration
 # ============================================================
 MULTI_LANG_SYMPTOMS = {
     "chest pain": {
@@ -141,7 +141,7 @@ MULTI_LANG_SYMPTOMS = {
         "ml": ("നെഞ്ചുവേദന", ["nenjil vali", "nenju vali", "nenjile vedana", "nenju vedana", "നെഞ്ചുവേദന", "നെഞ്ചിൽ വേദന"]),
         "pl": ("ból w klatce piersiowej", ["bol w klatce piersiowej", "bol klatki piersiowej", "bol klatki", "bol w klatce", "pieczenie w klatce"]),
         "ar": ("ألم في الصدر", ["alam fi al sadr", "alam fi sadr", "alam sedr", "wagah sedr", "وجع في الصدر", "ألم في الصدر"]),
-        "ur": ("سینے میں درد", ["seene mein dard", "seene me dard", "dil mein dard", "سینے میں درد"]),
+        "ur": ("سینے میں दर्द", ["seene mein dard", "seene me dard", "dil mein dard", "سینے میں درد"]),
         "bn": ("বুকে ব্যথা", ["buke betha", "buke byatha", "buke batha", "বুকে ব্যথা"]),
         "so": ("xanuunka laabta", ["xanuun laabta", "xanuunka laabta", "laab xanuun"]),
         "ro": ("durere în piept", ["durere in piept", "durere în piept", "dureri in piept"])
@@ -290,7 +290,6 @@ MULTI_LANG_SYMPTOMS = {
         "so": ("finan", ["finan", "cuncun", "maqaarka oo cuncunaya"]),
         "ro": ("erupție pe piele", ["eruptie pe piele", "mancarime", "iritatie", "erupție pe piele"])
     },
-    # GENERIC FALLBACK - only matches if no specific anatomy was identified
     "pain": {
         "english": "pain",
         "ta": ("வலி", ["vali", "valikuthu", "valikirathu", "vali irukku", "நோவு", "வலி"]),
@@ -306,8 +305,7 @@ MULTI_LANG_SYMPTOMS = {
 }
 
 # ============================================================
-# DETERMINISTIC CANONICAL PATIENT TRANSLATIONS (ALL 9 LANGUAGES EQUAL)
-# Complete bidirectional responses with positive and negative confirmations
+# DETERMINISTIC CANONICAL PATIENT TRANSLATIONS (ALL 9 LANGUAGES)
 # ============================================================
 PATIENT_CANONICAL_RESPONSES = {
     "ta": {
@@ -527,7 +525,7 @@ PATIENT_CANONICAL_RESPONSES = {
         },
         "vomiting": {
             "pos": ("I am vomiting", "Mam wymioty"),
-            "neg": ("I am not vomiting", "Nie mam wymiotów")
+            "neg": ("I do not have vomiting", "Nie mam wymiotów")
         },
         "cough": {
             "pos": ("I have a cough", "Mam kaszel"),
@@ -631,7 +629,7 @@ PATIENT_CANONICAL_RESPONSES = {
         },
         "breathing difficulty": {
             "pos": ("I have difficulty breathing", "مجھے سانس لینے میں دشواری ہے"),
-            "neg": ("I do not have difficulty breathing", "मुझे سانس لینے میں کوئی دشواری نہیں ہے")
+            "neg": ("I do not have difficulty breathing", "مجھے سانس لینے میں کوئی دشواری نہیں ہے")
         },
         "bleeding": {
             "pos": ("I am bleeding", "خون بہہ رہا ہے"),
@@ -939,7 +937,7 @@ CLINICAL_STAFF_SYNTHESIZER = {
     "DO_YOU_HAVE_CHEST_PAIN": {
         "ta": "உங்களுக்கு நெஞ்சு வலி உள்ளதா?",
         "hi": "क्या आपको सीने में दर्द है?",
-        "ml": "നിങ്ങൾക്ക് നെഞ്ചുവേദന ഉണ്ടോ?",
+        "ml": "നിങ്ങൾക്ക് நெഞ്ചുവേദന ഉണ്ടോ?",
         "pl": "Czy ma Pan/Pani ból w klatce piersiowej?",
         "ar": "هل تعاني من ألم في الصدر؟",
         "ur": "کیا آپ کو سینے میں درد ہے؟",
@@ -1022,21 +1020,15 @@ GUIDED_PROMPTS = {
 }
 
 # ============================================================
-# LONGEST-FIRST SYMPTOM PARSER (PREVENTS GREEDY OVERLAP)
+# LONGEST-FIRST SYMPTOM PARSER (FIXES GREEDY OVERLAP BUG)
 # ============================================================
 def extract_symptom(text, lang_code):
-    """
-    Scans text against all known symptom aliases across languages.
-    CRITICAL: Evaluates aliases sorted by length DESCENDING so specific phrases
-    like 'nenji vali' or 'thalai vali' match before generic single tokens like 'vali' or 'dard'.
-    """
     if not text:
         return None, None, None
 
     clean_text = re.sub(r'[^\w\s]', ' ', text.lower()).strip()
     norm = f" {' '.join(clean_text.split())} "
 
-    # Build candidates: (alias, symptom_key, english_name, native_name)
     candidates = []
     for sym_key, sym_data in MULTI_LANG_SYMPTOMS.items():
         if lang_code in sym_data:
@@ -1044,17 +1036,14 @@ def extract_symptom(text, lang_code):
             for alias in aliases:
                 candidates.append((alias.lower().strip(), sym_key, sym_data["english"], native_label))
         
-        # Universal English aliases
         candidates.append((sym_data["english"].lower().strip(), sym_key, sym_data["english"], sym_data.get(lang_code, (sym_data["english"], []))[0]))
 
-    # Sort candidates by length in descending order (longest match first)
     candidates.sort(key=lambda x: len(x[0]), reverse=True)
 
     for alias, sym_key, english_name, native_label in candidates:
         if f" {alias} " in norm or norm.strip().startswith(alias) or norm.strip().endswith(alias):
             return sym_key, english_name, native_label
 
-    # Fallback to direct substring search for remaining items
     for alias, sym_key, english_name, native_label in candidates:
         if alias in norm:
             return sym_key, english_name, native_label
@@ -1062,16 +1051,11 @@ def extract_symptom(text, lang_code):
     return None, None, None
 
 def synthesize_staff_question(text, lang_code):
-    """
-    Analyzes staff inquiries and deterministically returns verified translations
-    for all 9 languages without relying on external web APIs.
-    """
     if not text:
         return None
 
     clean = re.sub(r'[^\w\s]', '', text.lower()).strip()
 
-    # DURATION
     if any(q in clean for q in ["how long", "since when", "how many days", "when did"]) and "pain" in clean:
         if "chest" in clean:
             return CLINICAL_STAFF_SYNTHESIZER["HOW_LONG_CHEST_PAIN"].get(lang_code)
@@ -1088,11 +1072,9 @@ def synthesize_staff_question(text, lang_code):
     if clean in ["how long", "how long have you had this", "how long has this been", "how long is this"]:
         return CLINICAL_STAFF_SYNTHESIZER["HOW_LONG_GENERAL"].get(lang_code)
 
-    # LOCATION
     if any(q in clean for q in ["where is", "where does it hurt", "where do you have"]):
         return CLINICAL_STAFF_SYNTHESIZER["WHERE_IS_PAIN"].get(lang_code)
 
-    # PRESENCE
     if any(q in clean for q in ["do you have", "are you having", "is there", "are you feeling"]):
         if "chest" in clean:
             return CLINICAL_STAFF_SYNTHESIZER["DO_YOU_HAVE_CHEST_PAIN"].get(lang_code)
