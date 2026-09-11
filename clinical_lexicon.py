@@ -2,7 +2,7 @@ import re
 
 # ============================================================
 # SUPPORTED LANGUAGES REGISTRY (9 MVP CORE LANGUAGES)
-# Compatible as both strings and dictionary objects
+# Accessible via property (.name, .native, .code) or key (['name'])
 # ============================================================
 class _LangEntry(str):
     def __new__(cls, name, native, code):
@@ -44,33 +44,6 @@ LANGUAGES = {
 }
 
 # ============================================================
-# CLINICAL SIMPLIFICATION RULES
-# ============================================================
-SIMPLIFY_RULES = [
-    (r"require\s+further\s+diagnostic\s+evaluation", "need more tests"),
-    (r"administer\s+medication", "give medicine"),
-    (r"experiencing\s+discomfort", "feeling pain"),
-    (r"prior\s+to", "before"),
-    (r"in\s+order\s+to", "to"),
-    (r"approximately", "about"),
-    (r"at\s+this\s+point\s+in\s+time", "now"),
-    (r"due\s+to\s+the\s+fact\s+that", "because"),
-    (r"facilitate", "help"),
-    (r"commence", "start"),
-    (r"terminate", "end"),
-    (r"endeavour", "try"),
-    (r"obtain", "get"),
-    (r"sufficient", "enough"),
-    (r"physician", "doctor"),
-    (r"hypertension", "high blood pressure"),
-    (r"hypotension", "low blood pressure"),
-    (r"myocardial\s+infarction", "heart attack"),
-    (r"cerebrovascular\s+accident", "stroke"),
-    (r"dyspnea", "shortness of breath"),
-    (r"fracture", "broken bone"),
-]
-
-# ============================================================
 # AFFIRMATIONS & NEGATIONS (ALL 9 LANGUAGES)
 # ============================================================
 AFFIRMATION_PATTERNS = {
@@ -98,6 +71,48 @@ NEGATION_PATTERNS = {
     "ro": ["nu", "nici", "fara", "n-am", "nu am", "deloc", "nimic"],
     "en": ["no", "not", "dont", "don't", "doesnt", "doesn't", "denies", "denied", "without", "never", "didnt", "didn't", "free of", "negative", "none", "no pain"]
 }
+
+# Aliases to satisfy both translator.py and app.py imports
+AFFIRMATION_DICTIONARY = AFFIRMATION_PATTERNS
+NEGATION_DICTIONARY = NEGATION_PATTERNS
+
+# ============================================================
+# CLINICAL SIMPLIFICATION RULES
+# ============================================================
+SIMPLIFY_RULES = [
+    (r"require\s+further\s+diagnostic\s+evaluation", "need more tests"),
+    (r"administer\s+medication", "give medicine"),
+    (r"experiencing\s+discomfort", "feeling pain"),
+    (r"prior\s+to", "before"),
+    (r"in\s+order\s+to", "to"),
+    (r"approximately", "about"),
+    (r"at\s+this\s+point\s+in\s+time", "now"),
+    (r"due\s+to\s+the\s+fact\s+that", "because"),
+    (r"facilitate", "help"),
+    (r"commence", "start"),
+    (r"terminate", "end"),
+    (r"endeavour", "try"),
+    (r"obtain", "get"),
+    (r"sufficient", "enough"),
+    (r"physician", "doctor"),
+    (r"hypertension", "high blood pressure"),
+    (r"hypotension", "low blood pressure"),
+    (r"myocardial\s+infarction", "heart attack"),
+    (r"cerebrovascular\s+accident", "stroke"),
+    (r"dyspnea", "shortness of breath"),
+    (r"fracture", "broken bone"),
+]
+CLINICAL_SIMPLIFICATION_RULES = SIMPLIFY_RULES
+
+def simplify_text(text):
+    simplified = text
+    changed = False
+    for pattern, replacement in SIMPLIFY_RULES:
+        result = re.sub(pattern, replacement, simplified, flags=re.IGNORECASE)
+        if result != simplified:
+            changed = True
+            simplified = result
+    return simplified, changed
 
 # ============================================================
 # DURATION CONVERTERS
@@ -129,6 +144,8 @@ DURATION_PATTERNS = [
     (r"(\d+)\s*(?:maalmood|cisho)", r"for \1 days"),
     (r"de\s*(\d+)\s*zile", r"for \1 days"),
 ]
+DURATION_RULES = DURATION_PATTERNS
+DURATION_CONVERTERS = DURATION_PATTERNS
 
 # ============================================================
 # COMPREHENSIVE CLINICAL SYMPTOM REGISTRY (ALL 9 LANGUAGES)
@@ -141,7 +158,7 @@ MULTI_LANG_SYMPTOMS = {
         "ml": ("നെഞ്ചുവേദന", ["nenjil vali", "nenju vali", "nenjile vedana", "nenju vedana", "നെഞ്ചുവേദന", "നെഞ്ചിൽ വേദന"]),
         "pl": ("ból w klatce piersiowej", ["bol w klatce piersiowej", "bol klatki piersiowej", "bol klatki", "bol w klatce", "pieczenie w klatce"]),
         "ar": ("ألم في الصدر", ["alam fi al sadr", "alam fi sadr", "alam sedr", "wagah sedr", "وجع في الصدر", "ألم في الصدر"]),
-        "ur": ("سینے میں दर्द", ["seene mein dard", "seene me dard", "dil mein dard", "سینے میں درد"]),
+        "ur": ("سینے میں درد", ["seene mein dard", "seene me dard", "dil mein dard", "سینے میں درد"]),
         "bn": ("বুকে ব্যথা", ["buke betha", "buke byatha", "buke batha", "বুকে ব্যথা"]),
         "so": ("xanuunka laabta", ["xanuun laabta", "xanuunka laabta", "laab xanuun"]),
         "ro": ("durere în piept", ["durere in piept", "durere în piept", "dureri in piept"])
@@ -303,6 +320,8 @@ MULTI_LANG_SYMPTOMS = {
         "ro": ("durere", ["durere", "doare", "dureri"])
     }
 }
+SYMPTOM_DICTIONARY = MULTI_LANG_SYMPTOMS
+SYMPTOM_REGISTRY = MULTI_LANG_SYMPTOMS
 
 # ============================================================
 # DETERMINISTIC CANONICAL PATIENT TRANSLATIONS (ALL 9 LANGUAGES)
@@ -831,6 +850,7 @@ PATIENT_CANONICAL_RESPONSES = {
         }
     }
 }
+CANONICAL_RESPONSES = PATIENT_CANONICAL_RESPONSES
 
 # ============================================================
 # TRIAGE RED FLAGS CONFIGURATION
@@ -841,6 +861,8 @@ URGENT_SYMPTOMS_CONFIG = {
     "bleeding": ["bleeding", "severe blood", "iratham", "khoon", "krwawienie", "نزيف", "خون", "রক্তপাত", "dhiig", "sângerare", "இரத்தப்போக்கு"],
     "unconscious": ["unconscious", "passed out", "collapsed", "fainted", "mayakkam", "behosh", "omdlenie", "إغماء", "بے ہوش", "অজ্ঞান", "miyir beel", "leșin", "மயக்கம்"]
 }
+URGENT_SYMPTOMS = URGENT_SYMPTOMS_CONFIG
+RED_FLAGS = URGENT_SYMPTOMS_CONFIG
 
 # ============================================================
 # STAFF QUESTION SYNTHESIZER
@@ -915,7 +937,7 @@ CLINICAL_STAFF_SYNTHESIZER = {
     "WHERE_IS_PAIN": {
         "ta": "உங்கள் வலி எங்கே இருக்கிறது?",
         "hi": "आपको दर्द कहाँ हो रहा है?",
-        "ml": "നിങ്ങൾക്ക് എവിടെയാണ് വേദന?",
+        "ml": "നിങ്ങൾക്ക് எവിടെയാണ് വേദന?",
         "pl": "Gdzie dokładnie odczuwa Pan/Pani ból?",
         "ar": "أين تشعر بالألم بالضبط؟",
         "ur": "آپ کو درد کہاں ہے؟",
@@ -937,7 +959,7 @@ CLINICAL_STAFF_SYNTHESIZER = {
     "DO_YOU_HAVE_CHEST_PAIN": {
         "ta": "உங்களுக்கு நெஞ்சு வலி உள்ளதா?",
         "hi": "क्या आपको सीने में दर्द है?",
-        "ml": "നിങ്ങൾക്ക് நெഞ്ചുവേദന ഉണ്ടോ?",
+        "ml": "നിങ്ങൾക്ക് നെഞ്ചുവേദന ഉണ്ടோ?",
         "pl": "Czy ma Pan/Pani ból w klatce piersiowej?",
         "ar": "هل تعاني من ألم في الصدر؟",
         "ur": "کیا آپ کو سینے میں درد ہے؟",
@@ -948,7 +970,7 @@ CLINICAL_STAFF_SYNTHESIZER = {
     "DO_YOU_HAVE_FEVER": {
         "ta": "உங்களுக்கு காய்ச்சல் உள்ளதா?",
         "hi": "क्या आपको बुखार है?",
-        "ml": "നിങ്ങൾക്ക് പനി ഉണ്ടോ?",
+        "ml": "നിങ്ങൾക്ക് പനി ഉണ്ടோ?",
         "pl": "Czy ma Pan/Pani gorączkę?",
         "ar": "هل لديك حمى؟",
         "ur": "کیا آپ کو بخار ہے؟",
@@ -968,6 +990,7 @@ CLINICAL_STAFF_SYNTHESIZER = {
         "ro": "Aveți dificultăți de respirație?"
     }
 }
+STAFF_SYNTHESIZER = CLINICAL_STAFF_SYNTHESIZER
 
 # ============================================================
 # GUIDED CLINICAL PROMPTS
@@ -1018,9 +1041,10 @@ GUIDED_PROMPTS = {
         "When did the symptoms start?",
     ],
 }
+CONTEXT_PROMPTS = GUIDED_PROMPTS
 
 # ============================================================
-# LONGEST-FIRST SYMPTOM PARSER (FIXES GREEDY OVERLAP BUG)
+# LONGEST-FIRST SYMPTOM PARSER
 # ============================================================
 def extract_symptom(text, lang_code):
     if not text:
@@ -1086,3 +1110,9 @@ def synthesize_staff_question(text, lang_code):
             return CLINICAL_STAFF_SYNTHESIZER["DO_YOU_HAVE_PAIN"].get(lang_code)
 
     return None
+
+def lookup_lexicon_term(term_key: str, lang_code: str) -> str:
+    lang = lang_code.lower()[:2] if lang_code else "en"
+    if term_key in MULTI_LANG_SYMPTOMS and lang in MULTI_LANG_SYMPTOMS[term_key]:
+        return MULTI_LANG_SYMPTOMS[term_key][lang][0]
+    return ""
