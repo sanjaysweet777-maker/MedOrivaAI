@@ -92,8 +92,8 @@
 
         /* Hero */
         .hero {
-            padding: 90px 24px 70px;
-            max-width: 1150px;
+            padding: 80px 24px 60px;
+            max-width: 1180px;
             margin: 0 auto;
             text-align: center;
         }
@@ -114,20 +114,20 @@
         }
         .badge-dot { width: 7px; height: 7px; background: var(--primary-light); border-radius: 50%; box-shadow: 0 0 8px var(--primary-light); }
         .hero h1 {
-            font-size: 48px;
+            font-size: 46px;
             font-weight: 800;
             line-height: 1.18;
-            margin-bottom: 22px;
+            margin-bottom: 20px;
             letter-spacing: -1px;
             background: linear-gradient(135deg, #ffffff 50%, #cbd5e1 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         .hero p {
-            font-size: 18px;
+            font-size: 17.5px;
             color: var(--text-muted);
-            max-width: 840px;
-            margin: 0 auto 36px;
+            max-width: 860px;
+            margin: 0 auto 32px;
             line-height: 1.7;
         }
         .hero-actions {
@@ -135,7 +135,7 @@
             justify-content: center;
             gap: 16px;
             flex-wrap: wrap;
-            margin-bottom: 40px;
+            margin-bottom: 36px;
         }
         .btn-primary {
             background: var(--primary);
@@ -162,6 +162,72 @@
         }
         .btn-secondary:hover { border-color: var(--primary-light); background: var(--bg-card-hover); }
 
+        /* Mockup Container */
+        .mockup-container {
+            max-width: 1040px;
+            margin: 20px auto 44px;
+            border-radius: 14px;
+            box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(20, 184, 166, 0.3);
+            background: #0d1527;
+            overflow: hidden;
+            text-align: left;
+        }
+        .mockup-header {
+            background: #090e1c;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #1e2c4a;
+        }
+        .mockup-dots { display: flex; gap: 6px; }
+        .mockup-dots .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        .dot.red { background: #ef4444; }
+        .dot.yellow { background: #f59e0b; }
+        .dot.green { background: #10b981; }
+        .mockup-title { font-size: 12px; color: #94a3b8; font-weight: 600; }
+        .mockup-status { font-size: 11px; color: #10b981; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+        .status-indicator { width: 6px; height: 6px; background: #10b981; border-radius: 50%; box-shadow: 0 0 6px #10b981; }
+
+        /* Mockup Body Split View */
+        .mockup-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: #0d1527;
+        }
+        .mockup-pane { padding: 24px; display: flex; flex-direction: column; justify-content: space-between; }
+        .staff-pane { border-right: 1px solid #1e2c4a; background: #0c1426; }
+        .patient-pane { background: #0e172a; }
+        .pane-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+        .pane-tag { font-size: 10.5px; font-weight: 800; letter-spacing: 0.6px; padding: 3px 8px; border-radius: 4px; }
+        .staff-tag { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
+        .patient-tag { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+        .context-pill, .lang-pill { font-size: 11px; color: #94a3b8; font-weight: 600; }
+
+        .mockup-chat { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
+        .chat-bubble { padding: 12px 16px; border-radius: 10px; font-size: 13px; line-height: 1.5; }
+        .bubble-sender { font-size: 10px; text-transform: uppercase; font-weight: 700; color: #64748b; margin-bottom: 4px; }
+        .staff-bubble { background: #17233d; color: #f1f5f9; border-left: 3px solid #3b82f6; }
+        .bubble-sub { font-size: 10.5px; color: #94a3b8; margin-top: 4px; }
+        .patient-feedback-bubble { background: #1c273a; color: #f1f5f9; border-left: 3px solid #f59e0b; }
+        .bubble-text.highlighted { color: #fef08a; font-weight: 700; }
+        .bubble-cue { margin-top: 8px; padding: 6px 10px; background: rgba(245, 158, 11, 0.15); border-radius: 6px; font-size: 11px; color: #fbbf24; display: flex; align-items: center; gap: 6px; }
+
+        .patient-translated-bubble { background: #132238; color: #f1f5f9; border-left: 3px solid #10b981; }
+        .native-text { font-size: 14.5px; font-weight: 600; color: #6ee7b7; }
+        .patient-input-bubble { background: #162035; color: #cbd5e1; border-left: 3px solid #a855f7; }
+        .roman-text { font-style: italic; color: #d8b4fe; }
+        .bubble-native-converted { font-size: 11.5px; color: #a7f3d0; margin-top: 4px; }
+
+        .mockup-input-bar { display: flex; gap: 8px; background: #080d19; padding: 8px 12px; border-radius: 8px; border: 1px solid #1e2c4a; align-items: center; }
+        .fake-input { font-size: 12px; color: #64748b; flex: 1; }
+        .fake-btn { background: var(--primary); color: #fff; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 4px; border: none; }
+
+        .mockup-verification-tag { display: flex; gap: 10px; align-items: center; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 10px 14px; border-radius: 8px; }
+        .check-icon { width: 20px; height: 20px; border-radius: 50%; background: #10b981; color: #000; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; }
+        .check-title { font-size: 11.5px; font-weight: 700; color: #6ee7b7; }
+        .check-desc { font-size: 10.5px; color: #94a3b8; }
+
         /* Trust Strip */
         .trust-strip {
             display: flex;
@@ -175,10 +241,35 @@
         }
         .trust-item { display: flex; align-items: center; gap: 8px; font-weight: 600; color: #cbd5e1; }
 
+        /* 3-Step Pipeline */
+        .pipeline-wrapper {
+            max-width: 1080px;
+            margin: 40px auto 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 0 24px;
+        }
+        .pipeline-step {
+            flex: 1;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 22px;
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+        .step-num { font-size: 24px; font-weight: 900; color: var(--primary-light); line-height: 1; }
+        .step-content h4 { font-size: 14.5px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+        .step-content p { font-size: 12px; color: var(--text-muted); line-height: 1.5; margin: 0; }
+        .pipeline-arrow { color: #334155; font-size: 20px; font-weight: 900; }
+
         /* Section Layout */
-        .section { padding: 84px 24px; max-width: 1150px; margin: 0 auto; }
-        .section-header { text-align: center; margin-bottom: 52px; }
-        .section-header h2 { font-size: 34px; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.5px; }
+        .section { padding: 74px 24px; max-width: 1150px; margin: 0 auto; }
+        .section-header { text-align: center; margin-bottom: 50px; }
+        .section-header h2 { font-size: 32px; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.5px; }
         .section-header p { color: var(--text-muted); font-size: 16px; max-width: 660px; margin: 0 auto; }
 
         /* Context Cards */
@@ -398,6 +489,10 @@
 
         @media(max-width: 768px) {
             .hero h1 { font-size: 34px; }
+            .mockup-body { grid-template-columns: 1fr; }
+            .staff-pane { border-right: none; border-bottom: 1px solid #1e2c4a; }
+            .pipeline-wrapper { flex-direction: column; }
+            .pipeline-arrow { transform: rotate(90deg); margin: 6px 0; }
             .safety-box { grid-template-columns: 1fr; }
             .footer-grid { grid-template-columns: 1fr; }
             .form-row { grid-template-columns: 1fr; }
@@ -434,7 +529,7 @@
         </ul>
     </nav>
 
-    <!-- Hero -->
+    <!-- Hero Section with Dual-Screen Visual Terminal Mockup -->
     <section class="hero">
         <div class="badge">
             <span class="badge-dot"></span>
@@ -442,11 +537,88 @@
         </div>
         <h1>Structured Healthcare Intake &amp; Routine Multilingual Communication</h1>
         <p>
-            Census 2021 recorded 5.1 million residents in England and Wales whose main language was not English, including over 1.04 million who speak English not well or not at all. MedOriva AI equips NHS receptionists and primary care teams with structured, context-locked communication across <strong>9 core community languages</strong> without the delays of telephonic interpreting.
+            Census 2021 recorded 5.1 million residents in England and Wales whose main language was not English, including over 1.04 million who speak English not well or not at all[cite: 2]. MedOriva AI equips NHS receptionists and primary care teams with structured, context-locked communication across <strong>9 core community languages</strong> without the delays of telephonic interpreting[cite: 2].
         </p>
         <div class="hero-actions">
             <a href="/login" class="btn-primary">Launch Staff Practice Portal</a>
             <a href="#contact" class="btn-secondary">Request 3-Month Practice Pilot</a>
+        </div>
+
+        <!-- Live Primary Care Interface Preview Mockup -->
+        <div class="mockup-container">
+            <div class="mockup-header">
+                <div class="mockup-dots">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                </div>
+                <div class="mockup-title">MedOriva AI — Primary Care Terminal #01 (Reception &amp; Arrival)</div>
+                <div class="mockup-status">
+                    <span class="status-indicator"></span> Ephemeral In-Memory Session
+                </div>
+            </div>
+
+            <div class="mockup-body">
+                <!-- Staff Workspace -->
+                <div class="mockup-pane staff-pane">
+                    <div class="pane-header">
+                        <span class="pane-tag staff-tag">STAFF WORKSPACE (ENGLISH)</span>
+                        <span class="context-pill">Context: Reception &amp; Arrival</span>
+                    </div>
+                    
+                    <div class="mockup-chat">
+                        <div class="chat-bubble staff-bubble">
+                            <div class="bubble-sender">GP Receptionist</div>
+                            <div class="bubble-text">"Welcome. Do you have a booked appointment with us today?"</div>
+                            <div class="bubble-sub">Guided Prompt · Standard Check-in</div>
+                        </div>
+
+                        <div class="chat-bubble patient-feedback-bubble">
+                            <div class="bubble-sender">Patient Response (Verified English Back-Translation)</div>
+                            <div class="bubble-text highlighted">"I have severe chest pain."</div>
+                            <div class="bubble-cue">
+                                <span class="cue-icon">⚠️</span>
+                                <span>Recognised symptom phrase: <strong>chest pain</strong> (Non-clinical communication cue only)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mockup-input-bar">
+                        <div class="fake-input">Where are you feeling discomfort today?</div>
+                        <button class="fake-btn" type="button">Send</button>
+                    </div>
+                </div>
+
+                <!-- Patient Terminal -->
+                <div class="mockup-pane patient-pane">
+                    <div class="pane-header">
+                        <span class="pane-tag patient-tag">PATIENT TERMINAL (NATIVE SCRIPT)</span>
+                        <span class="lang-pill">Selected: தமிழ் (Tamil)</span>
+                    </div>
+
+                    <div class="mockup-chat">
+                        <div class="chat-bubble patient-translated-bubble">
+                            <div class="bubble-sender">Staff Translated Intake Prompt</div>
+                            <div class="bubble-text native-text">"வணக்கம். உங்களுக்கு இன்று முன்பதிவு செய்யப்பட்ட அப்பாயிண்ட்மென்ட் உள்ளதா?"</div>
+                            <div class="bubble-sub">Verified Clinical Lexicon · Confirmed</div>
+                        </div>
+
+                        <div class="chat-bubble patient-input-bubble">
+                            <div class="bubble-sender">Patient Spoken / Phonetic Input</div>
+                            <div class="bubble-text roman-text">"enaku nenji vali irukku"</div>
+                            <div class="bubble-native-converted">Native Reconstructed: எனக்கு நெஞ்சு வலி இருக்கிறது</div>
+                        </div>
+                    </div>
+
+                    <div class="mockup-verification-tag">
+                        <div class="check-icon">✓</div>
+                        <div>
+                            <div class="check-title">Understanding Check Loop Complete</div>
+                            <div class="check-desc">Dual verification logged in RAM. No persistent disk transcript saved.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="trust-strip">
@@ -458,32 +630,59 @@
         </div>
     </section>
 
+    <!-- 3-Stage Operational Architecture Pipeline -->
+    <div class="pipeline-wrapper">
+        <div class="pipeline-step">
+            <div class="step-num">01</div>
+            <div class="step-content">
+                <h4>Context-Locked Intake</h4>
+                <p>Receptionist selects locked context (Arrival, Admin, or Basic Symptoms) to eliminate conversational drift[cite: 2].</p>
+            </div>
+        </div>
+        <div class="pipeline-arrow">➔</div>
+        <div class="pipeline-step">
+            <div class="step-num">02</div>
+            <div class="step-content">
+                <h4>In-Memory Negation Check</h4>
+                <p>Local dialect engine detects phonetic Romanised input and filters negations (e.g. <em>illai</em>, <em>nahi</em>, <em>nie</em>)[cite: 2].</p>
+            </div>
+        </div>
+        <div class="pipeline-arrow">➔</div>
+        <div class="pipeline-step">
+            <div class="step-num">03</div>
+            <div class="step-content">
+                <h4>Understanding Check Loop</h4>
+                <p>Back-translates native script response to English with non-clinical visual cues for complete staff control[cite: 2].</p>
+            </div>
+        </div>
+    </div>
+
     <!-- The 3 Workflows (BP Section 2.4 & 12) -->
     <section class="section" id="workflows">
         <div class="section-header">
             <h2>Three Context-Locked Healthcare Workflows</h2>
-            <p>Designed for high-frequency touchpoints to prevent conversational drift and eliminate unguided diagnostic inquiries at reception.</p>
+            <p>Designed for high-frequency touchpoints to prevent conversational drift and eliminate unguided diagnostic inquiries at reception[cite: 2].</p>
         </div>
         <div class="grid-3">
             <div class="card">
                 <div class="card-icon">🏛️</div>
                 <h3>1. Reception &amp; Arrival</h3>
                 <p>
-                    Fast-track routine arrival, verify booked appointments, confirm patient registration, and capture demographic updates in native script without queue delays.
+                    Fast-track routine arrival, verify booked appointments, confirm patient registration, and capture demographic updates in native script without queue delays[cite: 2].
                 </p>
             </div>
             <div class="card">
                 <div class="card-icon">📅</div>
                 <h3>2. Appointment &amp; Admin</h3>
                 <p>
-                    Confirm follow-up attendance, routine medication adherence, blood test check-in, repeat prescription requests, and administrative certificate queries.
+                    Confirm follow-up attendance, routine medication adherence, blood test check-in, repeat prescription requests, and administrative certificate queries[cite: 2].
                 </p>
             </div>
             <div class="card">
                 <div class="card-icon">🩺</div>
                 <h3>3. Basic Symptoms &amp; Communication</h3>
                 <p>
-                    Structured duration and symptom checks with automatic negation awareness (e.g. "no chest pain"), generating non-clinical communication cues for staff awareness.
+                    Structured duration and symptom checks with automatic negation awareness (e.g. "no chest pain"), generating non-clinical communication cues for staff awareness[cite: 2].
                 </p>
             </div>
         </div>
@@ -493,7 +692,7 @@
     <section class="section" id="differentiation" style="padding-top: 0;">
         <div class="section-header">
             <h2>Why NHS Practices Choose MedOriva AI</h2>
-            <p>Comparing general-purpose consumer translation tools with MedOriva AI's structured healthcare communication architecture.</p>
+            <p>Comparing general-purpose consumer translation tools with MedOriva AI's structured healthcare communication architecture[cite: 2].</p>
         </div>
         <div class="comparison-table-wrapper">
             <table class="comp-table">
@@ -544,20 +743,20 @@
     <section class="section" id="pricing">
         <div class="section-header">
             <h2>Transparent Practice-Level SaaS Pricing</h2>
-            <p>Predictable monthly subscriptions based on practice list size, bypassing lengthy NHS procurement cycles. All tiers include a 3-month free supported pilot.</p>
+            <p>Predictable monthly subscriptions based on practice list size, bypassing lengthy NHS procurement cycles. All tiers include a 3-month free supported pilot[cite: 2].</p>
         </div>
         <div class="pricing-grid">
             <div class="pricing-card">
                 <div>
                     <div class="pricing-tier">Small Practice Tier</div>
-                    <div class="pricing-desc">Under 6,000 registered patient list</div>
+                    <div class="pricing-desc">Under 6,000 registered patient list[cite: 2]</div>
                     <div class="pricing-price">£49 <span>/ month</span></div>
-                    <div class="pricing-annual">£588 billed annually</div>
+                    <div class="pricing-annual">£588 billed annually[cite: 2]</div>
                     <ul class="pricing-features">
-                        <li>All 3 Context-Locked Workflows</li>
-                        <li>9 Core MVP Languages Included</li>
-                        <li>Guided Prompt Library Access</li>
-                        <li>Ephemeral Session Processing</li>
+                        <li>All 3 Context-Locked Workflows[cite: 2]</li>
+                        <li>9 Core MVP Languages Included[cite: 2]</li>
+                        <li>Guided Prompt Library Access[cite: 2]</li>
+                        <li>Ephemeral Session Processing[cite: 2]</li>
                         <li>Direct Practice Manager Support</li>
                     </ul>
                 </div>
@@ -568,14 +767,14 @@
                 <div class="pricing-badge">Most Popular</div>
                 <div>
                     <div class="pricing-tier">Medium Practice Tier</div>
-                    <div class="pricing-desc">6,000 to 12,000 registered patient list</div>
+                    <div class="pricing-desc">6,000 to 12,000 registered patient list[cite: 2]</div>
                     <div class="pricing-price">£99 <span>/ month</span></div>
-                    <div class="pricing-annual">£1,188 billed annually</div>
+                    <div class="pricing-annual">£1,188 billed annually[cite: 2]</div>
                     <ul class="pricing-features">
                         <li>Everything in Small Tier</li>
                         <li>Reception Multi-Terminal Access</li>
-                        <li>Staff Attention Symptom Notifications</li>
-                        <li>Understanding Check Back-Translation</li>
+                        <li>Staff Attention Symptom Notifications[cite: 2]</li>
+                        <li>Understanding Check Back-Translation[cite: 2]</li>
                         <li>Priority Reception Desk Onboarding</li>
                     </ul>
                 </div>
@@ -585,9 +784,9 @@
             <div class="pricing-card">
                 <div>
                     <div class="pricing-tier">Large Practice Tier</div>
-                    <div class="pricing-desc">12,000+ registered patient list / PCN hubs</div>
+                    <div class="pricing-desc">12,000+ registered patient list / PCN hubs[cite: 2]</div>
                     <div class="pricing-price">£149 <span>/ month</span></div>
-                    <div class="pricing-annual">£1,788 billed annually</div>
+                    <div class="pricing-annual">£1,788 billed annually[cite: 2]</div>
                     <ul class="pricing-features">
                         <li>Everything in Medium Tier</li>
                         <li>Unlimited Reception &amp; Nurse Terminals</li>
@@ -607,13 +806,13 @@
             <div class="safety-text">
                 <h3>Clinical Safety &amp; DCB0129 Compliance</h3>
                 <p>
-                    MedOriva AI is designed strictly as an <strong>administrative communication facilitation tool</strong>. It does not provide medical diagnosis, triage classification, clinical decision support, or treatment recommendations.
+                    MedOriva AI is designed strictly as an <strong>administrative communication facilitation tool</strong>[cite: 2]. It does not provide medical diagnosis, triage classification, clinical decision support, or treatment recommendations[cite: 2].
                 </p>
                 <p>
-                    Our platform architecture conforms to NHS DCB0129 Clinical Risk Management standards, embedding mandatory bidirectional understanding checks, neutral visual prompts, and complete staff oversight.
+                    Our platform architecture conforms to NHS DCB0129 Clinical Risk Management standards, embedding mandatory bidirectional understanding checks, neutral visual prompts, and complete staff oversight[cite: 2].
                 </p>
                 <p style="font-size: 13px; color: #94a3b8;">
-                    <strong>🇬🇧 Multi-Language Roadmap:</strong> 9 MVP languages actively supported in normal written script. Commercial launch enables baseline translation across 130+ languages, with validated healthcare packs released progressively.
+                    <strong>🇬🇧 Multi-Language Roadmap:</strong> 9 MVP languages actively supported in normal written script[cite: 2]. Commercial launch enables baseline translation across 130+ languages, with validated healthcare packs released progressively[cite: 2].
                 </p>
             </div>
             <div class="safety-stats">
@@ -650,7 +849,7 @@
                     <span class="faq-toggle">+</span>
                 </div>
                 <div class="faq-answer">
-                    No. MedOriva AI operates on an ephemeral in-memory processing model aligned with UK GDPR data-minimisation principles. No clinical transcripts, patient names, NHS numbers, or identifiable health details are written to disk or relational databases. When an intake session terminates, active memory is purged immediately.
+                    No. MedOriva AI operates on an ephemeral in-memory processing model aligned with UK GDPR data-minimisation principles[cite: 2]. No clinical transcripts, patient names, NHS numbers, or identifiable health details are written to disk or relational databases[cite: 2]. When an intake session terminates, active memory is purged immediately[cite: 2].
                 </div>
             </div>
             <div class="faq-item">
@@ -659,7 +858,7 @@
                     <span class="faq-toggle">+</span>
                 </div>
                 <div class="faq-answer">
-                    No. MedOriva AI is designed to support routine, structured interactions—such as reception arrival, appointment check-in, and basic administrative queries—reducing front-desk delays. Qualified human interpreters remain essential for complex, sensitive, or high-risk clinical consultations.
+                    No. MedOriva AI is designed to support routine, structured interactions—such as reception arrival, appointment check-in, and basic administrative queries—reducing front-desk delays[cite: 2]. Qualified human interpreters remain essential for complex, sensitive, or high-risk clinical consultations[cite: 2].
                 </div>
             </div>
             <div class="faq-item">
@@ -668,7 +867,7 @@
                     <span class="faq-toggle">+</span>
                 </div>
                 <div class="faq-answer">
-                    Our phrase engine evaluates clinical keywords alongside multi-language negation patterns across supported dialects (e.g. detecting "illai", "nahi", "nie", "la", or "no"). If a patient says "nenji vali illai" (no chest pain), the system classifies it as a negative expression and provides a communication confirmation only, preventing false escalation alerts.
+                    Our phrase engine evaluates clinical keywords alongside multi-language negation patterns across supported dialects (e.g. detecting "illai", "nahi", "nie", "la", or "no")[cite: 2]. If a patient says "nenji vali illai" (no chest pain), the system classifies it as a negative expression and provides a communication confirmation only, preventing false escalation alerts[cite: 2].
                 </div>
             </div>
             <div class="faq-item">
@@ -677,8 +876,29 @@
                     <span class="faq-toggle">+</span>
                 </div>
                 <div class="faq-answer">
-                    MedOriva AI aligns with UK GDPR, the Data Protection Act 2018, PECR, and NHS Digital DCB0129 clinical risk management standards, with planned pre-deployment alignment against the NHS Digital Technology Assessment Criteria (DTAC).
+                    MedOriva AI aligns with UK GDPR, the Data Protection Act 2018, PECR, and NHS Digital DCB0129 clinical risk management standards, with planned pre-deployment alignment against the NHS Digital Technology Assessment Criteria (DTAC)[cite: 2].
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Us Section -->
+    <section class="section" id="about">
+        <div class="section-header">
+            <h2>About MedOriva AI Ltd</h2>
+            <p>Eliminating linguistic disparities across UK primary care and outpatient settings[cite: 2].</p>
+        </div>
+        <div style="max-width: 820px; margin: 0 auto; color: var(--text-muted); font-size: 15px; line-height: 1.8;">
+            <p style="margin-bottom: 18px;">
+                Founded in the United Kingdom, <strong>MedOriva AI Ltd</strong> was established by <strong>Sanjay Saravanaperumal</strong> (MSc Digital Marketing, Ravensbourne University London) to address communication barriers encountered by non-English speaking patients at primary care reception desks[cite: 2].
+            </p>
+            <p style="margin-bottom: 18px;">
+                By combining immediate two-way translation, plain-language simplification, and context-locked prompts, MedOriva AI supports clear communication during routine consultations without replacing registered clinicians or interpreters[cite: 2].
+            </p>
+            <div style="background: var(--bg-card); padding: 20px 24px; border-radius: 10px; border-left: 3px solid var(--primary-light); margin-top: 24px;">
+                <p style="font-size: 14px; color: #cbd5e1; margin-bottom: 0;">
+                    <strong>🔬 High-Assurance Architecture:</strong> Built for low-overhead adoption across primary care networks and integrated care systems, operating entirely with ephemeral processing and zero persistent conversational data storage[cite: 2].
+                </p>
             </div>
         </div>
     </section>
@@ -687,7 +907,7 @@
     <section class="section" id="contact">
         <div class="section-header">
             <h2>Request Practice Evaluation / 3-Month Pilot</h2>
-            <p>Direct contact with our founder-led team for GP practice pilot deployment and feedback.</p>
+            <p>Direct contact with our founder-led team for GP practice pilot deployment and feedback[cite: 2].</p>
         </div>
         <div class="contact-wrapper">
             <form id="contactForm" onsubmit="handleContact(event)">
@@ -718,19 +938,19 @@
     <!-- Footer -->
     <footer>
         <div class="disclaimer-box">
-            <strong>REGULATORY COMPLIANCE NOTICE:</strong> MedOriva AI is an operational multilingual communication aid for healthcare reception and administrative desks. It is not a medical device and does not provide clinical diagnosis, triage classification, or treatment advice. Attending healthcare staff retain complete responsibility for applying clinical judgement and local practice protocols.
+            <strong>REGULATORY COMPLIANCE NOTICE:</strong> MedOriva AI is an operational multilingual communication aid for healthcare reception and administrative desks[cite: 2]. It is not a medical device and does not provide clinical diagnosis, triage classification, or treatment advice[cite: 2]. Attending healthcare staff retain complete responsibility for applying clinical judgement and local practice protocols[cite: 2].
         </div>
 
         <div class="footer-grid">
             <div class="footer-col">
                 <h4>MedOriva AI Ltd</h4>
-                <p style="margin-bottom: 12px;">Structured multilingual communication facilitation for NHS primary care environments.</p>
-                <p><strong>Company Registration:</strong> 17428312</p>
-                <p><strong>Jurisdiction:</strong> England and Wales</p>
+                <p style="margin-bottom: 12px;">Structured multilingual communication facilitation for NHS primary care environments[cite: 2].</p>
+                <p><strong>Company Registration:</strong> 17428312[cite: 2]</p>
+                <p><strong>Jurisdiction:</strong> England and Wales[cite: 2]</p>
                 <p style="margin-top: 10px;">
-                    <strong>Founder:</strong> Sanjay Saravanaperumal (MSc Digital Marketing, Ravensbourne)<br>
-                    <strong>Email:</strong> <a href="mailto:sanjaythillai@gmail.com" style="color: var(--primary-light);">sanjaythillai@gmail.com</a><br>
-                    <strong>Phone:</strong> <a href="tel:+447778095553" style="color: var(--primary-light);">07778 095553</a>
+                    <strong>Founder:</strong> Sanjay Saravanaperumal (MSc Digital Marketing, Ravensbourne)[cite: 2]<br>
+                    <strong>Email:</strong> <a href="mailto:sanjaythillai@gmail.com" style="color: var(--primary-light);">sanjaythillai@gmail.com</a>[cite: 2]<br>
+                    <strong>Phone:</strong> <a href="tel:+447778095553" style="color: var(--primary-light);">07778 095553</a>[cite: 2]
                 </p>
             </div>
             <div class="footer-col">
@@ -754,11 +974,11 @@
             <div class="footer-col">
                 <h4>Standards Alignment</h4>
                 <ul>
-                    <li>UK GDPR &amp; DPA 2018</li>
-                    <li>Data Minimisation by Design</li>
-                    <li>DCB0129 Clinical Safety</li>
-                    <li>NHS DTAC Aligned Roadmap</li>
-                    <li>PECR Compliant</li>
+                    <li>UK GDPR &amp; DPA 2018[cite: 2]</li>
+                    <li>Data Minimisation by Design[cite: 2]</li>
+                    <li>DCB0129 Clinical Safety[cite: 2]</li>
+                    <li>NHS DTAC Aligned Roadmap[cite: 2]</li>
+                    <li>PECR Compliant[cite: 2]</li>
                 </ul>
             </div>
         </div>
@@ -766,7 +986,7 @@
         <div class="footer-bottom">
             <div>
                 <div>&copy; 2026 <strong>MedOriva AI Ltd</strong>. All rights reserved.</div>
-                <div style="font-size: 12px; color: #64748b;">Company Number: 17428312 | Registered in England and Wales | Barnet, London</div>
+                <div style="font-size: 12px; color: #64748b;">Company Number: 17428312 | Registered in England and Wales | Barnet, London[cite: 2]</div>
             </div>
             <div style="font-size: 12px; color: #64748b;">UK Innovator Founder Visa Endorsement Candidate Pack.</div>
         </div>
@@ -776,7 +996,7 @@
     <div class="cookie-banner" id="cookieBanner">
         <h4>UK GDPR &amp; Cookie Compliance</h4>
         <p>
-            MedOriva AI uses only strictly necessary session cookies to authenticate authorized practice staff. No advertising trackers or third-party analytical cookies are deployed.
+            MedOriva AI uses only strictly necessary session cookies to authenticate authorized practice staff[cite: 2]. No advertising trackers or third-party analytical cookies are deployed[cite: 2].
         </p>
         <div class="cookie-actions">
             <button class="cookie-btn accept" onclick="acceptCookies()">Accept Essential Only</button>
@@ -791,11 +1011,11 @@
             <h3>Privacy Policy (UK GDPR Aligned)</h3>
             <p><strong>Effective Date:</strong> September 2026</p>
             <h4>1. Ephemeral In-Memory Processing</h4>
-            <p>MedOriva AI processes patient dialogue exclusively in volatile RAM during active sessions. No patient names, NHS numbers, or identifiable medical details are written to disk or relational databases by default.</p>
+            <p>MedOriva AI processes patient dialogue exclusively in volatile RAM during active sessions[cite: 2]. No patient names, NHS numbers, or identifiable medical details are written to disk or relational databases by default[cite: 2].</p>
             <h4>2. Data Minimisation Principle</h4>
-            <p>In accordance with Article 5(1)(c) of the UK GDPR, data processing is strictly limited to real-time translation payloads required during an ongoing reception exchange.</p>
+            <p>In accordance with Article 5(1)(c) of the UK GDPR, data processing is strictly limited to real-time translation payloads required during an ongoing reception exchange[cite: 2].</p>
             <h4>3. Staff Account Administration</h4>
-            <p>Staff credentials and encrypted session cookies are processed under legitimate operational governance.</p>
+            <p>Staff credentials and encrypted session cookies are processed under legitimate operational governance[cite: 2].</p>
         </div>
     </div>
 
@@ -803,13 +1023,13 @@
         <div class="modal-content">
             <button class="modal-close" onclick="closeModal('termsModal')">&times;</button>
             <h3>Terms of Service</h3>
-            <p><strong>Version:</strong> 2.1 (Pilot Suite 2026)</p>
+            <p><strong>Version:</strong> 2.1 (Pilot Suite 2026)[cite: 2]</p>
             <h4>1. Operational Scope of Use</h4>
-            <p>MedOriva AI is provided strictly to facilitate routine communication between healthcare staff and patients. It does not replace medical practitioners or clinical judgement.</p>
+            <p>MedOriva AI is provided strictly to facilitate routine communication between healthcare staff and patients[cite: 2]. It does not replace medical practitioners or clinical judgement[cite: 2].</p>
             <h4>2. Professional Responsibility</h4>
-            <p>Attending healthcare professionals retain statutory responsibility for patient triage, physical examinations, diagnosis, and treatment decisions.</p>
+            <p>Attending healthcare professionals retain statutory responsibility for patient triage, physical examinations, diagnosis, and treatment decisions[cite: 2].</p>
             <h4>3. Proprietary Intellectual Property</h4>
-            <p>All phrase simplification algorithms, keyword parsing logic, and architectural assets are the intellectual property of MedOriva AI Ltd (Company Number: 17428312).</p>
+            <p>All phrase simplification algorithms, keyword parsing logic, and architectural assets are the intellectual property of MedOriva AI Ltd (Company Number: 17428312)[cite: 2].</p>
         </div>
     </div>
 
@@ -817,14 +1037,14 @@
         <div class="modal-content">
             <button class="modal-close" onclick="closeModal('cookiesModal')">&times;</button>
             <h3>Cookie Policy</h3>
-            <p><strong>Compliance:</strong> UK PECR &amp; Data Protection Act 2018</p>
+            <p><strong>Compliance:</strong> UK PECR &amp; Data Protection Act 2018[cite: 2]</p>
             <h4>1. Strictly Necessary Cookies Only</h4>
             <ul>
-                <li><code>session</code>: Encrypted cryptographic cookie to authenticate active staff sessions.</li>
+                <li><code>session</code>: Encrypted cryptographic cookie to authenticate active staff sessions[cite: 2].</li>
                 <li><code>medoriva_cookie_consent</code>: Local record verifying cookie notice acknowledgement.</li>
             </ul>
             <h4>2. Third-Party Trackers</h4>
-            <p>We do not deploy marketing, advertising, cross-site trackers, or commercial pixels.</p>
+            <p>We do not deploy marketing, advertising, cross-site trackers, or commercial pixels[cite: 2].</p>
         </div>
     </div>
 
@@ -832,11 +1052,11 @@
         <div class="modal-content">
             <button class="modal-close" onclick="closeModal('dcbModal')">&times;</button>
             <h3>Clinical Safety Statement (DCB0129)</h3>
-            <p>MedOriva AI aligns with NHS Digital DCB0129 clinical risk management standards:</p>
+            <p>MedOriva AI aligns with NHS Digital DCB0129 clinical risk management standards[cite: 2]:</p>
             <ul>
-                <li><strong>Non-Clinical Staff Notifications:</strong> Automated symptom phrase identification triggers distinct visual notifications for staff awareness under practice protocols.</li>
-                <li><strong>Negation Handling:</strong> Validates negative qualifiers ("no chest pain", "nenji vali illai") to prevent false escalation alarms.</li>
-                <li><strong>Verification Subtitles:</strong> Displays English verification text alongside native script translations to confirm message clarity.</li>
+                <li><strong>Non-Clinical Staff Notifications:</strong> Automated symptom phrase identification triggers distinct visual notifications for staff awareness under practice protocols[cite: 2].</li>
+                <li><strong>Negation Handling:</strong> Validates negative qualifiers ("no chest pain", "nenji vali illai") to prevent false escalation alarms[cite: 2].</li>
+                <li><strong>Verification Subtitles:</strong> Displays English verification text alongside native script translations to confirm message clarity[cite: 2].</li>
             </ul>
         </div>
     </div>
