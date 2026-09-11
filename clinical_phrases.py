@@ -89,14 +89,14 @@ DURATION_PATTERNS = [
 
 # ============================================================
 # COMPREHENSIVE CLINICAL SYMPTOM REGISTRY (ALL 9 LANGUAGES)
-# Explicit specific anatomical phrases included with phonetic typos
+# Explicit specific anatomical phrases with phonetic transliteration
 # ============================================================
 MULTI_LANG_SYMPTOMS = {
     "chest pain": {
         "english": "chest pain",
         "ta": ("நெஞ்சு வலி", ["nenji vali", "nenju vali", "nenjil vali", "nenjula vali", "enji vali", "enju vali", "maar vali", "நெஞ்சு வலி", "நெஞ்சில் வலி"]),
         "hi": ("सीने में दर्द", ["seene mein dard", "chest mein dard", "chhati mein dard", "seene me dard", "sene me dard", "sine mein dard", "सीने में दर्द"]),
-        "ml": ("നെഞ്ചുവേദന", ["nenjil vali", "nenju vali", "nenjile vedana", "നെഞ്ചുവേദന", "നെഞ്ചിൽ വേദന"]),
+        "ml": ("നെഞ്ചുവേദന", ["nenjil vali", "nenju vali", "nenjile vedana", "nenju vedana", "നെഞ്ചുവേദന", "നെഞ്ചിൽ വേദന"]),
         "pl": ("ból w klatce piersiowej", ["bol w klatce piersiowej", "bol klatki piersiowej", "bol klatki", "bol w klatce", "pieczenie w klatce"]),
         "ar": ("ألم في الصدر", ["alam fi al sadr", "alam fi sadr", "alam sedr", "wagah sedr", "وجع في الصدر", "ألم في الصدر"]),
         "ur": ("سینے میں درد", ["seene mein dard", "seene me dard", "dil mein dard", "سینے میں درد"]),
@@ -132,24 +132,24 @@ MULTI_LANG_SYMPTOMS = {
         "english": "back pain",
         "ta": ("முதுகு வலி", ["muthugu vali", "mudhugu vali", "iduppu vali", "முதுகு வலி"]),
         "hi": ("पीठ दर्द", ["kamar dard", "peeth dard", "peeth mein dard", "kamar mein dard", "पीठ में दर्द"]),
-        "ml": ("നടുവേദന", ["naduvedana", "puram vedana", "നടുവേദന"]),
-        "pl": ("ból pleców", ["bol plecow", "bola mnie plecy"]),
+        "ml": ("നടുവേദന", ["naduvedana", "puram vedana", "നടുവേദന", "പുറംവേദന"]),
+        "pl": ("ból pleców", ["bol plecow", "bola mnie plecy", "ból pleców"]),
         "ar": ("ألم في الظهر", ["alam fi al dhahr", "alam dhahr", "ألم في الظهر"]),
         "ur": ("کمر درد", ["kamar dard", "peeth mein dard", "کمر میں درد"]),
         "bn": ("পিঠে ব্যথা", ["pithe betha", "komor betha", "পিঠে ব্যথা"]),
-        "so": ("dhabar xanuun", ["dhabar xanuun"]),
+        "so": ("dhabar xanuun", ["dhabar xanuun", "dhabarka oo i xanuunaya"]),
         "ro": ("durere de spate", ["durere de spate", "ma doare spatele"])
     },
     "throat pain": {
         "english": "sore throat",
         "ta": ("தொண்டை வலி", ["thondai vali", "thonda vali", "தொண்டை வலி"]),
         "hi": ("गले में दर्द", ["gale mein dard", "gala kharab", "gale me dard", "गले में दर्द"]),
-        "ml": ("തണ്ടവേദന", ["thondavedana", "തൊണ്ടവേദന"]),
-        "pl": ("ból gardła", ["bol gardla", "boli mnie gardlo"]),
+        "ml": ("തൊണ്ടവേദന", ["thondavedana", "thonda vedana", "തൊണ്ടവേദന"]),
+        "pl": ("ból gardła", ["bol gardla", "boli mnie gardlo", "pieczenie w gardle"]),
         "ar": ("ألم في الحلق", ["alam fi al halq", "alam halq", "ألم في الحلق"]),
         "ur": ("گلے میں درد", ["galay mein dard", "gala kharab", "گلے میں درد"]),
         "bn": ("গলায় ব্যথা", ["golar betha", "gola betha", "গলায় ব্যথা"]),
-        "so": ("cunaha xanuun", ["cunaha xanuun"]),
+        "so": ("cunaha xanuun", ["cunaha xanuun", "dhuun xanuun"]),
         "ro": ("durere în gât", ["durere in gat", "durere în gât", "ma doare in gat"])
     },
     "leg pain": {
@@ -181,7 +181,7 @@ MULTI_LANG_SYMPTOMS = {
         "ta": ("மூச்சு திணறல்", ["moochu varadhu", "moochu pidikuthu", "moochu thinaral", "moochu vida mudiyala", "மூச்சு திணறல்", "மூச்சு விட முடியவில்லை"]),
         "hi": ("सांस लेने में तकलीफ", ["saans lene mein takleef", "saans nahi aa rahi", "dam ghut raha", "saans phoolna", "सांस लेने में तकलीफ"]),
         "ml": ("ശ്വാസതടസ്സം", ["shwasam muttunnu", "shwasam edukkal budhimuttu", "ശ്വാസം മുട്ടൽ", "ശ്വാസതടസ്സം"]),
-        "pl": ("duszności", ["trudnosci z oddychaniem", "duszno mi", "brak powietrza"]),
+        "pl": ("duszności", ["trudnosci z oddychaniem", "duszno mi", "brak powietrza", "duszności"]),
         "ar": ("صعوبة في التنفس", ["dheeq tanfus", "diq f tanaffus", "mushkila bil nafas", "صعوبة في التنفس"]),
         "ur": ("سانس لینے میں دشواری", ["saans lene mein dushwari", "saans ruk rahi hai", "سانس لینے میں دشواری"]),
         "bn": ("শ্বাসকষ্ট", ["shwash nite koshto", "shwaskoshto", "dom bondho", "শ্বাস নিতে কষ্ট"]),
@@ -192,13 +192,13 @@ MULTI_LANG_SYMPTOMS = {
         "english": "bleeding",
         "ta": ("இரத்தப்போக்கு", ["iratham varuthu", "ratham varuthu", "irathapokku", "இரத்தப்போக்கு"]),
         "hi": ("खून बहना", ["khoon nikal raha", "khoon beh raha", "khoon aa raha", "खून आ रहा है"]),
-        "ml": ("രക്തസ്രാവം", ["raktham varunnu", "chora varunnu", "രക്തം വരുന്നു"]),
-        "pl": ("krwawienie", ["krwawie", "duzo krwi", "krwotok"]),
+        "ml": ("രക്തസ്രാവം", ["raktham varunnu", "chora varunnu", "രക്തം വരുന്നു", "രക്തസ്രാവം"]),
+        "pl": ("krwawienie", ["krwawie", "duzo krwi", "krwotok", "krwawienie"]),
         "ar": ("نزيف", ["nazif", "dam yanzif", "نزيف"]),
         "ur": ("خون بہنا", ["khoon beh raha hai", "خون بہہ رہا ہے"]),
-        "bn": ("রক্তপাত", ["rokto porchhe", "rokto ber hochhe", "রক্ত পড়ছে"]),
+        "bn": ("রক্তপাত", ["rokto porchhe", "rokto ber hochhe", "রক্ত পড়ছে", "রক্তপাত"]),
         "so": ("dhiig bax", ["dhiig ayaa iga socda", "dhiig bax"]),
-        "ro": ("sângerare", ["sangerez", "curge sange", "hemoragie"])
+        "ro": ("sângerare", ["sangerez", "curge sange", "hemoragie", "sângerare"])
     },
     "dizziness": {
         "english": "dizziness",
@@ -209,8 +209,44 @@ MULTI_LANG_SYMPTOMS = {
         "ar": ("دوخة", ["dayikh", "dawkha", "dawar", "دوار", "دوخة"]),
         "ur": ("چکر آنا", ["chakkar aa rahe hain", "chakkar", "چکر"]),
         "bn": ("মাথা ঘোরা", ["matha ghurche", "matha ghora", "মাথা ঘোরা"]),
-        "so": ("dawakhaad", ["madhax wareeg", "dawakhaad"]),
+        "so": ("dawakhaad", ["madhax wareeg", "dawakhaad", "wareer"]),
         "ro": ("amețeală", ["ametit", "ameteli", "amețeală"])
+    },
+    "vomiting": {
+        "english": "vomiting",
+        "ta": ("வாந்தி", ["vaanthi", "vandi", "vaandhi", "வாந்தி"]),
+        "hi": ("उल्टी", ["ulti", "qay", "ulti aa rahi", "उल्टी"]),
+        "ml": ("ഛർദ്ദി", ["chardhi", "chardi", "ഛർദ്ദി"]),
+        "pl": ("wymioty", ["wymioty", "wymiotuje", "mdlosci", "nudnosci"]),
+        "ar": ("قيء", ["qay", "istifragh", "arjaa", "قيء", "استفراغ"]),
+        "ur": ("الٹی", ["ulti", "qay", "الٹی"]),
+        "bn": ("বমি", ["bomi", "bomi hochhe", "বমি"]),
+        "so": ("matag", ["matag", "lalabbo"]),
+        "ro": ("vărsături", ["varsaturi", "stare de voma", "voma", "vărsături"])
+    },
+    "cough": {
+        "english": "cough",
+        "ta": ("இருமல்", ["irumal", "irumala irukku", "இருமல்"]),
+        "hi": ("खांसी", ["khansi", "khaansi", "khasi", "खांसी"]),
+        "ml": ("ചുമ", ["chuma", "chumakkunnu", "ചുമ"]),
+        "pl": ("kaszel", ["kaszel", "suchy kaszel", "mokry kaszel"]),
+        "ar": ("سعال", ["sual", "kahha", "سعال", "كحة"]),
+        "ur": ("کھانسی", ["khansi", "khaansi", "کھانسی"]),
+        "bn": ("কাশি", ["kashi", "kaashi", "কাশি"]),
+        "so": ("qufac", ["qufac", "qufac joogto ah"]),
+        "ro": ("tuse", ["tuse", "tuse seaca"])
+    },
+    "skin rash": {
+        "english": "skin rash",
+        "ta": ("தோல் தடிப்பு", ["thol thadippu", "arippu", "rash", "தோல் தடிப்பு", "அரிப்பு"]),
+        "hi": ("त्वचा पर दाने", ["daane", "khujli", "chakatte", "दाने", "खुजली"]),
+        "ml": ("തടിപ്പ്", ["thadippu", "chorichil", "തടിപ്പ്", "ചൊറിച്ചിൽ"]),
+        "pl": ("wysypka", ["wysypka", "swedzenie", "swędzenie"]),
+        "ar": ("طفح جلدي", ["tafah jildi", "hikkah", "طفح جلدي", "حكة"]),
+        "ur": ("جلد پر دانے", ["daanay", "kharish", "جلد پر دانے", "خارش"]),
+        "bn": ("ত্বকে ফুসকুড়ি", ["fusuri", "chulkani", "rash", "ফুসকুড়ি", "চুলকানি"]),
+        "so": ("finan", ["finan", "cuncun", "maqaarka oo cuncunaya"]),
+        "ro": ("erupție pe piele", ["eruptie pe piele", "mancarime", "iritatie", "erupție pe piele"])
     },
     # GENERIC FALLBACK - only matches if no specific anatomy was identified
     "pain": {
@@ -228,8 +264,8 @@ MULTI_LANG_SYMPTOMS = {
 }
 
 # ============================================================
-# DETERMINISTIC CANONICAL PATIENT TRANSLATIONS (ALL 9 LANGUAGES)
-# Guarantees verified native clinical output without external API failures
+# DETERMINISTIC CANONICAL PATIENT TRANSLATIONS (ALL 9 LANGUAGES EQUAL)
+# Complete bidirectional responses with positive and negative confirmations
 # ============================================================
 PATIENT_CANONICAL_RESPONSES = {
     "ta": {
@@ -272,6 +308,18 @@ PATIENT_CANONICAL_RESPONSES = {
         "dizziness": {
             "pos": ("I feel dizzy", "எனக்கு தலை சுற்றுகிறது"),
             "neg": ("I do not feel dizzy", "எனக்கு தலை சுற்றல் இல்லை")
+        },
+        "vomiting": {
+            "pos": ("I am vomiting", "எனக்கு வாந்தி வருகிறது"),
+            "neg": ("I am not vomiting", "எனக்கு வாந்தி இல்லை")
+        },
+        "cough": {
+            "pos": ("I have a cough", "எனக்கு இருமல் இருக்கிறது"),
+            "neg": ("I do not have a cough", "எனக்கு இருமல் இல்லை")
+        },
+        "skin rash": {
+            "pos": ("I have a skin rash", "எனக்கு தோல் தடிப்பு இருக்கிறது"),
+            "neg": ("I do not have a skin rash", "எனக்கு தோல் தடிப்பு இல்லை")
         },
         "pain": {
             "pos": ("I have pain", "எனக்கு வலி இருக்கிறது"),
@@ -319,6 +367,18 @@ PATIENT_CANONICAL_RESPONSES = {
             "pos": ("I feel dizzy", "मुझे चक्कर आ रहा है"),
             "neg": ("I do not feel dizzy", "मुझे चक्कर नहीं आ रहा है")
         },
+        "vomiting": {
+            "pos": ("I am vomiting", "मुझे उल्टी आ रही है"),
+            "neg": ("I am not vomiting", "मुझे उल्टी नहीं आ रही है")
+        },
+        "cough": {
+            "pos": ("I have a cough", "मुझे खांसी है"),
+            "neg": ("I do not have a cough", "मुझे खांसी नहीं है")
+        },
+        "skin rash": {
+            "pos": ("I have a skin rash", "मेरी त्वचा पर दाने हैं"),
+            "neg": ("I do not have a skin rash", "मेरी त्वचा पर दाने नहीं हैं")
+        },
         "pain": {
             "pos": ("I have pain", "मुझे दर्द हो रहा है"),
             "neg": ("I do not have pain", "मुझे दर्द नहीं है")
@@ -337,6 +397,18 @@ PATIENT_CANONICAL_RESPONSES = {
             "pos": ("I have stomach pain", "എനിക്ക് വയറുവേദനയുണ്ട്"),
             "neg": ("I do not have stomach pain", "എനിക്ക് വയറുവേദനയില്ല")
         },
+        "back pain": {
+            "pos": ("I have back pain", "എനിക്ക് നടുവേദനയുണ്ട്"),
+            "neg": ("I do not have back pain", "എനിക്ക് നടുവേദനയില്ല")
+        },
+        "throat pain": {
+            "pos": ("I have a sore throat", "എനിക്ക് തൊണ്ടവേദനയുണ്ട്"),
+            "neg": ("I do not have a sore throat", "എനിക്ക് തൊണ്ടവേദനയില്ല")
+        },
+        "leg pain": {
+            "pos": ("I have leg pain", "എനിക്ക് കാൽ വേദനയുണ്ട്"),
+            "neg": ("I do not have leg pain", "എനിക്ക് കാൽ വേദനയില്ല")
+        },
         "fever": {
             "pos": ("I have a fever", "എനിക്ക് പനിയുണ്ട്"),
             "neg": ("I do not have a fever", "എനിക്ക് പനിയില്ല")
@@ -344,6 +416,26 @@ PATIENT_CANONICAL_RESPONSES = {
         "breathing difficulty": {
             "pos": ("I have difficulty breathing", "എനിക്ക് ശ്വാസതടസ്സമുണ്ട്"),
             "neg": ("I do not have difficulty breathing", "എനിക്ക് ശ്വാസതടസ്സമില്ല")
+        },
+        "bleeding": {
+            "pos": ("I am bleeding", "രക്തസ്രാവം ഉണ്ട്"),
+            "neg": ("I am not bleeding", "രക്തസ്രാവം ഇല്ല")
+        },
+        "dizziness": {
+            "pos": ("I feel dizzy", "എനിക്ക് തലകറക്കം ഉണ്ട്"),
+            "neg": ("I do not feel dizzy", "എനിക്ക് തലകറക്കം ഇല്ല")
+        },
+        "vomiting": {
+            "pos": ("I am vomiting", "എനിക്ക് ഛർദ്ദിയുണ്ട്"),
+            "neg": ("I am not vomiting", "എനിക്ക് ഛർദ്ദിയില്ല")
+        },
+        "cough": {
+            "pos": ("I have a cough", "എനിക്ക് ചുമയുണ്ട്"),
+            "neg": ("I do not have a cough", "എനിക്ക് ചുമയില്ല")
+        },
+        "skin rash": {
+            "pos": ("I have a skin rash", "എനിക്ക് തടിപ്പുണ്ട്"),
+            "neg": ("I do not have a skin rash", "എനിക്ക് തടിപ്പില്ല")
         },
         "pain": {
             "pos": ("I have pain", "എനിക്ക് വേദനയുണ്ട്"),
@@ -363,6 +455,18 @@ PATIENT_CANONICAL_RESPONSES = {
             "pos": ("I have stomach pain", "Mam ból brzucha"),
             "neg": ("I do not have stomach pain", "Nie mam bólu brzucha")
         },
+        "back pain": {
+            "pos": ("I have back pain", "Mam ból pleców"),
+            "neg": ("I do not have back pain", "Nie mam bólu pleców")
+        },
+        "throat pain": {
+            "pos": ("I have a sore throat", "Mam ból gardła"),
+            "neg": ("I do not have a sore throat", "Nie mam bólu gardła")
+        },
+        "leg pain": {
+            "pos": ("I have leg pain", "Mam ból nogi"),
+            "neg": ("I do not have leg pain", "Nie mam bólu nogi")
+        },
         "fever": {
             "pos": ("I have a fever", "Mam gorączkę"),
             "neg": ("I do not have a fever", "Nie mam gorączki")
@@ -370,6 +474,26 @@ PATIENT_CANONICAL_RESPONSES = {
         "breathing difficulty": {
             "pos": ("I have difficulty breathing", "Mam trudności z oddychaniem"),
             "neg": ("I do not have difficulty breathing", "Nie mam trudności z oddychaniem")
+        },
+        "bleeding": {
+            "pos": ("I am bleeding", "Mam krwawienie"),
+            "neg": ("I am not bleeding", "Nie mam krwawienia")
+        },
+        "dizziness": {
+            "pos": ("I feel dizzy", "Mam zawroty głowy"),
+            "neg": ("I do not feel dizzy", "Nie mam zawrotów głowy")
+        },
+        "vomiting": {
+            "pos": ("I am vomiting", "Mam wymioty"),
+            "neg": ("I am not vomiting", "Nie mam wymiotów")
+        },
+        "cough": {
+            "pos": ("I have a cough", "Mam kaszel"),
+            "neg": ("I do not have a cough", "Nie mam kaszlu")
+        },
+        "skin rash": {
+            "pos": ("I have a skin rash", "Mam wysypkę"),
+            "neg": ("I do not have a skin rash", "Nie mam wysypki")
         },
         "pain": {
             "pos": ("I have pain", "Odczuwam ból"),
@@ -389,6 +513,18 @@ PATIENT_CANONICAL_RESPONSES = {
             "pos": ("I have stomach pain", "أعاني من ألم في المعدة"),
             "neg": ("I do not have stomach pain", "ليس لدي ألم في المعدة")
         },
+        "back pain": {
+            "pos": ("I have back pain", "أعاني من ألم في الظهر"),
+            "neg": ("I do not have back pain", "ليس لدي ألم في الظهر")
+        },
+        "throat pain": {
+            "pos": ("I have a sore throat", "أعاني من ألم في الحلق"),
+            "neg": ("I do not have a sore throat", "ليس لدي ألم في الحلق")
+        },
+        "leg pain": {
+            "pos": ("I have leg pain", "أعاني من ألم في الساق"),
+            "neg": ("I do not have leg pain", "ليس لدي ألم في الساق")
+        },
         "fever": {
             "pos": ("I have a fever", "أعاني من الحمى"),
             "neg": ("I do not have a fever", "ليس لدي حمى")
@@ -396,6 +532,26 @@ PATIENT_CANONICAL_RESPONSES = {
         "breathing difficulty": {
             "pos": ("I have difficulty breathing", "أواجه صعوبة في التنفس"),
             "neg": ("I do not have difficulty breathing", "لا أواجه صعوبة في التنفس")
+        },
+        "bleeding": {
+            "pos": ("I am bleeding", "أعاني من نزيف"),
+            "neg": ("I am not bleeding", "لا أعاني من نزيف")
+        },
+        "dizziness": {
+            "pos": ("I feel dizzy", "أشعر بدوار"),
+            "neg": ("I do not feel dizzy", "لا أشعر بدوار")
+        },
+        "vomiting": {
+            "pos": ("I am vomiting", "أعاني من قيء"),
+            "neg": ("I am not vomiting", "ليس لدي قيء")
+        },
+        "cough": {
+            "pos": ("I have a cough", "أعاني من سعال"),
+            "neg": ("I do not have a cough", "ليس لدي سعال")
+        },
+        "skin rash": {
+            "pos": ("I have a skin rash", "أعاني من طفح جلدي"),
+            "neg": ("I do not have a skin rash", "ليس لدي طفح جلدي")
         },
         "pain": {
             "pos": ("I have pain", "أشعر بالألم"),
@@ -415,13 +571,45 @@ PATIENT_CANONICAL_RESPONSES = {
             "pos": ("I have stomach pain", "میرے پیٹ میں درد ہے"),
             "neg": ("I do not have stomach pain", "میرے پیٹ میں درد نہیں ہے")
         },
+        "back pain": {
+            "pos": ("I have back pain", "میری کمر میں درد ہے"),
+            "neg": ("I do not have back pain", "میری کمر میں درد نہیں ہے")
+        },
+        "throat pain": {
+            "pos": ("I have a sore throat", "میرے گلے میں درد ہے"),
+            "neg": ("I do not have a sore throat", "میرے گلے میں درد نہیں ہے")
+        },
+        "leg pain": {
+            "pos": ("I have leg pain", "میری ٹانگ میں درد ہے"),
+            "neg": ("I do not have leg pain", "میری ٹانگ میں درد نہیں ہے")
+        },
         "fever": {
-            "pos": ("I have a fever", "मुझे بخار ہے"),
+            "pos": ("I have a fever", "مجھے بخار ہے"),
             "neg": ("I do not have a fever", "مجھے بخار نہیں ہے")
         },
         "breathing difficulty": {
             "pos": ("I have difficulty breathing", "مجھے سانس لینے میں دشواری ہے"),
-            "neg": ("I do not have difficulty breathing", "مجھے سانس لینے میں کوئی دشواری نہیں ہے")
+            "neg": ("I do not have difficulty breathing", "मुझे سانس لینے میں کوئی دشواری نہیں ہے")
+        },
+        "bleeding": {
+            "pos": ("I am bleeding", "خون بہہ رہا ہے"),
+            "neg": ("I am not bleeding", "خون نہیں بہہ رہا ہے")
+        },
+        "dizziness": {
+            "pos": ("I feel dizzy", "مجھے چکر آ رہے ہیں"),
+            "neg": ("I do not feel dizzy", "مجھے چکر نہیں آ رہے ہیں")
+        },
+        "vomiting": {
+            "pos": ("I am vomiting", "مجھے الٹی آ رہی ہے"),
+            "neg": ("I am not vomiting", "مجھے الٹی نہیں آ رہی ہے")
+        },
+        "cough": {
+            "pos": ("I have a cough", "مجھے کھانسی ہے"),
+            "neg": ("I do not have a cough", "مجھے کھانسی نہیں ہے")
+        },
+        "skin rash": {
+            "pos": ("I have a skin rash", "میری جلد پر دانے ہیں"),
+            "neg": ("I do not have a skin rash", "میری جلد پر دانے نہیں ہیں")
         },
         "pain": {
             "pos": ("I have pain", "مجھے درد ہو رہا ہے"),
@@ -441,6 +629,18 @@ PATIENT_CANONICAL_RESPONSES = {
             "pos": ("I have stomach pain", "আমার পেটে ব্যথা করছে"),
             "neg": ("I do not have stomach pain", "আমার পেটে ব্যথা নেই")
         },
+        "back pain": {
+            "pos": ("I have back pain", "আমার পিঠে ব্যথা আছে"),
+            "neg": ("I do not have back pain", "আমার পিঠে ব্যথা নেই")
+        },
+        "throat pain": {
+            "pos": ("I have a sore throat", "আমার গলায় ব্যথা করছে"),
+            "neg": ("I do not have a sore throat", "আমার গলায় ব্যথা নেই")
+        },
+        "leg pain": {
+            "pos": ("I have leg pain", "আমার পায়ে ব্যথা আছে"),
+            "neg": ("I do not have leg pain", "আমার পায়ে ব্যথা নেই")
+        },
         "fever": {
             "pos": ("I have a fever", "আমার জ্বর আছে"),
             "neg": ("I do not have a fever", "আমার জ্বর নেই")
@@ -448,6 +648,26 @@ PATIENT_CANONICAL_RESPONSES = {
         "breathing difficulty": {
             "pos": ("I have difficulty breathing", "আমার শ্বাস নিতে কষ্ট হচ্ছে"),
             "neg": ("I do not have difficulty breathing", "আমার শ্বাসকষ্ট নেই")
+        },
+        "bleeding": {
+            "pos": ("I am bleeding", "রক্তপাত হচ্ছে"),
+            "neg": ("I am not bleeding", "রক্তপাত হচ্ছে না")
+        },
+        "dizziness": {
+            "pos": ("I feel dizzy", "আমার মাথা ঘুরছে"),
+            "neg": ("I do not feel dizzy", "আমার মাথা ঘুরছে না")
+        },
+        "vomiting": {
+            "pos": ("I am vomiting", "আমার বমি হচ্ছে"),
+            "neg": ("I am not vomiting", "আমার বমি হচ্ছে না")
+        },
+        "cough": {
+            "pos": ("I have a cough", "আমার কাশি আছে"),
+            "neg": ("I do not have a cough", "আমার কাশি নেই")
+        },
+        "skin rash": {
+            "pos": ("I have a skin rash", "আমার ত্বকে ফুসকুড়ি আছে"),
+            "neg": ("I do not have a skin rash", "আমার ত্বকে ফুসকুড়ি নেই")
         },
         "pain": {
             "pos": ("I have pain", "আমার ব্যথা আছে"),
@@ -467,6 +687,18 @@ PATIENT_CANONICAL_RESPONSES = {
             "pos": ("I have stomach pain", "Waxaan qabaa calool xanuun"),
             "neg": ("I do not have stomach pain", "Ma qabo calool xanuun")
         },
+        "back pain": {
+            "pos": ("I have back pain", "Waxaan qabaa dhabar xanuun"),
+            "neg": ("I do not have back pain", "Ma qabo dhabar xanuun")
+        },
+        "throat pain": {
+            "pos": ("I have a sore throat", "Waxaan qabaa cunaha xanuun"),
+            "neg": ("I do not have a sore throat", "Ma qabo cunaha xanuun")
+        },
+        "leg pain": {
+            "pos": ("I have leg pain", "Waxaan qabaa lug xanuun"),
+            "neg": ("I do not have leg pain", "Ma qabo lug xanuun")
+        },
         "fever": {
             "pos": ("I have a fever", "Waxaan qabaa qandho"),
             "neg": ("I do not have a fever", "Ma qabo wax qandho ah")
@@ -474,6 +706,26 @@ PATIENT_CANONICAL_RESPONSES = {
         "breathing difficulty": {
             "pos": ("I have difficulty breathing", "Waxaan dhib ku qabaa neefsashada"),
             "neg": ("I do not have difficulty breathing", "Dhib kuma qabo neefsashada")
+        },
+        "bleeding": {
+            "pos": ("I am bleeding", "Dhiig ayaa iga socda"),
+            "neg": ("I am not bleeding", "Dhiig igama socdo")
+        },
+        "dizziness": {
+            "pos": ("I feel dizzy", "Waxaan dareemayaa dawakhaad"),
+            "neg": ("I do not feel dizzy", "Ma dareemayo dawakhaad")
+        },
+        "vomiting": {
+            "pos": ("I am vomiting", "Waxaan qabaa matag"),
+            "neg": ("I do not have vomiting", "Ma qabo matag")
+        },
+        "cough": {
+            "pos": ("I have a cough", "Waxaan qabaa qufac"),
+            "neg": ("I do not have a cough", "Ma qabo qufac")
+        },
+        "skin rash": {
+            "pos": ("I have a skin rash", "Waxaan leeyahay finan"),
+            "neg": ("I do not have a skin rash", "Ma lihi finan")
         },
         "pain": {
             "pos": ("I have pain", "Xanuun ayaan dareemayaa"),
@@ -493,6 +745,18 @@ PATIENT_CANONICAL_RESPONSES = {
             "pos": ("I have stomach pain", "Am dureri de stomac"),
             "neg": ("I do not have stomach pain", "Nu am dureri de stomac")
         },
+        "back pain": {
+            "pos": ("I have back pain", "Am dureri de spate"),
+            "neg": ("I do not have back pain", "Nu am dureri de spate")
+        },
+        "throat pain": {
+            "pos": ("I have a sore throat", "Mă doare în gât"),
+            "neg": ("I do not have a sore throat", "Nu mă doare în gât")
+        },
+        "leg pain": {
+            "pos": ("I have leg pain", "Mă doare piciorul"),
+            "neg": ("I do not have leg pain", "Nu mă doare piciorul")
+        },
         "fever": {
             "pos": ("I have a fever", "Am febră"),
             "neg": ("I do not have a fever", "Nu am febră")
@@ -500,6 +764,26 @@ PATIENT_CANONICAL_RESPONSES = {
         "breathing difficulty": {
             "pos": ("I have difficulty breathing", "Am dificultăți de respirație"),
             "neg": ("I do not have difficulty breathing", "Nu am dificultăți de respirație")
+        },
+        "bleeding": {
+            "pos": ("I am bleeding", "Sângerez"),
+            "neg": ("I am not bleeding", "Nu sângerez")
+        },
+        "dizziness": {
+            "pos": ("I feel dizzy", "Am amețeli"),
+            "neg": ("I do not feel dizzy", "Nu am amețeli")
+        },
+        "vomiting": {
+            "pos": ("I am vomiting", "Am vărsături"),
+            "neg": ("I do not have vomiting", "Nu am vărsături")
+        },
+        "cough": {
+            "pos": ("I have a cough", "Am tuse"),
+            "neg": ("I do not have a cough", "Nu am tuse")
+        },
+        "skin rash": {
+            "pos": ("I have a skin rash", "Am o erupție pe piele"),
+            "neg": ("I do not have a skin rash", "Nu am erupții pe piele")
         },
         "pain": {
             "pos": ("I have pain", "Am o durere"),
@@ -696,7 +980,7 @@ GUIDED_PROMPTS = {
 }
 
 # ============================================================
-# LONGEST-FIRST SYMPTOM PARSER (FIXES GREEDY OVERLAP BUG)
+# LONGEST-FIRST SYMPTOM PARSER (PREVENTS GREEDY OVERLAP)
 # ============================================================
 def extract_symptom(text, lang_code):
     """
@@ -704,6 +988,9 @@ def extract_symptom(text, lang_code):
     CRITICAL: Evaluates aliases sorted by length DESCENDING so specific phrases
     like 'nenji vali' or 'thalai vali' match before generic single tokens like 'vali' or 'dard'.
     """
+    if not text:
+        return None, None, None
+
     clean_text = re.sub(r'[^\w\s]', ' ', text.lower()).strip()
     norm = f" {' '.join(clean_text.split())} "
 
@@ -737,6 +1024,9 @@ def synthesize_staff_question(text, lang_code):
     Analyzes staff inquiries and deterministically returns verified translations
     for all 9 languages without relying on external web APIs.
     """
+    if not text:
+        return None
+
     clean = re.sub(r'[^\w\s]', '', text.lower()).strip()
 
     # DURATION
