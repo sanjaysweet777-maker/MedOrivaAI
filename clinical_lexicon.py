@@ -1,3 +1,45 @@
+# ============================================================
+# SUPPORTED LANGUAGES REGISTRY (9 MVP CORE LANGUAGES)
+# Compatible as both strings and dictionary objects
+# ============================================================
+class _LangEntry(str):
+    def __new__(cls, name, native, code):
+        obj = str.__new__(cls, name)
+        obj.name = name
+        obj.native = native
+        obj.code = code
+        return obj
+
+    def __getitem__(self, key):
+        if key == "name":
+            return self.name
+        if key == "native":
+            return self.native
+        if key == "code":
+            return self.code
+        return super().__getitem__(key)
+
+    def get(self, key, default=None):
+        if key == "name":
+            return self.name
+        if key == "native":
+            return self.native
+        if key == "code":
+            return self.code
+        return default
+
+LANGUAGES = {
+    "ta": _LangEntry("Tamil", "தமிழ்", "ta"),
+    "hi": _LangEntry("Hindi", "हिन्दी", "hi"),
+    "ml": _LangEntry("Malayalam", "മലയാളം", "ml"),
+    "bn": _LangEntry("Bengali", "বাংলা", "bn"),
+    "ur": _LangEntry("Urdu", "اردو", "ur"),
+    "ar": _LangEntry("Arabic", "العربية", "ar"),
+    "pl": _LangEntry("Polish", "Polski", "pl"),
+    "so": _LangEntry("Somali", "Soomaali", "so"),
+    "ro": _LangEntry("Romanian", "Română", "ro"),
+    "en": _LangEntry("English", "English", "en"),
+}
 import re
 
 # ============================================================
