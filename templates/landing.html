@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MedOriva AI — NHS Multilingual Communication Support Platform</title>
-    <meta name="description" content="Structured multilingual communication facilitation software for NHS primary care reception desks, GP surgeries, and routine consultations.">
+    <title>MedOriva AI — Healthcare Multilingual Communication Support Platform</title>
+    <meta name="description" content="Structured multilingual communication facilitation software for healthcare reception desks, GP surgeries, and routine consultations.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -14,22 +14,23 @@
             --primary-dark: #094737;
             --primary-light: #14b8a6;
             --primary-glow: rgba(20, 184, 166, 0.28);
-            --bg-dark: #040813;
-            --bg-card: #0b1325;
-            --bg-card-hover: #101c36;
-            --border: #1a2947;
+            --bg-dark: #030712;
+            --bg-card: #0b1329;
+            --bg-card-hover: #101c3d;
+            --border: #1a2849;
             --border-light: rgba(255, 255, 255, 0.08);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --accent-teal: #14b8a6;
             --accent-blue: #38bdf8;
             --accent-warning: #f59e0b;
+            --accent-danger: #f87171;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
         body { background-color: var(--bg-dark); color: var(--text-main); line-height: 1.6; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
 
-        /* Top Notification Ribbon */
+        /* Announcement Ribbon */
         .top-banner {
             background: linear-gradient(90deg, #094737 0%, #0F6E56 50%, #0284c7 100%);
             color: #ffffff;
@@ -47,7 +48,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 18px 48px;
-            background: rgba(4, 8, 19, 0.94);
+            background: rgba(3, 7, 18, 0.94);
             backdrop-filter: blur(16px);
             border-bottom: 1px solid var(--border);
             position: sticky;
@@ -103,7 +104,7 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: rgba(15, 110, 86, 0.25);
+            background: rgba(15, 110, 86, 0.22);
             border: 1px solid rgba(20, 184, 166, 0.4);
             color: var(--primary-light);
             padding: 6px 18px;
@@ -137,7 +138,7 @@
             justify-content: center;
             gap: 16px;
             flex-wrap: wrap;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
         }
         .btn-primary {
             background: var(--primary);
@@ -165,23 +166,46 @@
         }
         .btn-secondary:hover { border-color: var(--primary-light); background: var(--bg-card-hover); }
 
-        /* Mockup Split-Screen Terminal */
+        /* Language Chips */
+        .lang-chips-bar {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 0 auto 36px;
+            max-width: 900px;
+        }
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #081024;
+            border: 1px solid #1a2849;
+            padding: 5px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            color: #cbd5e1;
+            font-weight: 600;
+        }
+        .chip-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary-light); }
+
+        /* Dual-Screen Mockup */
         .mockup-container {
             max-width: 1040px;
-            margin: 16px auto 44px;
+            margin: 0 auto 44px;
             border-radius: 14px;
             box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(20, 184, 166, 0.35);
-            background: #080f20;
+            background: #070d1e;
             overflow: hidden;
             text-align: left;
         }
         .mockup-header {
-            background: #040914;
+            background: #040814;
             padding: 12px 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-bottom: 1px solid #1a2844;
+            border-bottom: 1px solid #162442;
         }
         .mockup-dots { display: flex; gap: 6px; }
         .mockup-dots .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
@@ -195,11 +219,11 @@
         .mockup-body {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            background: #080f20;
+            background: #070d1e;
         }
         .mockup-pane { padding: 24px; display: flex; flex-direction: column; justify-content: space-between; }
-        .staff-pane { border-right: 1px solid #1a2844; background: #060b18; }
-        .patient-pane { background: #091224; }
+        .staff-pane { border-right: 1px solid #162442; background: #050a17; }
+        .patient-pane { background: #081024; }
         .pane-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
         .pane-tag { font-size: 10.5px; font-weight: 800; letter-spacing: 0.6px; padding: 3px 8px; border-radius: 4px; }
         .staff-tag { background: rgba(59, 130, 246, 0.18); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.35); }
@@ -209,19 +233,19 @@
         .mockup-chat { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
         .chat-bubble { padding: 12px 16px; border-radius: 10px; font-size: 13px; line-height: 1.5; }
         .bubble-sender { font-size: 10px; text-transform: uppercase; font-weight: 700; color: #64748b; margin-bottom: 4px; }
-        .staff-bubble { background: #101a2e; color: #f1f5f9; border-left: 3px solid #3b82f6; }
+        .staff-bubble { background: #0e172a; color: #f1f5f9; border-left: 3px solid #3b82f6; }
         .bubble-sub { font-size: 10.5px; color: #94a3b8; margin-top: 4px; }
-        .patient-feedback-bubble { background: #162035; color: #f1f5f9; border-left: 3px solid #f59e0b; }
+        .patient-feedback-bubble { background: #141f36; color: #f1f5f9; border-left: 3px solid #f59e0b; }
         .bubble-text.highlighted { color: #fef08a; font-weight: 700; }
         .bubble-cue { margin-top: 8px; padding: 6px 10px; background: rgba(245, 158, 11, 0.14); border-radius: 6px; font-size: 11px; color: #fbbf24; display: flex; align-items: center; gap: 6px; }
 
-        .patient-translated-bubble { background: #0e1d2e; color: #f1f5f9; border-left: 3px solid #10b981; }
+        .patient-translated-bubble { background: #0b1a2d; color: #f1f5f9; border-left: 3px solid #10b981; }
         .native-text { font-size: 14.5px; font-weight: 600; color: #6ee7b7; }
-        .patient-input-bubble { background: #131a2c; color: #cbd5e1; border-left: 3px solid #a855f7; }
+        .patient-input-bubble { background: #101628; color: #cbd5e1; border-left: 3px solid #a855f7; }
         .roman-text { font-style: italic; color: #d8b4fe; }
         .bubble-native-converted { font-size: 11.5px; color: #a7f3d0; margin-top: 4px; }
 
-        .mockup-input-bar { display: flex; gap: 8px; background: #03060f; padding: 8px 12px; border-radius: 8px; border: 1px solid #1a2844; align-items: center; }
+        .mockup-input-bar { display: flex; gap: 8px; background: #030610; padding: 8px 12px; border-radius: 8px; border: 1px solid #162442; align-items: center; }
         .fake-input { font-size: 12px; color: #64748b; flex: 1; }
         .fake-btn { background: var(--primary); color: #fff; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 4px; border: none; }
 
@@ -243,7 +267,121 @@
         }
         .trust-item { display: flex; align-items: center; gap: 8px; font-weight: 600; color: #cbd5e1; }
 
-        /* 3-Stage Operational Pipeline */
+        /* Clinic Action Photo Showcase */
+        .clinic-showcase {
+            max-width: 1040px;
+            margin: 40px auto 60px;
+            padding: 0 24px;
+        }
+        .showcase-frame {
+            position: relative;
+            border-radius: 18px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+            height: 420px;
+        }
+        .showcase-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center 30%;
+            filter: brightness(0.82) contrast(1.05);
+        }
+        .showcase-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(3, 7, 18, 0.1) 0%, rgba(3, 7, 18, 0.85) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 36px;
+        }
+        .showcase-text h3 {
+            font-size: 24px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+        .showcase-text p {
+            font-size: 14px;
+            color: #cbd5e1;
+            max-width: 640px;
+            line-height: 1.6;
+        }
+
+        /* Floating UI Badges on the Photo */
+        .floating-badge {
+            position: absolute;
+            background: rgba(11, 19, 41, 0.88);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(20, 184, 166, 0.4);
+            padding: 10px 16px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+        }
+        .badge-top-left { top: 24px; left: 24px; }
+        .badge-bottom-right { top: 24px; right: 24px; }
+        .f-icon {
+            width: 28px; height: 28px; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: 800;
+        }
+        .f-icon.teal { background: rgba(20, 184, 166, 0.2); color: var(--primary-light); }
+        .f-icon.green { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .f-title { font-size: 12px; font-weight: 700; color: #fff; }
+        .f-sub { font-size: 10.5px; color: var(--text-muted); }
+
+        /* Transformation Visual Comparison */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 36px;
+        }
+        .compare-box {
+            border-radius: 14px;
+            padding: 30px;
+            text-align: left;
+        }
+        .compare-box.before {
+            background: #0c0e18;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        .compare-box.after {
+            background: #081525;
+            border: 1px solid rgba(20, 184, 166, 0.5);
+            box-shadow: 0 8px 32px -10px var(--primary-glow);
+        }
+        .compare-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .compare-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 14px;
+        }
+        .before-icon { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+        .after-icon { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .compare-title { font-size: 17px; font-weight: 800; color: #fff; }
+        .compare-list { list-style: none; display: flex; flex-direction: column; gap: 14px; font-size: 13.5px; }
+        .compare-item { display: flex; gap: 10px; align-items: flex-start; color: #cbd5e1; line-height: 1.5; }
+        .compare-tag-bad { color: #f87171; font-weight: 800; }
+        .compare-tag-good { color: #34d399; font-weight: 800; }
+
+        /* 3-Stage Pipeline */
         .pipeline-wrapper {
             max-width: 1080px;
             margin: 40px auto 65px;
@@ -268,13 +406,13 @@
         .step-content p { font-size: 12px; color: var(--text-muted); line-height: 1.5; margin: 0; }
         .pipeline-arrow { color: #334155; font-size: 20px; font-weight: 900; }
 
-        /* Sections */
+        /* Section Layout */
         .section { padding: 68px 24px; max-width: 1150px; margin: 0 auto; }
         .section-header { text-align: center; margin-bottom: 48px; }
         .section-header h2 { font-size: 32px; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.6px; }
         .section-header p { color: var(--text-muted); font-size: 15.5px; max-width: 680px; margin: 0 auto; }
 
-        /* Context Cards */
+        /* Feature Cards with Mini-UI Previews */
         .grid-3 {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
@@ -284,24 +422,43 @@
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 14px;
-            padding: 30px;
+            padding: 26px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
             transition: all 0.2s ease;
         }
         .card:hover { transform: translateY(-3px); border-color: var(--primary-light); box-shadow: 0 10px 26px -8px rgba(0,0,0,0.4); }
         .card-icon {
-            width: 46px; height: 46px; border-radius: 10px;
+            width: 44px; height: 44px; border-radius: 10px;
             background: rgba(15, 110, 86, 0.2);
             color: var(--primary-light);
             display: flex; align-items: center; justify-content: center;
-            font-size: 20px; margin-bottom: 18px;
+            font-size: 20px; margin-bottom: 16px;
             border: 1px solid rgba(20, 184, 166, 0.3);
         }
-        .card h3 { font-size: 18px; margin-bottom: 10px; font-weight: 700; color: #fff; }
-        .card p { color: var(--text-muted); font-size: 13.5px; line-height: 1.65; }
+        .card h3 { font-size: 17.5px; margin-bottom: 8px; font-weight: 700; color: #fff; }
+        .card p { color: var(--text-muted); font-size: 13px; line-height: 1.6; margin-bottom: 18px; }
+        
+        .mini-ui {
+            background: #040814;
+            border: 1px solid #162442;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 11.5px;
+        }
+        .mini-ui-badge {
+            font-size: 9.5px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            display: inline-block;
+        }
 
-        /* Proprietary Plain Language Visual (BP Section 2.4 & 3.3) */
+        /* Plain Language Engine Spotlight */
         .spotlight-box {
-            background: linear-gradient(180deg, #0a1324 0%, #060b16 100%);
+            background: linear-gradient(180deg, #091224 0%, #050a16 100%);
             border: 1px solid var(--border);
             border-radius: 16px;
             padding: 36px;
@@ -314,8 +471,8 @@
         .spotlight-text h3 { font-size: 22px; font-weight: 800; margin-bottom: 12px; color: #fff; }
         .spotlight-text p { font-size: 13.5px; color: var(--text-muted); line-height: 1.65; margin-bottom: 16px; }
         .spotlight-demo {
-            background: #03060f;
-            border: 1px solid #1a2844;
+            background: #030610;
+            border: 1px solid #162442;
             border-radius: 12px;
             padding: 20px;
             display: flex;
@@ -328,7 +485,7 @@
         .tag-plain { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
         .demo-text { color: #cbd5e1; font-family: monospace; font-size: 12.5px; }
 
-        /* Differentiation Table (BP Section 3.1) */
+        /* Differentiation Table */
         .comparison-table-wrapper {
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -343,7 +500,7 @@
             font-size: 13px;
         }
         table.comp-table th {
-            background: #070e1c;
+            background: #060b17;
             padding: 16px 20px;
             font-weight: 700;
             color: #cbd5e1;
@@ -363,7 +520,7 @@
         .comp-free { color: #94a3b8; width: 38%; }
         .comp-medoriva { color: #a7f3d0; width: 40%; background: rgba(15, 110, 86, 0.12); font-weight: 500; }
 
-        /* Care Settings Scalability (BP Section 4.4 & 8) */
+        /* Care Settings Adaptability */
         .settings-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -380,9 +537,9 @@
         .setting-badge { font-size: 11px; font-weight: 800; color: var(--primary-light); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
         .setting-card h4 { font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 10px; }
         .setting-card p { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 14px; }
-        .setting-highlight { font-size: 12px; font-weight: 700; color: #cbd5e1; padding: 6px 10px; background: #050a16; border-radius: 6px; border-left: 2px solid var(--primary-light); }
+        .setting-highlight { font-size: 12px; font-weight: 700; color: #cbd5e1; padding: 6px 10px; background: #040814; border-radius: 6px; border-left: 2px solid var(--primary-light); }
 
-        /* Pricing Cards (BP Section 5.2) */
+        /* Pricing Cards */
         .pricing-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -402,7 +559,7 @@
         .pricing-card.featured {
             border-color: var(--primary-light);
             box-shadow: 0 0 28px rgba(20, 184, 166, 0.2);
-            background: linear-gradient(180deg, #0d172e 0%, #0b1325 100%);
+            background: linear-gradient(180deg, #0b152a 0%, #081024 100%);
         }
         .pricing-badge {
             position: absolute;
@@ -440,7 +597,7 @@
         .safety-text p { color: var(--text-muted); margin-bottom: 14px; font-size: 14px; line-height: 1.65; }
         .safety-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .stat-card {
-            background: #040813;
+            background: #030610;
             border: 1px solid var(--border);
             padding: 20px;
             border-radius: 12px;
@@ -462,7 +619,7 @@
         .faq-item.active .faq-toggle { transform: rotate(45deg); color: var(--primary-light); }
         .faq-toggle { font-size: 20px; transition: transform 0.2s ease; }
 
-        /* Contact Form */
+        /* Contact & Pilot Form */
         .contact-wrapper {
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -474,7 +631,7 @@
         .form-group { margin-bottom: 18px; }
         .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: #cbd5e1; }
         .form-control {
-            width: 100%; padding: 12px 16px; background: #040813;
+            width: 100%; padding: 12px 16px; background: #030610;
             border: 1px solid var(--border); border-radius: 8px;
             color: #fff; font-size: 13.5px; outline: none; transition: border-color 0.2s;
         }
@@ -482,7 +639,7 @@
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 
         /* Footer */
-        footer { background: #02050b; border-top: 1px solid var(--border); padding: 60px 24px 30px; font-size: 13px; color: var(--text-muted); }
+        footer { background: #020409; border-top: 1px solid var(--border); padding: 60px 24px 30px; font-size: 13px; color: var(--text-muted); }
         .disclaimer-box {
             max-width: 1150px; margin: 0 auto 34px; padding: 16px 20px;
             border: 1px solid rgba(239, 68, 68, 0.35); background: rgba(239, 68, 68, 0.08);
@@ -503,7 +660,7 @@
             flex-wrap: wrap; gap: 14px;
         }
 
-        /* Cookie Notification */
+        /* Cookie Consent */
         .cookie-banner {
             position: fixed; bottom: 20px; left: 20px; right: 20px; max-width: 580px;
             background: #0b1325; border: 1px solid #2e3e63; border-radius: 12px;
@@ -540,7 +697,12 @@
         @media(max-width: 768px) {
             .hero h1 { font-size: 32px; }
             .mockup-body { grid-template-columns: 1fr; }
-            .staff-pane { border-right: none; border-bottom: 1px solid #1a2844; }
+            .staff-pane { border-right: none; border-bottom: 1px solid #162442; }
+            .showcase-frame { height: 320px; }
+            .floating-badge { display: none; }
+            .showcase-overlay { padding: 20px; }
+            .showcase-text h3 { font-size: 19px; }
+            .comparison-grid { grid-template-columns: 1fr; }
             .pipeline-wrapper { flex-direction: column; }
             .pipeline-arrow { transform: rotate(90deg); margin: 6px 0; }
             .spotlight-box { grid-template-columns: 1fr; }
@@ -556,10 +718,10 @@
 
     <!-- Top Announcement Ribbon -->
     <div class="top-banner">
-        🚀 NHS Primary Care Innovation: Practice Pilot Suite v2.1 — 3-Month Supported Onboarding Available for GP Surgeries.
+        🚀 Primary Care Innovation: Practice Pilot Suite v2.1 — 3-Month Supported Onboarding Available for GP Surgeries.
     </div>
 
-    <!-- Main Navigation -->
+    <!-- Navigation -->
     <nav>
         <a href="/" class="nav-brand">
             <svg width="32" height="32" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -571,12 +733,12 @@
         </a>
         <ul class="nav-links">
             <li><a href="#workflows">Workflows</a></li>
+            <li><a href="#comparison">Transformation</a></li>
             <li><a href="#engine">Plain Language</a></li>
             <li><a href="#differentiation">Why MedOriva</a></li>
             <li><a href="#settings">Care Settings</a></li>
             <li><a href="#pricing">Pricing</a></li>
             <li><a href="#governance">DCB0129 Safety</a></li>
-            <li><a href="#faq">FAQ</a></li>
             <li><a href="/login" class="btn-portal">Staff Portal Login</a></li>
         </ul>
     </nav>
@@ -585,15 +747,29 @@
     <section class="hero">
         <div class="badge">
             <span class="badge-dot"></span>
-            NHS-Style Multilingual Communication Support Platform
+            Multilingual Healthcare Communication Support Platform
         </div>
         <h1>Structured Healthcare Intake &amp; Routine Multilingual Communication</h1>
         <p>
-            Census 2021 recorded 5.1 million residents in England and Wales whose main language was not English, including over 1.04 million who speak English not well or not at all[cite: 1]. MedOriva AI equips NHS receptionists and primary care teams with structured, context-locked communication across <strong>9 core community languages</strong> without the delays of telephonic interpreting[cite: 1].
+            Census 2021 recorded 5.1 million residents in England and Wales whose main language was not English, including over 1.04 million who speak English not well or not at all[cite: 1]. MedOriva AI equips receptionists and primary care teams with structured, context-locked communication across <strong>9 core community languages</strong> without the delays of telephonic interpreting[cite: 1].
         </p>
+        
         <div class="hero-actions">
             <a href="/login" class="btn-primary">Launch Staff Practice Portal</a>
             <a href="#contact" class="btn-secondary">Request 3-Month Practice Pilot</a>
+        </div>
+
+        <!-- Language Chips Bar -->
+        <div class="lang-chips-bar">
+            <span class="chip"><span class="chip-dot"></span> தமிழ் (Tamil)[cite: 1]</span>
+            <span class="chip"><span class="chip-dot"></span> हिन्दी (Hindi)[cite: 1]</span>
+            <span class="chip"><span class="chip-dot"></span> Polski (Polish)[cite: 1]</span>
+            <span class="chip"><span class="chip-dot"></span> العربية (Arabic)[cite: 1]</span>
+            <span class="chip"><span class="chip-dot"></span> Română (Romanian)[cite: 1]</span>
+            <span class="chip"><span class="chip-dot"></span> বাংলা (Bengali)[cite: 1]</span>
+            <span class="chip"><span class="chip-dot"></span> മലയാളം (Malayalam)[cite: 1]</span>
+            <span class="chip"><span class="chip-dot"></span> اردو (Urdu)[cite: 1]</span>
+            <span class="chip"><span class="chip-dot"></span> Soomaali (Somali)[cite: 1]</span>
         </div>
 
         <!-- Live Primary Care Dual-Screen Mockup -->
@@ -683,6 +859,101 @@
         </div>
     </section>
 
+    <!-- Clinic Action Photo Showcase -->
+    <div class="clinic-showcase">
+        <div class="showcase-frame">
+            <img 
+                src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1200&q=80" 
+                alt="Healthcare Receptionist and Patient Communicating Clearly" 
+                class="showcase-img"
+            >
+            
+            <div class="floating-badge badge-top-left">
+                <div class="f-icon teal">⚡</div>
+                <div>
+                    <div class="f-title">0ms Local Lexicon</div>
+                    <div class="f-sub">Instant front-desk intake response</div>
+                </div>
+            </div>
+
+            <div class="floating-badge badge-bottom-right">
+                <div class="f-icon green">✓</div>
+                <div>
+                    <div class="f-title">Bidirectional Check</div>
+                    <div class="f-sub">Verified English back-translation</div>
+                </div>
+            </div>
+
+            <div class="showcase-overlay">
+                <div class="showcase-text">
+                    <h3>Designed for Busy Front-Desk Intake</h3>
+                    <p>
+                        Enabling primary care receptionists to communicate clearly with non-English speaking patients without relying on informal family translation or waiting for telephone interpreters[cite: 1].
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Before vs. After Transformation Section -->
+    <section class="section" id="comparison" style="padding-top: 0;">
+        <div class="section-header">
+            <h2>Transforming Front-Desk Primary Care Intake</h2>
+            <p>Comparing routine front-desk delays with MedOriva AI's structured zero-latency communication flow[cite: 1].</p>
+        </div>
+        <div class="comparison-grid">
+            <div class="compare-box before">
+                <div class="compare-header">
+                    <div class="compare-icon before-icon">✕</div>
+                    <div class="compare-title">Traditional Practice Workflows</div>
+                </div>
+                <ul class="compare-list">
+                    <li class="compare-item">
+                        <span class="compare-tag-bad">Delay:</span>
+                        <span>Booking a telephone interpreter for a simple 30-second arrival check-in creates front-desk queues and delays[cite: 1].</span>
+                    </li>
+                    <li class="compare-item">
+                        <span class="compare-tag-bad">Risk:</span>
+                        <span>Relying on untrained family or friends as informal interpreters breaches patient confidentiality and professional guidelines[cite: 1].</span>
+                    </li>
+                    <li class="compare-item">
+                        <span class="compare-tag-bad">Error:</span>
+                        <span>Free consumer translation apps misunderstand medical negations (e.g. flipping "no pain" into "pain")[cite: 1].</span>
+                    </li>
+                    <li class="compare-item">
+                        <span class="compare-tag-bad">Cost:</span>
+                        <span>Variable per-minute telephone interpreting charges for routine, high-frequency reception inquiries[cite: 1].</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="compare-box after">
+                <div class="compare-header">
+                    <div class="compare-icon after-icon">✓</div>
+                    <div class="compare-title">MedOriva AI Communication Flow</div>
+                </div>
+                <ul class="compare-list">
+                    <li class="compare-item">
+                        <span class="compare-tag-good">Speed:</span>
+                        <span>Sub-second, context-locked reception arrival check-in in the patient's native script[cite: 1].</span>
+                    </li>
+                    <li class="compare-item">
+                        <span class="compare-tag-good">Dignity:</span>
+                        <span>Direct patient-to-staff communication without placing children or family members in uncomfortable interpreting roles[cite: 1].</span>
+                    </li>
+                    <li class="compare-item">
+                        <span class="compare-tag-good">Safety:</span>
+                        <span>Strict token negation parsing distinguishes positive red flags from confirmed negative statements[cite: 1].</span>
+                    </li>
+                    <li class="compare-item">
+                        <span class="compare-tag-good">Control:</span>
+                        <span>Predictable £49–£149/mo practice SaaS pricing with zero data stored to disk after the session terminates[cite: 1].</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
     <!-- 3-Stage Operational Architecture Pipeline -->
     <div class="pipeline-wrapper">
         <div class="pipeline-step">
@@ -718,25 +989,48 @@
         </div>
         <div class="grid-3">
             <div class="card">
-                <div class="card-icon">🏛️</div>
-                <h3>1. Reception &amp; Arrival</h3>
-                <p>
-                    Fast-track routine arrival, verify booked appointments, confirm patient registration, and capture demographic updates in native script without queue delays[cite: 1].
-                </p>
+                <div>
+                    <div class="card-icon">🏛️</div>
+                    <h3>1. Reception &amp; Arrival</h3>
+                    <p>
+                        Fast-track routine arrival, verify booked appointments, confirm patient registration, and capture demographic updates in native script without queue delays[cite: 1].
+                    </p>
+                </div>
+                <div class="mini-ui">
+                    <span class="mini-ui-badge staff-tag">Prompt UI</span>
+                    <div style="color: #6ee7b7; font-weight: 600;">"Do you have a booked appointment today?"[cite: 1]</div>
+                    <div style="color: #64748b; margin-top: 4px;">Context: Reception &amp; Check-in[cite: 1]</div>
+                </div>
             </div>
+
             <div class="card">
-                <div class="card-icon">📅</div>
-                <h3>2. Appointment &amp; Admin</h3>
-                <p>
-                    Confirm follow-up attendance, routine medication adherence, blood test check-in, repeat prescription requests, and administrative certificate queries[cite: 1].
-                </p>
+                <div>
+                    <div class="card-icon">📅</div>
+                    <h3>2. Appointment &amp; Admin</h3>
+                    <p>
+                        Confirm follow-up attendance, routine medication adherence, blood test check-in, repeat prescription requests, and administrative certificate queries[cite: 1].
+                    </p>
+                </div>
+                <div class="mini-ui">
+                    <span class="mini-ui-badge patient-tag">Medication Verification</span>
+                    <div style="color: #6ee7b7; font-weight: 600;">"Have you taken your regular morning medication?"[cite: 1]</div>
+                    <div style="color: #64748b; margin-top: 4px;">Context: Admin / Prescription[cite: 1]</div>
+                </div>
             </div>
+
             <div class="card">
-                <div class="card-icon">🩺</div>
-                <h3>3. Basic Symptoms &amp; Communication</h3>
-                <p>
-                    Structured duration and symptom checks with automatic negation awareness (e.g. "no chest pain"), generating non-clinical communication cues for staff awareness[cite: 1].
-                </p>
+                <div>
+                    <div class="card-icon">🩺</div>
+                    <h3>3. Basic Symptoms &amp; Communication</h3>
+                    <p>
+                        Structured duration and symptom checks with automatic negation awareness (e.g. "no chest pain"), generating non-clinical communication cues for staff awareness[cite: 1].
+                    </p>
+                </div>
+                <div class="mini-ui">
+                    <span class="mini-ui-badge" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3);">Staff Attention Cue</span>
+                    <div style="color: #fef08a; font-weight: 700;">⚠️ Recognised: chest_pain[cite: 1]</div>
+                    <div style="color: #64748b; margin-top: 4px;">Non-clinical communication cue only[cite: 1]</div>
+                </div>
             </div>
         </div>
 
@@ -768,7 +1062,7 @@
     <!-- Differentiation Table (BP Section 3.1) -->
     <section class="section" id="differentiation" style="padding-top: 0;">
         <div class="section-header">
-            <h2>Why NHS Practices Choose MedOriva AI</h2>
+            <h2>Why Healthcare Practices Choose MedOriva AI</h2>
             <p>Comparing general-purpose consumer translation tools with MedOriva AI's structured healthcare communication architecture[cite: 1].</p>
         </div>
         <div class="comparison-table-wrapper">
@@ -816,7 +1110,7 @@
         </div>
     </section>
 
-    <!-- Care Settings Scalability (BP Section 4.4 & 8) -->
+    <!-- Care Settings Adaptability (BP Section 4.4 & 8) -->
     <section class="section" id="settings" style="padding-top: 0;">
         <div class="section-header">
             <h2>Multi-Setting Primary Care Adaptability</h2>
@@ -825,8 +1119,8 @@
         <div class="settings-grid">
             <div class="setting-card">
                 <div class="setting-badge">Primary Care Gateway[cite: 1]</div>
-                <h4>NHS GP Surgeries</h4>
-                <p>Designed for practice reception desks, phlebotomy clinics, and nurse triage arrivals in urban diverse catchments (London, Birmingham, Leicester, Bradford)[cite: 1].</p>
+                <h4>GP Surgeries &amp; Medical Centres</h4>
+                <p>Designed for practice reception desks, phlebotomy clinics, and nurse triage arrivals in diverse catchments[cite: 1].</p>
                 <div class="setting-highlight">Focus: Routine Arrival &amp; Check-in[cite: 1]</div>
             </div>
             <div class="setting-card">
@@ -848,7 +1142,7 @@
     <section class="section" id="pricing">
         <div class="section-header">
             <h2>Transparent Practice-Level SaaS Pricing</h2>
-            <p>Predictable monthly subscriptions based on practice list size, bypassing lengthy NHS procurement cycles. All tiers include a 3-month free supported pilot[cite: 1].</p>
+            <p>Predictable monthly subscriptions based on practice list size, bypassing lengthy procurement cycles. All tiers include a 3-month free supported pilot[cite: 1].</p>
         </div>
         <div class="pricing-grid">
             <div class="pricing-card">
@@ -945,7 +1239,7 @@
     <section class="section" id="faq">
         <div class="section-header">
             <h2>Governance &amp; Assurance FAQ</h2>
-            <p>Clear operational answers for NHS Practice Managers, Caldicott Guardians, and Digital Transformation Leads.</p>
+            <p>Clear operational answers for Healthcare Practice Managers, Caldicott Guardians, and Digital Leads.</p>
         </div>
         <div class="faq-list">
             <div class="faq-item">
@@ -959,7 +1253,7 @@
             </div>
             <div class="faq-item">
                 <div class="faq-question" onclick="toggleFaq(this)">
-                    Does MedOriva AI replace official NHS qualified interpreters?
+                    Does MedOriva AI replace official qualified interpreters?
                     <span class="faq-toggle">+</span>
                 </div>
                 <div class="faq-answer">
@@ -981,7 +1275,7 @@
                     <span class="faq-toggle">+</span>
                 </div>
                 <div class="faq-answer">
-                    MedOriva AI aligns with UK GDPR, the Data Protection Act 2018, PECR, and NHS Digital DCB0129 clinical risk management standards, with planned pre-deployment alignment against the NHS Digital Technology Assessment Criteria (DTAC)[cite: 1].
+                    MedOriva AI aligns with UK GDPR, the Data Protection Act 2018, PECR, and DCB0129 clinical risk management standards, with planned pre-deployment alignment against NHS Digital Technology Assessment Criteria (DTAC)[cite: 1].
                 </div>
             </div>
         </div>
@@ -1002,7 +1296,7 @@
             </p>
             <div style="background: var(--bg-card); padding: 20px 24px; border-radius: 10px; border-left: 3px solid var(--primary-light); margin-top: 24px;">
                 <p style="font-size: 13.5px; color: #cbd5e1; margin-bottom: 0;">
-                    <strong>🔬 High-Assurance Architecture:</strong> Built for low-overhead adoption across primary care networks and integrated care systems, operating entirely with ephemeral processing and zero persistent conversational data storage[cite: 1].
+                    <strong>🔬 High-Assurance Architecture:</strong> Built for low-overhead adoption across primary care networks and health hubs, operating entirely with ephemeral processing and zero persistent conversational data storage[cite: 1].
                 </p>
             </div>
         </div>
@@ -1012,7 +1306,7 @@
     <section class="section" id="contact">
         <div class="section-header">
             <h2>Request Practice Evaluation / 3-Month Pilot</h2>
-            <p>Direct contact with our founder-led team for GP practice pilot deployment and feedback[cite: 1].</p>
+            <p>Direct contact with our founder-led team for healthcare practice pilot deployment and feedback[cite: 1].</p>
         </div>
         <div class="contact-wrapper">
             <form id="contactForm" onsubmit="handleContact(event)">
@@ -1022,13 +1316,13 @@
                         <input type="text" id="name" class="form-control" required placeholder="e.g. Practice Manager Jane Smith">
                     </div>
                     <div class="form-group">
-                        <label for="email">NHS / Practice Email *</label>
-                        <input type="email" id="email" class="form-control" required placeholder="name@nhs.net">
+                        <label for="email">Professional / Practice Email *</label>
+                        <input type="email" id="email" class="form-control" required placeholder="name@practice.nhs.uk">
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="org">GP Practice / Healthcare Organisation *</label>
-                    <input type="text" id="org" class="form-control" required placeholder="e.g. Vale Drive Primary Care Centre, Barnet">
+                    <label for="org">Practice / Healthcare Organisation *</label>
+                    <input type="text" id="org" class="form-control" required placeholder="e.g. Vale Drive Medical Practice, London">
                 </div>
                 <div class="form-group">
                     <label for="message">Pilot Inquiry / Requirements *</label>
@@ -1049,7 +1343,7 @@
         <div class="footer-grid">
             <div class="footer-col">
                 <h4>MedOriva AI Ltd</h4>
-                <p style="margin-bottom: 12px;">Structured multilingual communication facilitation for NHS primary care environments[cite: 1].</p>
+                <p style="margin-bottom: 12px;">Structured multilingual communication facilitation for healthcare environments[cite: 1].</p>
                 <p><strong>Company Registration:</strong> 17428312[cite: 1]</p>
                 <p><strong>Jurisdiction:</strong> England and Wales[cite: 1]</p>
                 <p style="margin-top: 10px;">
@@ -1082,7 +1376,7 @@
                     <li>UK GDPR &amp; DPA 2018[cite: 1]</li>
                     <li>Data Minimisation by Design[cite: 1]</li>
                     <li>DCB0129 Clinical Safety[cite: 1]</li>
-                    <li>NHS DTAC Aligned Roadmap[cite: 1]</li>
+                    <li>DTAC Aligned Roadmap[cite: 1]</li>
                     <li>PECR Compliant[cite: 1]</li>
                 </ul>
             </div>
@@ -1091,9 +1385,9 @@
         <div class="footer-bottom">
             <div>
                 <div>&copy; 2026 <strong>MedOriva AI Ltd</strong>. All rights reserved.</div>
-                <div style="font-size: 12px; color: #64748b;">Company Number: 17428312 | Registered in England and Wales | Barnet, London[cite: 1]</div>
+                <div style="font-size: 12px; color: #64748b;">Company Number: 17428312 | Registered in England and Wales | London, UK</div>
             </div>
-            <div style="font-size: 12px; color: #64748b;">UK Innovator Founder Visa Endorsement Candidate Pack.</div>
+            <div style="font-size: 12px; color: #64748b;">Designed for Primary Care &amp; Multi-Setting Healthcare Intake.</div>
         </div>
     </footer>
 
@@ -1157,7 +1451,7 @@
         <div class="modal-content">
             <button class="modal-close" onclick="closeModal('dcbModal')">&times;</button>
             <h3>Clinical Safety Statement (DCB0129)</h3>
-            <p>MedOriva AI aligns with NHS Digital DCB0129 clinical risk management standards[cite: 1]:</p>
+            <p>MedOriva AI aligns with DCB0129 clinical risk management standards[cite: 1]:</p>
             <ul>
                 <li><strong>Non-Clinical Staff Notifications:</strong> Automated symptom phrase identification triggers distinct visual notifications for staff awareness under practice protocols[cite: 1].</li>
                 <li><strong>Negation Handling:</strong> Validates negative qualifiers ("no chest pain", "nenji vali illai") to prevent false escalation alarms[cite: 1].</li>
