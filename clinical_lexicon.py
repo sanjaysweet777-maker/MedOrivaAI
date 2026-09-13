@@ -1,42 +1,143 @@
 """
 MedOriva AI — Core Clinical Lexicon & Multilingual Domains
 Equal support for all 9 UK community languages + English
+Includes comprehensive noun/verb declensions, locatives, and phonetic variants.
 """
+import re
 
 # ============================================================
-# 1. LANGUAGES
+# 1. SUPPORTED LANGUAGES REGISTRY
 # ============================================================
+class _LangEntry(str):
+    def __new__(cls, name, native, code):
+        obj = str.__new__(cls, name)
+        obj.name = name
+        obj.native = native
+        obj.code = code
+        return obj
+
+    def __getitem__(self, key):
+        if key == "name":
+            return self.name
+        if key == "native":
+            return self.native
+        if key == "code":
+            return self.code
+        return super().__getitem__(key)
+
+    def get(self, key, default=None):
+        if key == "name":
+            return self.name
+        if key == "native":
+            return self.native
+        if key == "code":
+            return self.code
+        return default
+
 LANGUAGES = {
-    "ta": "Tamil",
-    "hi": "Hindi",
-    "ml": "Malayalam",
-    "bn": "Bengali",
-    "ur": "Urdu",
-    "ar": "Arabic",
-    "pl": "Polish",
-    "so": "Somali",
-    "ro": "Romanian",
-    "en": "English",
+    "ta": _LangEntry("Tamil", "தமிழ்", "ta"),
+    "hi": _LangEntry("Hindi", "हिन्दी", "hi"),
+    "ml": _LangEntry("Malayalam", "മലയാളം", "ml"),
+    "bn": _LangEntry("Bengali", "বাংলা", "bn"),
+    "ur": _LangEntry("Urdu", "اردو", "ur"),
+    "ar": _LangEntry("Arabic", "العربية", "ar"),
+    "pl": _LangEntry("Polish", "Polski", "pl"),
+    "so": _LangEntry("Somali", "Soomaali", "so"),
+    "ro": _LangEntry("Romanian", "Română", "ro"),
+    "en": _LangEntry("English", "English", "en"),
 }
 
 # ============================================================
-# 2. NEGATION DICTIONARY
+# 2. STRICT TOKEN-LEVEL NEGATION & AFFIRMATION DICTIONARIES
 # ============================================================
-NEGATION_DICTIONARY = {
-    "ta": ["illai", "illa", "varadhu", "varala", "ila", "kidayathu", "illamal", "இல்லை", "இல்ல", "கிடையாது", "வராது"],
-    "hi": ["nahi", "nahin", "nhi", "mat", "na", "bina", "kuch nahi", "नहीं", "ना", "मत", "बिना", "कुछ नहीं", "नहीं है"],
+AFFIRMATION_PATTERNS = {
+    "en": ["yes", "yeah", "yep", "sure", "correct", "affirmative", "true", "i do", "i have", "agree"],
+    "ta": ["aam", "aama", "aamaam", "seri", "kandippa", "aamanga", "sari", "irukku", "koodum", "ஆம்", "ஆமாம்", "சரி", "இருக்கிறது"],
+    "hi": ["haan", "ji haan", "theek hai", "sahi", "haanji", "ha", "theek", "hai", "हाँ", "जी हाँ", "ठीक है", "हा", "सही", "ठीक"],
+    "ml": ["athe", "atheyo", "sherikkum", "und", "sari", "ശരി", "അതെ", "ഉണ്ട്"],
+    "bn": ["hae", "hyan", "thik achhe", "haan", "thik", "aache", "হ্যাঁ", "ঠিক আছে", "হাঁ", "ঠিক", "আছে"],
+    "ur": ["haan", "jee", "jee haan", "sahi", "hai", "ہاں", "جی", "جی ہاں", "درست", "ہے"],
+    "ar": ["naam", "na'am", "aiwa", "sah", "sahih", "aywa", "نعم", "أيوا", "أجل", "صحيح", "ايوه"],
+    "pl": ["tak", "zgadza sie", "dokladnie", "jasne", "prawda", "mam", "jest"],
+    "so": ["haa", "waa sax", "haye", "waa run", "jiraa"],
+    "ro": ["da", "exact", "sigur", "corect", "adevarat", "am", "este"]
+}
+
+NEGATION_PATTERNS = {
+    "en": ["no", "not", "dont", "don't", "doesnt", "doesn't", "denies", "without", "never", "none", "no pain", "cannot", "cant", "can't"],
+    "ta": ["illai", "illa", "varadhu", "varala", "ila", "kidayathu", "illamal", "mudiyala", "இல்லை", "இல்ல", "கிடையாது", "வராது", "இல்லாமல்"],
+    "hi": ["nahi", "nahin", "nhi", "mat", "na", "bina", "kuch nahi", "nahi hai", "नहीं", "ना", "मत", "बिना", "कुछ नहीं", "नहीं है"],
     "ml": ["illa", "alla", "illathe", "illaatha", "illathathu", "ഇല്ല", "അല്ല", "ഇല്ലാതെ"],
     "bn": ["na", "ni", "nay", "chara", "nei", "না", "নেই", "নয়", "ছাড়া", "নাই"],
     "ur": ["nahi", "nahin", "na", "bina", "baghair", "نہیں", "نہ", "بغیر"],
     "ar": ["la", "laysa", "mish", "ma", "bidun", "kalla", "لا", "ليس", "ما", "مش", "بدون", "كلا"],
     "pl": ["nie", "brak", "bez", "nie ma", "ani", "zadnych", "nie czuje", "nigdy"],
-    "so": ["ma", "maya", "ma jiro", "ma qabo", "aan", "waxba", "ma hayo"],
-    "ro": ["nu", "nici", "fara", "n-am", "nu am", "deloc", "nimic"],
-    "en": ["no", "not", "dont", "don't", "doesnt", "doesn't", "denies", "without", "never", "none"]
+    "so": ["ma", "maya", "ma jiro", "ma qabo", "aan", "waxba", "ma hayo", "la'aan"],
+    "ro": ["nu", "nici", "fara", "n-am", "nu am", "deloc", "nimic"]
 }
 
+AFFIRMATION_DICTIONARY = AFFIRMATION_PATTERNS
+NEGATION_DICTIONARY = NEGATION_PATTERNS
+
 # ============================================================
-# 3. STAFF LEXICON (All 17 Queries × 10 Languages)
+# 3. CLINICAL SIMPLIFICATION & DURATION HELPERS
+# ============================================================
+SIMPLIFY_RULES = [
+    (r"require\s+further\s+diagnostic\s+evaluation", "need more tests"),
+    (r"administer\s+medication", "give medicine"),
+    (r"experiencing\s+discomfort", "feeling pain"),
+    (r"prior\s+to", "before"),
+    (r"in\s+order\s+to", "to"),
+    (r"approximately", "about"),
+    (r"at\s+this\s+point\s+in\s+time", "now"),
+    (r"due\s+to\s+the\s+fact\s+that", "because"),
+    (r"facilitate", "help"),
+    (r"commence", "start"),
+    (r"terminate", "end"),
+    (r"endeavour", "try"),
+    (r"obtain", "get"),
+    (r"sufficient", "enough"),
+    (r"physician", "doctor"),
+    (r"hypertension", "high blood pressure"),
+    (r"hypotension", "low blood pressure"),
+    (r"myocardial\s+infarction", "heart attack"),
+    (r"cerebrovascular\s+accident", "stroke"),
+    (r"dyspnea", "shortness of breath"),
+    (r"fracture", "broken bone"),
+]
+CLINICAL_SIMPLIFICATION_RULES = SIMPLIFY_RULES
+
+def simplify_text(text):
+    simplified = text
+    changed = False
+    for pattern, replacement in SIMPLIFY_RULES:
+        result = re.sub(pattern, replacement, simplified, flags=re.IGNORECASE)
+        if result != simplified:
+            changed = True
+            simplified = result
+    return simplified, changed
+
+DURATION_PATTERNS = [
+    (r"(\d+)\s*(?:naalaga|naatkalaga|naala|naatkkala)", r"for \1 days"),
+    (r"(?:oru|1)\s*(?:naalaga|naala)", "for 1 day"),
+    (r"(?:rendu|2)\s*(?:naalaga|naala)", "for 2 days"),
+    (r"(?:moonu|3)\s*(?:naalaga|naala)", "for 3 days"),
+    (r"(\d+)\s*(?:din se|dino se|din)", r"for \1 days"),
+    (r"od\s*(\d+)\s*dni", r"for \1 days"),
+    (r"de\s*(\d+)\s*zile", r"for \1 days"),
+    (r"\b(\d+)\s*(day|days|d)\b", r"for \1 days"),
+    (r"\b(\d+)\s*(week|weeks|w)\b", r"for \1 weeks"),
+    (r"\b(\d+)\s*(month|months|m)\b", r"for \1 months"),
+    (r"\b(\d+)\s*(hour|hours|hr|hrs|h)\b", r"for \1 hours"),
+    (r"\btoday\b", "since today"),
+    (r"\byesterday\b", "since yesterday"),
+    (r"\bthis morning\b", "since this morning")
+]
+DURATION_RULES = DURATION_PATTERNS
+DURATION_CONVERTERS = DURATION_PATTERNS
+
+# ============================================================
+# 4. STAFF RECEPTION LEXICON (All 17 Standard Clinical Prompts)
 # ============================================================
 STAFF_LEXICON = {
     "GOOD_MORNING": {
@@ -246,22 +347,66 @@ STAFF_LEXICON = {
 }
 
 # ============================================================
-# 4. PATIENT CLINICAL DOMAINS (All 9 Languages)
+# 5. PATIENT CLINICAL DOMAINS (Expanded Spoken Declensions & Case Endings)
 # ============================================================
 PATIENT_CLINICAL_DOMAINS = {
     "chest_pain": {
         "urgent": True,
         "tokens": {
-            "ta": ["nenji vali", "nenju vali", "nenjil vali", "maarbu vali", "நெஞ்சு வலி", "நெஞ்சில் வலி"],
-            "hi": ["seene mein dard", "chhati mein dard", "seene me dard", "सीने में दर्द"],
-            "ml": ["nenju vedana", "nenjil vedana", "നെഞ്ചുവേദന"],
-            "bn": ["buke byatha", "buke batha", "বুকে ব্যথা"],
-            "ur": ["seene mein dard", "seenay mein dard", "سینے میں درد"],
-            "ar": ["alam fi al sadr", "alam fi sadr", "alam sadr", "ألم في الصدر"],
-            "pl": ["bol w klatce piersiowej", "bol w klatce", "ból w klatce piersiowej"],
-            "so": ["laab xanuun", "xabad xanuun", "xanuunka laabta"],
-            "ro": ["durere in piept", "durere în piept", "dureri in piept"],
-            "en": ["chest pain", "tight chest", "crushing chest"]
+            "ta": [
+                "nenjula valikuthu", "nenjil valikuthu", "nenji valikuthu", "maarbu valikuthu",
+                "nenju valikuthu", "nenjula vali", "nenjil vali", "nenji vali", "nenju vali",
+                "maarbu vali", "maar vali", "enji vali", "enju vali", "nenju edukkuthu",
+                "நெஞ்சில் வலிக்கிறது", "நெஞ்சு வலிக்கிறது", "நெஞ்சு வலி", "நெஞ்சில் வலி", "மார்பு வலி"
+            ],
+            "hi": [
+                "seene mein dard ho raha", "seene me dard ho raha", "chhati mein dard ho raha",
+                "seene mein dard hai", "seene me dard hai", "seene mein dard", "seene me dard",
+                "chhati mein dard", "chhati me dard", "chati mein dard", "chati me dard",
+                "sine mein dard", "sine me dard", "seene mein jalan", "seene mein dabav",
+                "सीने में दर्द हो रहा है", "सीने में दर्द है", "सीने में दर्द", "छाती में दर्द"
+            ],
+            "ml": [
+                "nenjil vedana edukkunnu", "nenjil vedana und", "nenju vedana edukkunnu",
+                "nenjil vali", "nenju vali", "nenju vedana", "nenjil vedana", "nenjile vedana",
+                "നെഞ്ചിൽ വേദനയുണ്ട്", "നെഞ്ചിൽ വേദന", "നെഞ്ചുവേദന"
+            ],
+            "bn": [
+                "buke byatha korchhe", "buke batha korchhe", "buke betha korchhe",
+                "buke byatha achhe", "buke byatha", "buke batha", "buke betha", "buke chap",
+                "বুকে ব্যথা করছে", "বুকে ব্যাথা করছে", "বুকে ব্যথা আছে", "বুকে ব্যথা", "বুকে ব্যাথা"
+            ],
+            "ur": [
+                "seene mein dard ho raha", "seenay mein dard ho raha", "seene mein dard hai",
+                "seenay mein dard hai", "seene mein dard", "seenay mein dard", "seene me dard",
+                "dil mein dard", "chhati mein dard", "سینے میں درد ہو رہا ہے", "سینے میں درد ہے", "سینے میں درد"
+            ],
+            "ar": [
+                "sadri yu'limuni", "alam fi al sadr", "alam fi sadr", "alam sadri", "alam sadr",
+                "wagah fi al sadr", "wagah sadr", "alam bi sadri", "waja sedr", "sidri yuwjaani",
+                "صدري يؤلمني", "ألم في الصدر", "ألم صدري", "الم في الصدر", "وجع في الصدر"
+            ],
+            "pl": [
+                "boli mnie w piersiach", "boli mnie klatka piersiowa", "boli mnie klatka",
+                "boli w piersiach", "boli w klatce piersiowej", "boli w klatce",
+                "czuje klucie w piersiach", "czuję kłucie w piersiach", "klucie w piersiach", "kłucie w piersiach",
+                "pieczenie w klatce piersiowej", "pieczenie w klatce", "ucisk w klatce piersiowej", "ucisk w klatce",
+                "bol w klatce piersiowej", "ból w klatce piersiowej", "bol klatki piersiowej", "ból klatki piersiowej",
+                "bol w klatce", "ból w klatce", "bol klatki", "ból klatki", "w piersiach", "piersiach"
+            ],
+            "so": [
+                "laabta oo i xanuunaysa", "xabadka oo i xanuunaya", "laab xanuun daran",
+                "laab xanuun", "xabad xanuun", "xanuunka laabta", "xanuun laabta"
+            ],
+            "ro": [
+                "ma doare in piept", "mă doare în piept", "ma doare pieptul", "mă doare pieptul",
+                "durere in piept", "durere în piept", "dureri in piept", "dureri în piept",
+                "durere toracica", "durere toracică", "intepaturi in piept", "înțepături în piept",
+                "strangere in piept", "strângere în piept"
+            ],
+            "en": [
+                "chest pain", "tight chest", "crushing chest pain", "heavy chest", "pressure in chest", "pain in my chest"
+            ]
         },
         "affirmative": {
             "ta": ("I have chest pain.", "எனக்கு நெஞ்சு வலி இருக்கிறது."),
@@ -291,16 +436,47 @@ PATIENT_CLINICAL_DOMAINS = {
     "breathing_difficulty": {
         "urgent": True,
         "tokens": {
-            "ta": ["moochu varadhu", "moochu pidikuthu", "moochu thinaral", "மூச்சு திணறல்"],
-            "hi": ["saans lene mein takleef", "saans phoolna", "सांस लेने में तकलीफ"],
-            "ml": ["shwasam muttunnu", "shwasam muttal", "ശ്വാസതടസ്സം"],
-            "bn": ["shas kosto", "shash nite koshto", "শ্বাসকষ্ট"],
-            "ur": ["saans lene mein dushwari", "saans phoolna", "سانس لینے میں دشواری"],
-            "ar": ["diq tanaffus", "diq fi tanaffus", "ضيق في التنفس"],
-            "pl": ["dusznosc", "brak tchu", "duszność"],
-            "so": ["neefsasho adag", "neef qabasho"],
-            "ro": ["respiratie grea", "lipsa de aer", "dificultati de respiratie"],
-            "en": ["difficulty breathing", "shortness of breath", "struggling to breathe"]
+            "ta": [
+                "moochu vida mudiyala", "moochu thinaral irukku", "moochu muttuthu", "moochu varala",
+                "moochu varadhu", "moochu pidikuthu", "moochu thinaral", "swasa kolaru",
+                "மூச்சு விட முடியவில்லை", "மூச்சு திணறல்", "மூச்சு முட்டுகிறது"
+            ],
+            "hi": [
+                "saans lene mein takleef ho rahi", "saans nahi li ja rahi", "saans nahi aa rahi",
+                "saans lene mein takleef", "saans lene me dikkat", "saans phool rahi", "saans phoolna",
+                "dam ghut raha", "saans ruk rahi", "सांस लेने में तकलीफ", "सांस फूलना", "दम घुट रहा है"
+            ],
+            "ml": [
+                "shwasam edukkal budhimuttu", "shwasam muttunnu", "shwasam muttal",
+                "ശ്വാസം എടുക്കാൻ ബുദ്ധിമുട്ട്", "ശ്വാസം മുട്ടൽ", "ശ്വാസതടസ്സം"
+            ],
+            "bn": [
+                "shwash nite koshto hochhe", "shwash nite koshto", "shas kosto", "shash nite koshto", "dom bondho",
+                "শ্বাস নিতে কষ্ট হচ্ছে", "শ্বাস নিতে কষ্ট", "শ্বাসকষ্ট"
+            ],
+            "ur": [
+                "saans lene mein dushwari ho rahi", "saans nahi aa rahi", "saans lene mein dushwari",
+                "saans phool rahi hai", "saans phoolna", "دم گھٹ رہا ہے", "سانس لینے میں دشواری"
+            ],
+            "ar": [
+                "dheeq fi al nafas", "diq fi tanaffus", "diq tanaffus", "mushkila bil nafas", "la astatee al tanaffus",
+                "صعوبة في التنفس", "ضيق في التنفس", "ضيق تنفس"
+            ],
+            "pl": [
+                "trudno mi oddychac", "trudno mi oddychać", "ciezko mi oddychac", "ciężko mi oddychać",
+                "dusze sie", "duszę się", "brak mi tchu", "brak tchu", "brak powietrza",
+                "dusznosc", "duszność", "dusznosci", "duszności", "duszno mi", "trudnosci z oddychaniem"
+            ],
+            "so": [
+                "neefsashada ayaa igu adag", "neefta oo igu dhegaysa", "neefsasho adag", "neef qabasho", "neefsasho dhib"
+            ],
+            "ro": [
+                "respir foarte greu", "nu pot sa respir", "nu pot să respir", "respiratie grea", "respirație grea",
+                "lipsa de aer", "lipsă de aer", "dificultati de respiratie", "dificultăți de respirație"
+            ],
+            "en": [
+                "difficulty breathing", "shortness of breath", "struggling to breathe", "cannot breathe", "breathless"
+            ]
         },
         "affirmative": {
             "ta": ("I have difficulty breathing.", "எனக்கு மூச்சு விடுவதில் சிரமம் உள்ளது."),
@@ -330,16 +506,16 @@ PATIENT_CLINICAL_DOMAINS = {
     "bleeding": {
         "urgent": True,
         "tokens": {
-            "ta": ["iratham", "ratham", "இரத்தப்போக்கு"],
-            "hi": ["khoon", "khoon beh raha", "खून"],
-            "ml": ["raktham", "chora", "രക്തസ്രാവം"],
-            "bn": ["rokto", "রক্তপাত"],
-            "ur": ["khoon", "خون"],
-            "ar": ["nazif", "dam", "نزيف"],
-            "pl": ["krwawienie", "krew"],
-            "so": ["dhiig", "dhiig bax"],
-            "ro": ["sangerare", "hemoragie", "sângerare"],
-            "en": ["bleeding", "heavy blood"]
+            "ta": ["iratham varuthu", "ratham varuthu", "iratham kottuthu", "iratham", "ratham", "irathapokku", "இரத்தம் வருகிறது", "இரத்தப்போக்கு"],
+            "hi": ["khoon beh raha hai", "khoon nikal raha hai", "khoon beh raha", "khoon nikal raha", "khoon aa raha", "khoon", "rakt", "खून बह रहा है", "खून आ रहा है", "खून"],
+            "ml": ["raktham varunnu", "chora varunnu", "raktham", "chora", "രക്തം വരുന്നു", "രക്തസ്രാവം"],
+            "bn": ["rokto porchhe", "rokto ber hochhe", "rokto", "রক্ত পড়ছে", "রক্তপাত"],
+            "ur": ["khoon beh raha hai", "khoon nikal raha hai", "khoon beh raha", "khoon", "خون بہہ رہا ہے", "خون"],
+            "ar": ["dam yanzif", "nazif shadid", "nazif", "dam", "نزيف حاد", "دم ينزف", "نزيف"],
+            "pl": ["krwawie mocno", "krwawię mocno", "leci mi krew", "leci krew", "krwawienie", "krwawie", "krwawię", "krew", "krwotok"],
+            "so": ["dhiig ayaa iga socda", "dhiig badan", "dhiig bax", "dhiig"],
+            "ro": ["sangerez abundent", "sângerez abundent", "curge sange", "curge sânge", "sangerare", "sângerare", "hemoragie", "sange", "sânge"],
+            "en": ["bleeding heavily", "bleeding", "heavy bleeding", "losing blood", "blood"]
         },
         "affirmative": {
             "ta": ("I am bleeding.", "எனக்கு இரத்தப்போக்கு உள்ளது."),
@@ -369,16 +545,16 @@ PATIENT_CLINICAL_DOMAINS = {
     "unconscious": {
         "urgent": True,
         "tokens": {
-            "ta": ["mayakkam", "mayangi", "மயக்கம்"],
-            "hi": ["behosh", "chakkar behosh", "बेहोश"],
-            "ml": ["bodhakshayam", "തലകറങ്ങി വീണു"],
-            "bn": ["agyan", "অজ্ঞান"],
-            "ur": ["be hosh", "بے ہوش"],
-            "ar": ["ighma", "إغماء"],
-            "pl": ["omdlenie", "stracil przytomnosc"],
-            "so": ["miyir beel"],
-            "ro": ["lesin", "inconstient", "leșin"],
-            "en": ["unconscious", "passed out", "fainted", "collapsed"]
+            "ta": ["mayangi vizhunthuten", "mayakkam vanthiruchu", "mayangi vizhunthen", "mayakkam", "mayangi", "மயக்கம்", "மயங்கி விழுந்துவிட்டேன்"],
+            "hi": ["behosh ho gaya", "chakkar kha kar gir gaya", "behosh", "be hosh", "बेहोश हो गया", "बेहोश"],
+            "ml": ["bodham kettu veenu", "bodhakshayam undayi", "bodhakshayam", "ബോധക്ഷയം"],
+            "bn": ["agyan hoye gechhilam", "matha ghure pore gechhi", "agyan", "অজ্ঞান হয়ে গেছি"],
+            "ur": ["behosh ho gaya tha", "chakkar kha kar gir gaya", "be hosh", "behosh", "بے ہوش"],
+            "ar": ["ughmiya alayya", "faqadt al waey", "ighma", "غمي علي", "إغماء"],
+            "pl": ["zemdlalem", "zemdlałam", "zemdlalam", "stracilem przytomnosc", "straciłem przytomność", "stracilam przytomnosc", "straciłam przytomność", "omdlenie"],
+            "so": ["waa miyir beelay", "waad miyir beeshay", "miyir beel"],
+            "ro": ["am lesinat", "am leșinat", "mi-am pierdut cunostinta", "mi-am pierdut cunoștința", "stare de lesin", "leșin", "inconstient"],
+            "en": ["passed out", "fainted", "collapsed", "lost consciousness", "unconscious"]
         },
         "affirmative": {
             "ta": ("I feel faint or fainted.", "எனக்கு மயக்கமாக இருக்கிறது."),
@@ -408,16 +584,40 @@ PATIENT_CLINICAL_DOMAINS = {
     "headache": {
         "urgent": False,
         "tokens": {
-            "ta": ["thala vali", "thalai vali", "தலைவலி"],
-            "hi": ["sir dard", "sar dard", "सिर दर्द"],
-            "ml": ["thala vedana", "തലവേദന"],
-            "bn": ["matha byatha", "মাথা ব্যথা"],
-            "ur": ["sar dard", "سر درد"],
-            "ar": ["suda", "sudaa", "صداع"],
-            "pl": ["bol glowy", "ból głowy"],
-            "so": ["madax xanuun"],
-            "ro": ["durere de cap"],
-            "en": ["headache", "head pain"]
+            "ta": [
+                "thalai valikuthu", "thala valikuthu", "mandai valikuthu", "mandai idikkuthu",
+                "thalai vali", "thala vali", "mandai vali", "thalavali", "தலை வலிக்கிறது", "தலைவலி", "தலை வலி"
+            ],
+            "hi": [
+                "sar phat raha hai", "sir dard kar raha hai", "sar dard kar raha hai", "sir me dard hai", "sar me dard hai",
+                "sir dard", "sar dard", "sar me dard", "sir me dard", "सिर में दर्द है", "सिरदर्द", "सर दर्द", "सिर दर्द"
+            ],
+            "ml": [
+                "thala vedana edukkunnu", "thala valikkunnu", "thalavedana", "thala vedana", "തലവേദന"
+            ],
+            "bn": [
+                "matha byatha korchhe", "matha batha korchhe", "matha byatha", "matha batha", "matha betha", "মাথা ব্যথা করছে", "মাথা ব্যথা"
+            ],
+            "ur": [
+                "sar mein shadeed dard hai", "sar dard kar raha hai", "sar mein dard hai", "sar dard", "sir mein dard", "sar me dard", "سر میں شدید درد ہے", "سر درد"
+            ],
+            "ar": [
+                "rasi yuwjaani", "alam fi al ras", "alam rasi", "waja ras", "suda", "sudaa", "راسي يوجعني", "صداع", "ألم في الرأس"
+            ],
+            "pl": [
+                "peka mi glowa", "pęka mi głowa", "boli mnie glowa", "boli mnie głowa", "boli glowa", "boli głowa",
+                "bol glowy", "ból głowy", "bol w glowie", "ból w głowie"
+            ],
+            "so": [
+                "madaxa oo aad ii xanuunaya", "madaxa oo i xanuunaya", "madax xanuun daran", "madax xanuun", "madax xanoon"
+            ],
+            "ro": [
+                "ma doare capul foarte tare", "mă doare capul foarte tare", "ma doare capul", "mă doare capul",
+                "durere de cap", "dureri de cap", "migrena", "migrenă"
+            ],
+            "en": [
+                "headache", "head pain", "my head hurts", "severe headache", "throbbing head"
+            ]
         },
         "affirmative": {
             "ta": ("I have a headache.", "எனக்கு தலைவலி இருக்கிறது."),
@@ -447,16 +647,40 @@ PATIENT_CLINICAL_DOMAINS = {
     "fever": {
         "urgent": False,
         "tokens": {
-            "ta": ["kaichal", "kaaichal", "suram", "காய்ச்சல்"],
-            "hi": ["bukhar", "tez bukhar", "बुखार"],
-            "ml": ["pani", "പനി"],
-            "bn": ["jwor", "jor", "জ্বর"],
-            "ur": ["bukhar", "بخار"],
-            "ar": ["humma", "حمى"],
-            "pl": ["goraczka", "gorączka"],
-            "so": ["qandho"],
-            "ro": ["febra", "febră"],
-            "en": ["fever", "high temperature"]
+            "ta": [
+                "udambu kaayuthu", "kaichal adikuthu", "udambu suudu", "kaichal", "kaaichal", "jwaram", "suram",
+                "காய்ச்சல் அடிக்கிறது", "காய்ச்சல்", "சுரம்"
+            ],
+            "hi": [
+                "tez bukhar hai", "sarir tap raha hai", "bukhar aa raha hai", "tez bukhar", "bukhar", "taap",
+                "तेज बुखार है", "बुखार आ रहा है", "बुखार"
+            ],
+            "ml": [
+                "choodu kooduthal aanu", "pani edukkunnu", "choodu", "pani", "പനി"
+            ],
+            "bn": [
+                "shorir gorom hoye achhe", "jhor eshechhe", "tez jor", "jwor", "jor", "জ্বর এসেছে", "জ্বর"
+            ],
+            "ur": [
+                "tez bukhar hai", "jism tap raha hai", "tez bukhar", "bukhar", "تیز بخار ہے", "بخار"
+            ],
+            "ar": [
+                "hararati murtafia", "harara murtafia", "sukhuna", "humma", "harara", "حرارتي مرتفعة", "حمى"
+            ],
+            "pl": [
+                "mam wysoka temperature", "mam wysoką temperaturę", "mam goraczke", "mam gorączkę",
+                "wysoka temperatura", "temperatura", "goraczka", "gorączka"
+            ],
+            "so": [
+                "qandho daran", "jidhka oo aad u kulul", "qandho", "xumad", "kuleyl"
+            ],
+            "ro": [
+                "am temperatura mare", "am temperatură mare", "am febra mare", "am febră mare",
+                "temperatura ridicata", "temperatură ridicată", "temperatura", "febra", "febră"
+            ],
+            "en": [
+                "fever", "high temperature", "running a temperature", "chills and fever"
+            ]
         },
         "affirmative": {
             "ta": ("I have a fever.", "எனக்கு காய்ச்சல் இருக்கிறது."),
@@ -475,7 +699,7 @@ PATIENT_CLINICAL_DOMAINS = {
             "hi": ("I do not have a fever.", "मुझे बुखार नहीं है।"),
             "ml": ("I do not have a fever.", "എനിക്ക് പനിയില്ല."),
             "bn": ("I do not have a fever.", "আমার জ্বর নেই।"),
-            "ur": ("I do not have a fever.", "मुझे بخار نہیں ہے۔"),
+            "ur": ("I do not have a fever.", "मुझे بخار ਨਹੀਂ ہے۔"),
             "ar": ("I do not have a fever.", "ليس عندي حمى."),
             "pl": ("I do not have a fever.", "Nie mam gorączki."),
             "so": ("I do not have a fever.", "Ma qabo wax qandho ah."),
@@ -486,16 +710,43 @@ PATIENT_CLINICAL_DOMAINS = {
     "stomach_pain": {
         "urgent": False,
         "tokens": {
-            "ta": ["vayiru vali", "vayitru vali", "வயிற்று வலி"],
-            "hi": ["pet dard", "पेट दर्द"],
-            "ml": ["vayaru vedana", "വയറുവേദന"],
-            "bn": ["pet byatha", "পেটে ব্যথা"],
-            "ur": ["pet mein dard", "pait dard", "پیٹ میں درد"],
-            "ar": ["alam batn", "ألم في البطن"],
-            "pl": ["bol brzucha", "ból brzucha"],
-            "so": ["calool xanuun"],
-            "ro": ["durere de stomac"],
-            "en": ["stomach pain", "tummy ache", "abdominal pain"]
+            "ta": [
+                "vayiru valikuthu", "vayathula vali", "vayitru vali", "vayiru vali", "vathiru vali",
+                "வயிறு வலிக்கிறது", "வயிற்று வலி", "வயிறு வலி"
+            ],
+            "hi": [
+                "pet mein dard ho raha hai", "pet me dard ho raha hai", "pet mein marod", "pet kharab hai",
+                "pet dard", "pet mein dard", "pet me dard", "पेट में दर्द हो रहा है", "पेट दर्द", "पेट में दर्द"
+            ],
+            "ml": [
+                "vayaru vedana edukkunnu", "vayaril vali", "vayaruvathana", "vayaru vedana", "വയറുവേദന"
+            ],
+            "bn": [
+                "pete byatha korchhe", "pete batha korchhe", "pet byatha", "pet batha", "pete byatha", "pete batha",
+                "পেটে ব্যথা করছে", "পেট ব্যথা", "পেটে ব্যথা"
+            ],
+            "ur": [
+                "pait mein marod hai", "pait mein dard ho raha hai", "pet mein dard", "pait mein dard", "pait dard", "pet dard",
+                "پیٹ میں درد ہو رہا ہے", "پیٹ میں درد"
+            ],
+            "ar": [
+                "batni tuwjaani", "alam fi al batan", "alam fi al meeda", "alam batn", "waja batn",
+                "بطني توجعني", "ألم في البطن", "ألم في المعدة"
+            ],
+            "pl": [
+                "boli mnie brzuch", "boli brzuch", "skurcze brzucha", "skurcze zoladka", "skurcze żołądka",
+                "boli mnie zoladek", "boli mnie żołądek", "bol brzucha", "ból brzucha", "bol zoladka", "ból żołądka"
+            ],
+            "so": [
+                "caloosha oo aad ii xanuunaysa", "caloosha oo i xanuunaysa", "calool xanuun daran", "calool xanuun"
+            ],
+            "ro": [
+                "ma doare stomacul foarte tare", "mă doare stomacul foarte tare", "ma doare stomacul", "mă doare stomacul",
+                "crampe la stomac", "durere abdominala", "durere abdominală", "durere de stomac", "dureri de stomac"
+            ],
+            "en": [
+                "stomach pain", "abdominal pain", "tummy ache", "stomach cramps", "belly pain", "my stomach hurts"
+            ]
         },
         "affirmative": {
             "ta": ("I have stomach pain.", "எனக்கு வயிற்று வலி இருக்கிறது."),
@@ -525,16 +776,16 @@ PATIENT_CLINICAL_DOMAINS = {
     "dizziness": {
         "urgent": False,
         "tokens": {
-            "ta": ["mayakkam", "thala suttrudhal", "தலைசுற்றல்"],
-            "hi": ["chakkar", "chakkar aana", "चक्कर"],
-            "ml": ["thalakarakkam", "തലകറക്കം"],
-            "bn": ["matha ghora", "মাথা ঘোরা"],
-            "ur": ["chakkar", "چکر"],
-            "ar": ["dawkha", "دوخة"],
-            "pl": ["zawroty glowy", "zawroty głowy"],
-            "so": ["wareer"],
-            "ro": ["ameteala", "amețeală"],
-            "en": ["dizziness", "dizzy", "lightheaded"]
+            "ta": ["thala suthuthu", "thala suttrudhal", "mayakkama irukku", "mayakkam", "தலை சுற்றுகிறது", "தலைசுற்றல்", "மயக்கம்"],
+            "hi": ["chakkar aa rahe hain", "chakkar aa raha hai", "chakkar", "chakkar aana", "चक्कर आ रहे हैं", "चक्कर आना", "चक्कर"],
+            "ml": ["thalakarakkam thonnunnu", "thalakarakkam", "തലകറക്കം"],
+            "bn": ["matha ghurche", "matha ghora", "মাথা ঘুরছে", "মাথা ঘোরা"],
+            "ur": ["chakkar aa rahe hain", "chakkar aana", "chakkar", "چکر آ رہے ہیں", "چکر"],
+            "ar": ["ashur bi dawran", "dawkha", "duwar", "أشعر بدوخة", "دوخة", "دوار"],
+            "pl": ["kreci mi sie w glowie", "kręci mi się w głowie", "kreci w glowie", "kręci w głowie", "zawroty glowy", "zawroty głowy", "slabo mi", "słabo mi"],
+            "so": ["madax wareer daran", "wareer", "madax wareer"],
+            "ro": ["ametesc foarte tare", "amețesc foarte tare", "ma simt ametit", "mă simt amețit", "ameteala", "amețeală", "stare de lesin"],
+            "en": ["dizziness", "feeling dizzy", "lightheaded", "head spinning", "dizzy"]
         },
         "affirmative": {
             "ta": ("I feel dizzy.", "எனக்கு மயக்கமாக இருக்கிறது."),
@@ -553,7 +804,7 @@ PATIENT_CLINICAL_DOMAINS = {
             "hi": ("I do not feel dizzy.", "मुझे चक्कर नहीं आ रहे हैं।"),
             "ml": ("I do not feel dizzy.", "എനിക്ക് തലകറക്കമില്ല."),
             "bn": ("I do not feel dizzy.", "আমার মাথা ঘুরছে না।"),
-            "ur": ("I do not feel dizzy.", "مجھے چکر نہیں آ رہے ہیں۔"),
+            "ur": ("I do not feel dizzy.", "मुझे چکر نہیں آ رہے ہیں۔"),
             "ar": ("I do not feel dizzy.", "لا أشعر بدوخة."),
             "pl": ("I do not feel dizzy.", "Nie kręci mi się w głowie."),
             "so": ("I do not feel dizzy.", "Ma dareemayo wareer."),
@@ -564,16 +815,16 @@ PATIENT_CLINICAL_DOMAINS = {
     "vomiting": {
         "urgent": False,
         "tokens": {
-            "ta": ["vaanthi", "வாந்தி"],
-            "hi": ["ulti", "उल्टी"],
-            "ml": ["chardhi", "ഛർദ്ദി"],
-            "bn": ["bomi", "বমি"],
-            "ur": ["ulti", "الٹی"],
-            "ar": ["qay", "قيء"],
-            "pl": ["wymioty", "nudnosci"],
-            "so": ["matag"],
-            "ro": ["varsaturi", "vărsături"],
-            "en": ["vomiting", "throwing up", "sickness"]
+            "ta": ["vaanthi varuthu", "vaanthi edukuthu", "vaanthi", "vandi", "வாந்தி வருகிறது", "வாந்தி"],
+            "hi": ["ulti aa rahi hai", "ulti ho rahi hai", "ji machal raha hai", "ulti", "qay", "उल्टी आ रही है", "उल्टी"],
+            "ml": ["chardhikan thonnunnu", "chardhi varunnu", "chardhi", "ഛർദ്ദി"],
+            "bn": ["bomi hochhe", "bomi bhab", "bomi", "বমি হচ্ছে", "বমি"],
+            "ur": ["ulti aa rahi hai", "ji matla raha hai", "ulti", "qay", "الٹی آ رہی ہے", "الٹی"],
+            "ar": ["astafregh kathiran", "istifragh", "arjaa", "qay", "قيء", "استفراغ"],
+            "pl": ["wymiotuje", "wymiotuję", "niedobrze mi", "chce mi sie wymiotowac", "chce mi się wymiotować", "wymioty", "mdlosci", "mdłości", "nudnosci", "nudności"],
+            "so": ["matag joogto ah", "lalabbo daran", "matag", "lalabbo"],
+            "ro": ["imi vine sa vomit", "îmi vine să vomit", "am varsat", "am vărsat", "varsaturi", "vărsături", "stare de greata", "stare de greață", "voma", "vomă"],
+            "en": ["vomiting", "throwing up", "feeling sick", "nauseous", "vomit"]
         },
         "affirmative": {
             "ta": ("I have vomiting.", "எனக்கு வாந்தி இருக்கிறது."),
@@ -592,7 +843,7 @@ PATIENT_CLINICAL_DOMAINS = {
             "hi": ("I do not have vomiting.", "मुझे उल्टी नहीं आ रही है।"),
             "ml": ("I do not have vomiting.", "എനിക്ക് ഛർദ്ദിയില്ല."),
             "bn": ("I do not have vomiting.", "আমার বমি হচ্ছে না।"),
-            "ur": ("I do not have vomiting.", "مجھے الٹی نہیں آ رہی ہے۔"),
+            "ur": ("I do not have vomiting.", "मुझे الٹی नहीं आ रही ہے۔"),
             "ar": ("I do not have vomiting.", "ليس عندي قيء."),
             "pl": ("I do not have vomiting.", "Nie mam wymiotów."),
             "so": ("I do not have vomiting.", "Ma qabo matag."),
@@ -603,16 +854,16 @@ PATIENT_CLINICAL_DOMAINS = {
     "cough": {
         "urgent": False,
         "tokens": {
-            "ta": ["irumal", "இருமல்"],
-            "hi": ["khansi", "खांसी"],
-            "ml": ["chuma", "ചുമ"],
-            "bn": ["kashi", "কাশি"],
-            "ur": ["khansi", "کھانسی"],
-            "ar": ["sual", "سعال"],
-            "pl": ["kaszel"],
-            "so": ["qufac"],
-            "ro": ["tuse"],
-            "en": ["cough", "coughing"]
+            "ta": ["irumal varuthu", "irumala irukku", "varattu irumal", "irumal", "இருமல் வருகிறது", "இருமல்"],
+            "hi": ["khansi aa rahi hai", "sukhi khansi", "khansi", "khaansi", "खांसी आ रही है", "खांसी"],
+            "ml": ["chuma varunnu", "chumakkunnu", "chuma", "ചുമ"],
+            "bn": ["kashi hochhe", "shukno kashi", "kashi", "কাশি হচ্ছে", "কাশি"],
+            "ur": ["khansi aa rahi hai", "sookhi khansi", "khansi", "کھانسی آ رہی ہے", "کھانسی"],
+            "ar": ["sual shadid", "kahha shadida", "sual", "kahha", "سعال شديد", "سعال", "كحة"],
+            "pl": ["kaszle mocno", "kaszlę mocno", "suchy kaszel", "mokry kaszel", "duszacy kaszel", "duszący kaszel", "kaszel", "kaszle", "kaszlę"],
+            "so": ["qufac daran", "qufac qallalan", "qufac joogto ah", "qufac"],
+            "ro": ["tusesc foarte rau", "tușesc foarte rău", "tuse seaca", "tuse seacă", "tuse productiva", "tuse productivă", "tuse"],
+            "en": ["coughing a lot", "cough", "dry cough", "persistent cough", "bad cough"]
         },
         "affirmative": {
             "ta": ("I have a cough.", "எனக்கு இருமல் இருக்கிறது."),
@@ -631,7 +882,7 @@ PATIENT_CLINICAL_DOMAINS = {
             "hi": ("I do not have a cough.", "मुझे खांसी नहीं है।"),
             "ml": ("I do not have a cough.", "എനിക്ക് ചുമയില്ല."),
             "bn": ("I do not have a cough.", "আমার কাশি নেই।"),
-            "ur": ("I do not have a cough.", "مجھے کھانسی نہیں ہے۔"),
+            "ur": ("I do not have a cough.", "मुझे کھانسی نہیں ہے۔"),
             "ar": ("I do not have a cough.", "ليس عندي سعال."),
             "pl": ("I do not have a cough.", "Nie mam kaszlu."),
             "so": ("I do not have a cough.", "Ma qabo qufac."),
@@ -642,16 +893,16 @@ PATIENT_CLINICAL_DOMAINS = {
     "sore_throat": {
         "urgent": False,
         "tokens": {
-            "ta": ["thondai vali", "தொண்டை வலி"],
-            "hi": ["gale mein dard", "गले में दर्द"],
-            "ml": ["thonda vedana", "തൊണ്ടവേദന"],
-            "bn": ["gola byatha", "গলা ব্যথা"],
-            "ur": ["galay mein dard", "گلے میں درد"],
-            "ar": ["iltihab halq", "ألم في الحلق"],
-            "pl": ["bol gardla", "ból gardła"],
-            "so": ["dhuun xanuun"],
-            "ro": ["durere in gat", "durere în gât"],
-            "en": ["sore throat", "throat pain"]
+            "ta": ["thondai valikuthu", "thonda valikuthu", "thondaila vali", "thondai vali", "thonda vali", "தொண்டை வலிக்கிறது", "தொண்டை வலி"],
+            "hi": ["gale mein dard ho raha hai", "gala kharab hai", "gale mein jalan", "gale mein dard", "gale me dard", "गले में दर्द है", "गले में दर्द"],
+            "ml": ["thonda vedana edukkunnu", "thonda vedana", "തൊണ്ടവേദന"],
+            "bn": ["gola byatha korchhe", "gola betha", "golar betha", "gola byatha", "গলায় ব্যথা করছে", "গলা ব্যথা"],
+            "ur": ["galay mein dard hai", "gala kharab hai", "galay mein dard", "گلے میں درد ہے", "گلے میں درد"],
+            "ar": ["halqi yuwjaani", "alam fi al halq", "iltihab halq", "alam halq", "حلقي يوجعني", "ألم في الحلق", "التهاب الحلق"],
+            "pl": ["boli mnie gardlo", "boli mnie gardło", "piecze w gardle", "drapie w gardle", "bol gardla", "ból gardła"],
+            "so": ["dhuunta oo i xanuunaysa", "dhuun xanuun daran", "cunaha xanuun", "dhuun xanuun"],
+            "ro": ["ma doare in gat", "mă doare în gât", "ma doare gâtul", "gat inflamat", "gât inflamat", "durere in gat", "durere în gât"],
+            "en": ["sore throat", "throat pain", "pain swallowing", "my throat hurts"]
         },
         "affirmative": {
             "ta": ("I have a sore throat.", "எனக்கு தொண்டை வலி இருக்கிறது."),
@@ -681,16 +932,16 @@ PATIENT_CLINICAL_DOMAINS = {
     "back_pain": {
         "urgent": False,
         "tokens": {
-            "ta": ["muthugu vali", "iduppu vali", "முதுகு வலி"],
-            "hi": ["peeth dard", "kamar dard", "पीठ दर्द"],
-            "ml": ["puram vedana", "naduv vedana", "പുറംവേദന"],
-            "bn": ["pither byatha", "komor byatha", "পিঠের ব্যথা"],
-            "ur": ["kamar dard", "کمر درد"],
-            "ar": ["alam zahr", "ألم في الظهر"],
-            "pl": ["bol plecow", "ból pleców"],
-            "so": ["dhabar xanuun"],
-            "ro": ["durere de spate"],
-            "en": ["back pain", "lower back pain"]
+            "ta": ["muthugu valikuthu", "iduppu valikuthu", "muthukula vali", "iduppula vali", "muthugu vali", "mudhugu vali", "iduppu vali", "முதுகு வலிக்கிறது", "முதுகு வலி", "இடுப்பு வலி"],
+            "hi": ["peeth mein dard ho raha hai", "kamar mein dard ho raha hai", "kamar dard", "peeth dard", "peeth mein dard", "kamar mein dard", "पीठ में दर्द", "कमर दर्द", "पीठ दर्द"],
+            "ml": ["nadu vedana edukkunnu", "puram vedana", "naduvedana", "naduv vedana", "നടുവേദന", "പുറംവേദന"],
+            "bn": ["pithe byatha korchhe", "komore byatha", "pithe byatha", "komor betha", "pither byatha", "পিঠে ব্যথা", "কোমর ব্যথা"],
+            "ur": ["kamar mein dard ho raha hai", "peeth mein dard", "kamar dard", "کمر میں درد ہو رہا ہے", "کمر درد", "پیٹھ میں درد"],
+            "ar": ["dhahri yuwjaani", "alam fi al dhahr", "alam dhahr", "alam zahr", "ظهري يوجعني", "ألم في الظهر"],
+            "pl": ["bola mnie plecy", "bolą mnie plecy", "lupie w krzyzu", "łupie w krzyżu", "bol kregoslupa", "ból kręgosłupa", "bol krzyza", "ból krzyża", "bol plecow", "ból pleców"],
+            "so": ["dhabarka oo aad ii xanuunaya", "dhabarka oo i xanuunaya", "dhabar xanuun daran", "dhabar xanuun"],
+            "ro": ["ma doare spatele foarte tare", "mă doare spatele foarte tare", "ma doare spatele", "mă doare spatele", "durere lombara", "durere lombară", "durere de spate", "dureri de spate"],
+            "en": ["back pain", "lower back pain", "bad back", "my back hurts", "spine pain"]
         },
         "affirmative": {
             "ta": ("I have back pain.", "எனக்கு முதுகு வலி இருக்கிறது."),
@@ -720,16 +971,16 @@ PATIENT_CLINICAL_DOMAINS = {
     "skin_rash": {
         "urgent": False,
         "tokens": {
-            "ta": ["thol thadippu", "arippu", "தோல் தடிப்பு"],
-            "hi": ["daane", "khujli", "दाने"],
-            "ml": ["thadippu", "chorichil", "തടിപ്പ്"],
-            "bn": ["chulkani", "fusuri", "ফুসকুড়ি"],
-            "ur": ["daanay", "kharish", "خارش"],
-            "ar": ["tafah jildi", "hikkah", "طفح جلدي"],
-            "pl": ["wysypka", "swedzenie"],
-            "so": ["finan", "cuncun"],
-            "ro": ["eruptie cutanata", "mancarime"],
-            "en": ["skin rash", "rash", "itching"]
+            "ta": ["thol thadippu", "arippu edukkuthu", "udambula arippu", "thol arippu", "arippu", "thadippu", "தோல் தடிப்பு", "அரிப்பு"],
+            "hi": ["khujli ho rahi hai", "daane nikal aaye hain", "daane", "khujli", "chakatte", "दाने निकल आए हैं", "खुजली", "दाने"],
+            "ml": ["thadippu und", "chorichil und", "chorichil", "thadippu", "ചൊറിച്ചിൽ", "തടിപ്പ്"],
+            "bn": ["chulkani hochhe", "fusuri beriyechhe", "chulkani", "fusuri", "চুলকানি হচ্ছে", "ফুসকুড়ি", "চুলকানি"],
+            "ur": ["kharish ho rahi hai", "daanay nikal aaye hain", "daanay", "kharish", "خارش ہو رہی ہے", "جلد پر دانے", "خارش"],
+            "ar": ["hikkah shadida", "hakkah", "tafah jildi", "hikkah", "حكة شديدة", "طفح جلدي", "حكة"],
+            "pl": ["skora mnie swedzi", "skóra mnie swędzi", "czerwone plamy na skorze", "czerwone plamy na skórze", "wysypka na skorze", "wysypka na skórze", "swedzenie", "swędzenie", "wysypka"],
+            "so": ["cuncun daran", "maqaarka oo cuncunaya", "finan", "cuncun"],
+            "ro": ["ma mananca pielea", "mă mănâncă pielea", "pete rosii pe piele", "pete roșii pe piele", "iritatie pe piele", "iritație pe piele", "eruptie cutanata", "erupție cutanată", "mancarime", "mâncărime", "eruptie", "erupție"],
+            "en": ["skin rash", "itchy rash", "rash on my skin", "itchy skin", "spots on skin"]
         },
         "affirmative": {
             "ta": ("I have a skin rash.", "எனக்கு தோல் தடிப்பு இருக்கிறது."),
@@ -757,3 +1008,91 @@ PATIENT_CLINICAL_DOMAINS = {
         }
     }
 }
+
+CANONICAL_RESPONSES = PATIENT_CLINICAL_DOMAINS
+
+# ============================================================
+# 6. URGENT SYMPTOMS CONFIG & GUIDED PROMPTS
+# ============================================================
+URGENT_SYMPTOMS_CONFIG = {
+    "chest pain": ["chest pain", "tight chest", "crushing chest", "nenji vali", "seene mein dard", "bol w klatce", "alam fi sadr", "laab xanuun", "durere in piept"],
+    "breathing difficulty": ["difficulty breathing", "shortness of breath", "moochu thinaral", "saans lene mein takleef", "shwasam muttal", "dusznosc", "diq fi tanaffus", "respiratie grea"],
+    "bleeding": ["bleeding", "heavy bleeding", "iratham", "khoon", "krwawienie", "nazif", "dhiig", "sangerare"],
+    "unconscious": ["unconscious", "passed out", "fainted", "mayakkam", "behosh", "omdlenie", "ighma", "miyir beel", "lesin"]
+}
+URGENT_SYMPTOMS = URGENT_SYMPTOMS_CONFIG
+RED_FLAGS = URGENT_SYMPTOMS_CONFIG
+
+GUIDED_PROMPTS = {
+    "Reception": [
+        "Welcome. Do you have a booked appointment today?",
+        "Please provide your full name and date of birth.",
+        "Please take a seat in the waiting area. Staff will call you shortly.",
+        "Do you need to update your home address or telephone number?",
+        "Do you have an NHS number or your registration card with you?",
+        "Are you registered as a permanent patient at this practice?"
+    ],
+    "Appointment": [
+        "Are you attending today for a routine follow-up or a new issue?",
+        "Can you confirm which regular medications you are currently taking?",
+        "Do you have any known allergies to medicines or food?",
+        "Have you taken your routine morning medication today?",
+        "Are you here for a scheduled blood test or routine vaccination?",
+        "Do you require a medical certificate or repeat prescription?"
+    ],
+    "Basic Symptoms": [
+        "Where are you feeling pain or discomfort today?",
+        "How many days or hours have you had this feeling?",
+        "Do you have a high temperature or fever?",
+        "Do you have a new or continuous cough?",
+        "Are you experiencing any stomach pain, sickness, or vomiting?",
+        "Are you feeling dizzy or lightheaded when standing up?"
+    ]
+}
+CONTEXT_PROMPTS = GUIDED_PROMPTS
+
+# ============================================================
+# 7. PARSER & SYNTHESIZER UTILITIES
+# ============================================================
+def extract_symptom(text, lang_code):
+    if not text:
+        return None, None, None
+
+    clean_text = re.sub(r'[^\w\s]', ' ', text.lower()).strip()
+    norm = f" {' '.join(clean_text.split())} "
+
+    candidates = []
+    for sym_key, sym_data in PATIENT_CLINICAL_DOMAINS.items():
+        tokens = sym_data["tokens"].get(lang_code, [])
+        for token in tokens:
+            candidates.append((token.lower().strip(), sym_key))
+
+    candidates.sort(key=lambda x: len(x[0]), reverse=True)
+
+    for token, sym_key in candidates:
+        if f" {token} " in norm or norm.strip().startswith(token) or norm.strip().endswith(token):
+            return sym_key, sym_key.replace('_', ' '), token
+
+    return None, None, None
+
+def synthesize_staff_question(text, target_lang):
+    if not text:
+        return ""
+    clean = " ".join(text.strip().lower().split())
+
+    if "booked appointment" in clean or "appointment" in clean:
+        return STAFF_LEXICON["APPOINTMENT"].get(target_lang[:2], "")
+    if "name and date of birth" in clean or "dob" in clean:
+        return STAFF_LEXICON["NAME_DOB"].get(target_lang[:2], "")
+    if "nhs" in clean:
+        return STAFF_LEXICON["NHS_NUMBER"].get(target_lang[:2], "")
+    if "seat" in clean or "wait" in clean:
+        return STAFF_LEXICON["TAKE_SEAT"].get(target_lang[:2], "")
+    if "chest" in clean and "pain" in clean:
+        return STAFF_LEXICON["DO_YOU_HAVE_CHEST_PAIN"].get(target_lang[:2], "")
+    if "breath" in clean:
+        return STAFF_LEXICON["DO_YOU_HAVE_BREATHING"].get(target_lang[:2], "")
+    if "fever" in clean:
+        return STAFF_LEXICON["DO_YOU_HAVE_FEVER"].get(target_lang[:2], "")
+
+    return ""
