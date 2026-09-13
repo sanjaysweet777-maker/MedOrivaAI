@@ -27,6 +27,7 @@ def normalise(text):
     return ' '.join(unicodedata.normalize('NFC', cleaned).casefold().split())
 
 def is_native_script(text):
+    # Detects non-Latin scripts (Arabic, Tamil, Devanagari, Bengali, etc.)
     return any(ord(char) > 0x0590 for char in text)
 
 @dataclass(frozen=True)
@@ -41,12 +42,28 @@ class Translation:
     is_negative: bool = False
 
 def detect_negation(text, lang_code):
+    """
+    Strict whole-word negation parsing.
+    Checks only exact tokens so 'mnie' never triggers 'nie'.
+    """
     clean = normalise(text)
-    tokens = clean.split()
+    tokens = set(clean.split())
     neg_words = NEGATION_DICTIONARY.get(lang_code, []) + ["no", "not", "without", "never", "none", "denies"]
+
+    padded = f" {clean} "
     for word in neg_words:
-        if word in tokens or word in clean:
-            return True
+        clean_word = normalise(word)
+        if not clean_word:
+            continue
+        # Multi-word negation (e.g. 'nie ma', 'kuch nahi')
+        if " " in clean_word:
+            if f" {clean_word} " in padded:
+                return True
+        # Single-word negation (strict whole-token check)
+        else:
+            if clean_word in tokens:
+                return True
+
     return False
 
 # ============================================================
@@ -59,9 +76,22 @@ def configured_key():
             return val
     return ''
 
+def is_error_payload(text):
+    """Rejects Google scraper 500 rate-limit HTML error pages."""
+    if not text:
+        return True
+    lowered = text.lower()
+    error_markers = [
+        "error 500", "server error", "that’s an error", "that's an error",
+        "wystąpił błąd", "błąd 500", "błąd serwera", "try again later"
+    ]
+    return any(marker in lowered for marker in error_markers)
+
 def online(text, source, target):
     if not text:
         return Translation()
+
+    clean_input = text.strip()
 
     # Tier 1: Cloud API Key
     key = configured_key()
@@ -70,33 +100,39 @@ def online(text, source, target):
             resp = requests.post(
                 'https://translation.googleapis.com/language/translate/v2',
                 headers={'X-Goog-Api-Key': key},
-                json={'q': text, 'source': source, 'target': target, 'format': 'text'},
-                timeout=(3, 6)
+                json={'q': clean_input, 'source': source, 'target': target, 'format': 'text'},
+                timeout=(2, 4)
             )
             if resp.status_code == 200:
                 translated = html.unescape(resp.json()['data']['translations'][0]['translatedText']).strip()
-                if translated and normalise(translated) != normalise(text):
+                if translated and not is_error_payload(translated):
                     return Translation(translated, translated, 'needs_review', 'google_cloud', REVIEW)
         except Exception:
             pass
 
-    # Tier 2: Deep-Translator Google
+    # Tier 2: Deep-Translator Google (with 500 error rejection)
     try:
-        translated = GoogleTranslator(source=source, target=target).translate(text)
-        if translated and normalise(translated) != normalise(text):
+        translated = GoogleTranslator(source=source, target=target).translate(clean_input)
+        if translated and not is_error_payload(translated) and normalise(translated) != normalise(clean_input):
             return Translation(translated, translated, 'needs_review', 'google_translator', REVIEW)
     except Exception:
         pass
 
     # Tier 3: Deep-Translator MyMemory
     try:
-        translated = MyMemoryTranslator(source=source, target=target).translate(text)
-        if translated and normalise(translated) != normalise(text):
+        translated = MyMemoryTranslator(source=source, target=target).translate(clean_input)
+        if translated and not is_error_payload(translated) and normalise(translated) != normalise(clean_input):
             return Translation(translated, translated, 'needs_review', 'mymemory', REVIEW)
     except Exception:
         pass
 
-    return Translation(text, text, 'unavailable', 'none', 'Translation temporarily unavailable.')
+    return Translation(
+        text=clean_input,
+        native=clean_input,
+        status='needs_review',
+        source='fallback',
+        warning='Custom input · Confirm meaning with speaker.'
+    )
 
 # ============================================================
 # DISPATCHERS (STAFF & PATIENT)
@@ -107,7 +143,7 @@ def staff_translation(text, language):
 
     clean = normalise(text)
 
-    # 100% Instant 0ms Match for All Staff Guided Prompts across all 9 languages
+    # Fast 0ms local match for staff queries across all 9 languages
     if any(k in clean for k in ["good morning", "help you"]):
         val = STAFF_LEXICON["GOOD_MORNING"][language]
         return Translation(val, val, 'needs_review', 'clinical_lexicon', PREPARED)
@@ -160,7 +196,6 @@ def staff_translation(text, language):
         val = STAFF_LEXICON["DO_YOU_HAVE_PAIN"][language]
         return Translation(val, val, 'needs_review', 'clinical_lexicon', PREPARED)
 
-    # Dynamic Fallback for custom typing
     return online(text, 'en', language)
 
 def patient_translation(text, language):
@@ -168,15 +203,16 @@ def patient_translation(text, language):
         return Translation(warning='Unsupported language.')
 
     clean = normalise(text)
-    is_neg = detect_negation(clean, language)
+    is_neg = detect_negation(text, language)
 
-    # 1. Phonetic & Native Longest-Match Clinical Search across all 9 languages
+    # 1. Check local clinical domains across all 9 languages
     for domain_name, data in PATIENT_CLINICAL_DOMAINS.items():
         lang_tokens = data["tokens"].get(language, [])
-        # Sort tokens by length descending so specific multi-word tokens match first
+        # Sort tokens by length descending so longer phrases match first
         sorted_tokens = sorted(lang_tokens, key=len, reverse=True)
         for token in sorted_tokens:
-            if token in clean:
+            norm_token = normalise(token)
+            if f" {norm_token} " in f" {clean} " or clean == norm_token or clean.startswith(norm_token) or clean.endswith(norm_token):
                 target_pair = data["negative"][language] if is_neg else data["affirmative"][language]
                 return Translation(
                     text=target_pair[0],
@@ -184,13 +220,16 @@ def patient_translation(text, language):
                     status='needs_review',
                     source='clinical_lexicon',
                     warning=PREPARED,
-                    symptom=domain_name if data["urgent"] else "",
+                    symptom=domain_name if data.get("urgent", False) else "",
                     is_negative=is_neg
                 )
 
     # 2. General Pain Fallback
-    pain_tokens = ["vali", "dard", "vedana", "bol", "alam", "xanuun", "durere", "ব্যথা", "வலி"]
-    if any(pt in clean for pt in pain_tokens):
+    pain_tokens = [
+        "vali", "dard", "vedana", "bol", "boli", "klucie", "kłucie", "pieczenie",
+        "alam", "xanuun", "durere", "ব্যথা", "வலி", "درد"
+    ]
+    if any(f" {pt} " in f" {clean} " or clean.startswith(pt) for pt in pain_tokens):
         affirmative_text = "I have pain."
         negative_text = "I do not have pain."
         return Translation(
@@ -203,25 +242,22 @@ def patient_translation(text, language):
             is_negative=is_neg
         )
 
-    # 3. Dynamic Online Fallback for rare unmapped statements
-    if is_native_script(text):
-        res = online(text, language, 'en')
-        eng_text = res.text
-        native_text = text
-    else:
-        res = online(text, 'auto', 'en')
-        eng_text = res.text
-        native_res = online(eng_text, 'en', language)
-        native_text = native_res.text if native_res.text else text
+    # 3. Dynamic Online Translation
+    src_lang = language if language != 'en' else 'auto'
+    res = online(text, src_lang, 'en')
+    eng_text = res.text
+
+    if is_error_payload(eng_text):
+        eng_text = text
 
     eng_lower = eng_text.lower()
     is_neg_eng = any(w in eng_lower.split() for w in ['no', 'not', 'none', 'denies', 'without'])
-    urgent_flags = ['chest pain', 'breathing difficulty', 'bleeding', 'unconscious', 'allergy']
+    urgent_flags = ['chest pain', 'breathing difficulty', 'bleeding', 'unconscious']
     detected_sym = next((u for u in urgent_flags if u in eng_lower), '')
 
     return Translation(
         text=eng_text,
-        native=native_text,
+        native=text,
         status='needs_review',
         source='online_engine',
         warning=REVIEW,
