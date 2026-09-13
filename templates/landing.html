@@ -10,10 +10,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #0F6E56;
-            --primary-dark: #094737;
-            --primary-light: #14b8a6;
-            --primary-glow: rgba(20, 184, 166, 0.28);
+            --primary: #007A5E;
+            --primary-dark: #005A45;
+            --primary-light: #00A882;
+            --primary-glow: rgba(0, 168, 130, 0.28);
             --bg-dark: #030712;
             --bg-card: #0b1329;
             --bg-card-hover: #101c3d;
@@ -21,7 +21,7 @@
             --border-light: rgba(255, 255, 255, 0.08);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
-            --accent-teal: #14b8a6;
+            --accent-teal: #00A882;
             --accent-blue: #38bdf8;
             --accent-warning: #f59e0b;
             --accent-danger: #f87171;
@@ -32,28 +32,33 @@
 
         /* Announcement Ribbon */
         .top-banner {
-            background: linear-gradient(90deg, #094737 0%, #0F6E56 50%, #0284c7 100%);
+            background: linear-gradient(90deg, #004D3C 0%, #007A5E 50%, #0284c7 100%);
             color: #ffffff;
             text-align: center;
-            padding: 10px 16px;
+            padding: 9px 16px;
             font-size: 13px;
             font-weight: 600;
             letter-spacing: 0.3px;
             border-bottom: 1px solid var(--border-light);
         }
 
-        /* Navigation */
+        /* Streamlined Modern Navigation */
         nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 18px 48px;
-            background: rgba(3, 7, 18, 0.94);
-            backdrop-filter: blur(16px);
-            border-bottom: 1px solid var(--border);
             position: sticky;
             top: 0;
             z-index: 1000;
+            background: rgba(3, 7, 18, 0.94);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 32px;
+        }
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
         }
         .nav-brand {
             display: flex;
@@ -63,35 +68,59 @@
             color: var(--text-main);
             font-size: 21px;
             font-weight: 800;
-            letter-spacing: -0.5px;
+            letter-spacing: -0.6px;
+            white-space: nowrap;
         }
-        .nav-brand .brand-teal { color: var(--primary-light); }
+        .brand-logo-svg {
+            width: 34px;
+            height: 34px;
+            flex-shrink: 0;
+        }
+        .nav-brand .brand-teal { color: var(--accent-teal); }
+        
         .nav-links {
             display: flex;
             align-items: center;
-            gap: 24px;
+            gap: 8px;
             list-style: none;
+            margin: 0;
+            padding: 0;
         }
         .nav-links a {
             color: var(--text-muted);
             text-decoration: none;
-            font-size: 13.5px;
+            font-size: 13px;
             font-weight: 600;
-            transition: color 0.2s ease;
+            white-space: nowrap;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
         }
-        .nav-links a:hover { color: #fff; }
+        .nav-links a:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .nav-cta {
+            display: flex;
+            align-items: center;
+        }
         .btn-portal {
-            background: linear-gradient(135deg, var(--primary) 0%, #108569 100%);
-            color: #fff !important;
-            padding: 10px 22px;
+            background: linear-gradient(135deg, var(--primary) 0%, #009E77 100%);
+            color: #ffffff !important;
+            padding: 9px 20px;
             border-radius: 8px;
             font-weight: 700;
-            font-size: 13.5px;
+            font-size: 13px;
+            white-space: nowrap;
+            text-decoration: none;
             border: 1px solid rgba(255, 255, 255, 0.15);
             box-shadow: 0 4px 14px var(--primary-glow);
             transition: all 0.2s ease;
         }
-        .btn-portal:hover { transform: translateY(-1px); box-shadow: 0 6px 20px var(--primary-glow); }
+        .btn-portal:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px var(--primary-glow);
+        }
 
         /* Hero */
         .hero {
@@ -104,9 +133,9 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: rgba(15, 110, 86, 0.22);
-            border: 1px solid rgba(20, 184, 166, 0.4);
-            color: var(--primary-light);
+            background: rgba(0, 122, 94, 0.2);
+            border: 1px solid rgba(0, 168, 130, 0.4);
+            color: var(--accent-teal);
             padding: 6px 18px;
             border-radius: 999px;
             font-size: 12px;
@@ -115,7 +144,7 @@
             letter-spacing: 0.8px;
             margin-bottom: 24px;
         }
-        .badge-dot { width: 7px; height: 7px; background: var(--primary-light); border-radius: 50%; box-shadow: 0 0 8px var(--primary-light); }
+        .badge-dot { width: 7px; height: 7px; background: var(--accent-teal); border-radius: 50%; box-shadow: 0 0 8px var(--accent-teal); }
         .hero h1 {
             font-size: 48px;
             font-weight: 800;
@@ -164,7 +193,7 @@
             text-decoration: none;
             transition: all 0.2s ease;
         }
-        .btn-secondary:hover { border-color: var(--primary-light); background: var(--bg-card-hover); }
+        .btn-secondary:hover { border-color: var(--accent-teal); background: var(--bg-card-hover); }
 
         /* Language Chips */
         .lang-chips-bar {
@@ -187,14 +216,14 @@
             color: #cbd5e1;
             font-weight: 600;
         }
-        .chip-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary-light); }
+        .chip-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-teal); }
 
         /* Dual-Screen Mockup */
         .mockup-container {
             max-width: 1040px;
             margin: 0 auto 44px;
             border-radius: 14px;
-            box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(20, 184, 166, 0.35);
+            box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(0, 168, 130, 0.35);
             background: #070d1e;
             overflow: hidden;
             text-align: left;
@@ -311,12 +340,12 @@
             line-height: 1.6;
         }
 
-        /* Floating UI Badges on the Photo */
+        /* Floating UI Badges on Photo */
         .floating-badge {
             position: absolute;
             background: rgba(11, 19, 41, 0.88);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(20, 184, 166, 0.4);
+            border: 1px solid rgba(0, 168, 130, 0.4);
             padding: 10px 16px;
             border-radius: 10px;
             display: flex;
@@ -331,7 +360,7 @@
             display: flex; align-items: center; justify-content: center;
             font-size: 14px; font-weight: 800;
         }
-        .f-icon.teal { background: rgba(20, 184, 166, 0.2); color: var(--primary-light); }
+        .f-icon.teal { background: rgba(0, 168, 130, 0.2); color: var(--accent-teal); }
         .f-icon.green { background: rgba(16, 185, 129, 0.2); color: #34d399; }
         .f-title { font-size: 12px; font-weight: 700; color: #fff; }
         .f-sub { font-size: 10.5px; color: var(--text-muted); }
@@ -354,7 +383,7 @@
         }
         .compare-box.after {
             background: #081525;
-            border: 1px solid rgba(20, 184, 166, 0.5);
+            border: 1px solid rgba(0, 168, 130, 0.5);
             box-shadow: 0 8px 32px -10px var(--primary-glow);
         }
         .compare-header {
@@ -401,7 +430,7 @@
             gap: 16px;
             align-items: flex-start;
         }
-        .step-num { font-size: 24px; font-weight: 900; color: var(--primary-light); line-height: 1; }
+        .step-num { font-size: 24px; font-weight: 900; color: var(--accent-teal); line-height: 1; }
         .step-content h4 { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px; }
         .step-content p { font-size: 12px; color: var(--text-muted); line-height: 1.5; margin: 0; }
         .pipeline-arrow { color: #334155; font-size: 20px; font-weight: 900; }
@@ -412,7 +441,7 @@
         .section-header h2 { font-size: 32px; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.6px; }
         .section-header p { color: var(--text-muted); font-size: 15.5px; max-width: 680px; margin: 0 auto; }
 
-        /* Feature Cards with Mini-UI Previews */
+        /* Feature Cards with Mini-UI */
         .grid-3 {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
@@ -428,14 +457,14 @@
             justify-content: space-between;
             transition: all 0.2s ease;
         }
-        .card:hover { transform: translateY(-3px); border-color: var(--primary-light); box-shadow: 0 10px 26px -8px rgba(0,0,0,0.4); }
+        .card:hover { transform: translateY(-3px); border-color: var(--accent-teal); box-shadow: 0 10px 26px -8px rgba(0,0,0,0.4); }
         .card-icon {
             width: 44px; height: 44px; border-radius: 10px;
-            background: rgba(15, 110, 86, 0.2);
-            color: var(--primary-light);
+            background: rgba(0, 122, 94, 0.2);
+            color: var(--accent-teal);
             display: flex; align-items: center; justify-content: center;
             font-size: 20px; margin-bottom: 16px;
-            border: 1px solid rgba(20, 184, 166, 0.3);
+            border: 1px solid rgba(0, 168, 130, 0.3);
         }
         .card h3 { font-size: 17.5px; margin-bottom: 8px; font-weight: 700; color: #fff; }
         .card p { color: var(--text-muted); font-size: 13px; line-height: 1.6; margin-bottom: 18px; }
@@ -456,7 +485,7 @@
             display: inline-block;
         }
 
-        /* Plain Language Engine Spotlight */
+        /* Plain Language Spotlight */
         .spotlight-box {
             background: linear-gradient(180deg, #091224 0%, #050a16 100%);
             border: 1px solid var(--border);
@@ -518,9 +547,9 @@
         table.comp-table tr:last-child td { border-bottom: none; }
         .comp-feature { font-weight: 700; color: #fff; width: 22%; }
         .comp-free { color: #94a3b8; width: 38%; }
-        .comp-medoriva { color: #a7f3d0; width: 40%; background: rgba(15, 110, 86, 0.12); font-weight: 500; }
+        .comp-medoriva { color: #a7f3d0; width: 40%; background: rgba(0, 122, 94, 0.14); font-weight: 500; }
 
-        /* Expansion Roadmap */
+        /* Roadmap Grid */
         .settings-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -534,10 +563,10 @@
             padding: 28px;
             position: relative;
         }
-        .setting-badge { font-size: 11px; font-weight: 800; color: var(--primary-light); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+        .setting-badge { font-size: 11px; font-weight: 800; color: var(--accent-teal); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
         .setting-card h4 { font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 10px; }
         .setting-card p { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 14px; }
-        .setting-highlight { font-size: 12px; font-weight: 700; color: #cbd5e1; padding: 6px 10px; background: #040814; border-radius: 6px; border-left: 2px solid var(--primary-light); }
+        .setting-highlight { font-size: 12px; font-weight: 700; color: #cbd5e1; padding: 6px 10px; background: #040814; border-radius: 6px; border-left: 2px solid var(--accent-teal); }
 
         /* Pricing Cards */
         .pricing-grid {
@@ -557,8 +586,8 @@
             justify-content: space-between;
         }
         .pricing-card.featured {
-            border-color: var(--primary-light);
-            box-shadow: 0 0 28px rgba(20, 184, 166, 0.2);
+            border-color: var(--accent-teal);
+            box-shadow: 0 0 28px rgba(0, 168, 130, 0.2);
             background: linear-gradient(180deg, #0b152a 0%, #081024 100%);
         }
         .pricing-badge {
@@ -577,10 +606,10 @@
         .pricing-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
         .pricing-price { font-size: 38px; font-weight: 800; color: #fff; margin-bottom: 4px; }
         .pricing-price span { font-size: 14px; font-weight: 500; color: var(--text-muted); }
-        .pricing-annual { font-size: 12px; color: var(--primary-light); font-weight: 600; margin-bottom: 24px; }
+        .pricing-annual { font-size: 12px; color: var(--accent-teal); font-weight: 600; margin-bottom: 24px; }
         .pricing-features { list-style: none; margin-bottom: 30px; font-size: 13px; }
         .pricing-features li { margin-bottom: 10px; color: #cbd5e1; display: flex; align-items: center; gap: 8px; }
-        .pricing-features li::before { content: "✓"; color: var(--primary-light); font-weight: 800; }
+        .pricing-features li::before { content: "✓"; color: var(--accent-teal); font-weight: 800; }
 
         /* Governance Box */
         .safety-box {
@@ -603,7 +632,7 @@
             border-radius: 12px;
             text-align: center;
         }
-        .stat-number { font-size: 26px; font-weight: 800; color: var(--primary-light); margin-bottom: 4px; }
+        .stat-number { font-size: 26px; font-weight: 800; color: var(--accent-teal); margin-bottom: 4px; }
         .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
 
         /* FAQ */
@@ -613,10 +642,10 @@
             padding: 18px 24px; font-weight: 700; font-size: 14.5px; cursor: pointer;
             display: flex; justify-content: space-between; align-items: center; user-select: none;
         }
-        .faq-question:hover { color: var(--primary-light); }
+        .faq-question:hover { color: var(--accent-teal); }
         .faq-answer { padding: 0 24px 20px; font-size: 13.5px; color: var(--text-muted); display: none; line-height: 1.7; }
         .faq-item.active .faq-answer { display: block; }
-        .faq-item.active .faq-toggle { transform: rotate(45deg); color: var(--primary-light); }
+        .faq-item.active .faq-toggle { transform: rotate(45deg); color: var(--accent-teal); }
         .faq-toggle { font-size: 20px; transition: transform 0.2s ease; }
 
         /* Contact & Pilot Form */
@@ -635,7 +664,7 @@
             border: 1px solid var(--border); border-radius: 8px;
             color: #fff; font-size: 13.5px; outline: none; transition: border-color 0.2s;
         }
-        .form-control:focus { border-color: var(--primary-light); }
+        .form-control:focus { border-color: var(--accent-teal); }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 
         /* Footer */
@@ -690,9 +719,13 @@
             color: var(--text-muted); font-size: 24px; cursor: pointer;
         }
         .modal-content h3 { font-size: 21px; margin-bottom: 16px; color: #fff; }
-        .modal-content h4 { font-size: 14.5px; margin: 18px 0 8px; color: var(--primary-light); }
+        .modal-content h4 { font-size: 14.5px; margin: 18px 0 8px; color: var(--accent-teal); }
         .modal-content p, .modal-content li { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.6; }
         .modal-content ul { padding-left: 20px; }
+
+        @media(max-width: 980px) {
+            .nav-links { display: none; }
+        }
 
         @media(max-width: 768px) {
             .hero h1 { font-size: 32px; }
@@ -710,7 +743,6 @@
             .footer-grid { grid-template-columns: 1fr; }
             .form-row { grid-template-columns: 1fr; }
             nav { padding: 14px 20px; }
-            .nav-links { display: none; }
         }
     </style>
 </head>
@@ -721,26 +753,43 @@
         🚀 Primary Care Innovation: Practice Evaluation Programme v2.1 — Expressions of Interest Open for GP Surgeries.
     </div>
 
-    <!-- Navigation -->
+    <!-- Clean Streamlined Navigation -->
     <nav>
-        <a href="/" class="nav-brand">
-            <svg width="32" height="32" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="36" height="36" rx="8" fill="#0F6E56"/>
-                <path d="M8 22 Q13 12 18 18 Q23 24 28 14" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-                <circle cx="18" cy="10" r="3.5" fill="#14b8a6"/>
-            </svg>
-            <span><span class="brand-teal">MedOriva</span> AI</span>
-        </a>
-        <ul class="nav-links">
-            <li><a href="#workflows">Workflows</a></li>
-            <li><a href="#comparison">Transformation</a></li>
-            <li><a href="#engine">Plain Language</a></li>
-            <li><a href="#differentiation">Why MedOriva</a></li>
-            <li><a href="#roadmap">Expansion Roadmap</a></li>
-            <li><a href="#pricing">Pricing</a></li>
-            <li><a href="#governance">Governance Roadmap</a></li>
-            <li><a href="/login" class="btn-portal">Staff Portal Login</a></li>
-        </ul>
+        <div class="nav-container">
+            <a href="/" class="nav-brand">
+                <!-- Exact Geometric Logo Mark -->
+                <svg class="brand-logo-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Left Top Wing -->
+                    <path d="M14 10 L48 38 L48 50 L14 22 Z" fill="#007A5E"/>
+                    <!-- Left Lower Wing -->
+                    <path d="M14 30 L48 58 L48 66 Q26 66 14 86 Z" fill="#007A5E"/>
+                    <!-- Left Inner Arch/Leg -->
+                    <path d="M28 86 Q38 72 48 69 L48 86 Z" fill="#ffffff"/>
+                    
+                    <!-- Right Top Wing -->
+                    <path d="M86 10 L52 38 L52 50 L86 22 Z" fill="#007A5E"/>
+                    <!-- Right Lower Wing -->
+                    <path d="M86 30 L52 58 L52 66 Q74 66 86 86 Z" fill="#007A5E"/>
+                    <!-- Right Inner Arch/Leg -->
+                    <path d="M72 86 Q62 72 52 69 L52 86 Z" fill="#ffffff"/>
+                </svg>
+                <span>MedOriva <span class="brand-teal">AI</span></span>
+            </a>
+
+            <ul class="nav-links">
+                <li><a href="#workflows">Workflows</a></li>
+                <li><a href="#comparison">Comparison</a></li>
+                <li><a href="#engine">Plain Language</a></li>
+                <li><a href="#differentiation">Why MedOriva</a></li>
+                <li><a href="#roadmap">Roadmap</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+                <li><a href="#governance">Governance</a></li>
+            </ul>
+
+            <div class="nav-cta">
+                <a href="/login" class="btn-portal">Staff Portal</a>
+            </div>
+        </div>
     </nav>
 
     <!-- Hero Section -->
@@ -1041,7 +1090,7 @@
                 <p>
                     Complex medical phrasing often breaks general translation algorithms and confuses patients. MedOriva AI applies a founder-developed rule-based layer to simplify complex expressions into plain English before multilingual processing.
                 </p>
-                <div style="font-size: 12px; color: var(--primary-light); font-weight: 700;">
+                <div style="font-size: 12px; color: var(--accent-teal); font-weight: 700;">
                     ✓ 15+ Rule Library · Does not generate diagnosis, treatment or triage recommendations · Standardised Intake[cite: 1]
                 </div>
             </div>
@@ -1050,7 +1099,7 @@
                     <span class="demo-tag tag-clinical">Clinical Phrasing</span>
                     <span class="demo-text">"require further diagnostic evaluation"[cite: 1]</span>
                 </div>
-                <div style="color: var(--primary-light); text-align: center; font-size: 11px;">⬇ Plain-language rule simplification[cite: 1]</div>
+                <div style="color: var(--accent-teal); text-align: center; font-size: 11px;">⬇ Plain-language rule simplification[cite: 1]</div>
                 <div class="demo-row">
                     <span class="demo-tag tag-plain">Plain Language</span>
                     <span class="demo-text" style="color: #6ee7b7; font-weight: bold;">"need more tests"[cite: 1]</span>
@@ -1294,7 +1343,7 @@
             <p style="margin-bottom: 18px;">
                 By combining structured prompts, plain-language simplification rules, and an understanding-check loop, MedOriva AI supports front-desk communication clarity without replacing clinical staff or professional interpreting services[cite: 1].
             </p>
-            <div style="background: var(--bg-card); padding: 20px 24px; border-radius: 10px; border-left: 3px solid var(--primary-light); margin-top: 24px;">
+            <div style="background: var(--bg-card); padding: 20px 24px; border-radius: 10px; border-left: 3px solid var(--accent-teal); margin-top: 24px;">
                 <p style="font-size: 13.5px; color: #cbd5e1; margin-bottom: 0;">
                     <strong>Architecture Note:</strong> Built on session-based data minimisation principles to support patient privacy during administrative interactions[cite: 1].
                 </p>
@@ -1348,8 +1397,8 @@
                 <p><strong>Jurisdiction:</strong> England and Wales[cite: 1]</p>
                 <p style="margin-top: 10px;">
                     <strong>Founder:</strong> Sanjay Saravanaperumal (MSc Digital Marketing, Ravensbourne)[cite: 1]<br>
-                    <strong>Email:</strong> <a href="mailto:sanjaythillai@gmail.com" style="color: var(--primary-light);">sanjaythillai@gmail.com</a>[cite: 1]<br>
-                    <strong>Phone:</strong> <a href="tel:+447778095553" style="color: var(--primary-light);">07778 095553</a>[cite: 1]
+                    <strong>Email:</strong> <a href="mailto:sanjaythillai@gmail.com" style="color: var(--accent-teal);">sanjaythillai@gmail.com</a>[cite: 1]<br>
+                    <strong>Phone:</strong> <a href="tel:+447778095553" style="color: var(--accent-teal);">07778 095553</a>[cite: 1]
                 </p>
             </div>
             <div class="footer-col">
