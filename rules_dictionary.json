@@ -1,6 +1,6 @@
 {
   "system": "MedOriva Practice Workspace",
-  "version": "2.1-clean",
+  "version": "3.0-precise",
   "rules_by_language": {
     "Tamil": [
       {
@@ -28,16 +28,16 @@
         "english_review": "No, I am attending alone."
       },
       {
-        "intent": "INTERPRETER_NO",
-        "input_matches": ["thevai illai", "illai thevai illai", "vendam", "interpreter vendam", "தேவை இல்லை"],
+        "intent": "INTERPRETER_SPECIFIC_NO",
+        "input_matches": ["interpreter thevai illai", "interpreter vendam", "மொழிபெயர்ப்பாளர் தேவை இல்லை"],
         "native_script": "இல்லை, மொழிபெயர்ப்பாளர் தேவை இல்லை.",
         "english_review": "No, an interpreter is not needed."
       },
       {
-        "intent": "INTERPRETER_YES",
-        "input_matches": ["interpreter thevai", "aam thevai", "tamil interpreter thevai", "மொழிபெயர்ப்பாளர் தேவை"],
+        "intent": "INTERPRETER_SPECIFIC_YES",
+        "input_matches": ["interpreter thevai", "tamil interpreter thevai", "interpreter vendum", "மொழிபெயர்ப்பாளர் தேவை"],
         "native_script": "ஆம், எனக்கு மொழிபெயர்ப்பாளர் தேவை.",
-        "english_review": "Yes, I need an interpreter."
+        "english_review": "Yes, I require an interpreter."
       },
       {
         "intent": "NHS_OR_ID_PROVIDED",
@@ -47,9 +47,21 @@
       },
       {
         "intent": "NHS_UNKNOWN",
-        "input_matches": ["theriyathu", "number theriyathu", "maranthuvitten", "therila"],
+        "input_matches": ["number theriyathu", "maranthuvitten", "therila", "தெரியாது"],
         "native_script": "இல்லை, எனக்கு NHS எண் தெரியாது.",
         "english_review": "No, I do not know my NHS number."
+      },
+      {
+        "intent": "NOT_NEEDED",
+        "input_matches": ["vendam", "thevai illai", "illai thevai illai", "தேவை இல்லை", "வேண்டாம்"],
+        "native_script": "தேவை இல்லை.",
+        "english_review": "Not needed."
+      },
+      {
+        "intent": "NEEDED",
+        "input_matches": ["thevai", "thevai irukku", "தேவை"],
+        "native_script": "தேவைப்படுகிறது.",
+        "english_review": "Yes, required."
       },
       {
         "intent": "GENERIC_YES",
@@ -96,16 +108,16 @@
         "english_review": "No, I am attending alone."
       },
       {
-        "intent": "INTERPRETER_NO",
-        "input_matches": ["zaroorat nahi hai", "interpreter nahi chahiye", "nahi chahiye", "ज़रूरत नहीं है"],
+        "intent": "INTERPRETER_SPECIFIC_NO",
+        "input_matches": ["interpreter nahi chahiye", "anuvadak nahi chahiye"],
         "native_script": "नहीं, अनुवादक की ज़रूरत नहीं है।",
         "english_review": "No, an interpreter is not needed."
       },
       {
-        "intent": "INTERPRETER_YES",
-        "input_matches": ["interpreter chahiye", "hindi interpreter chahiye", "अनुवादक चाहिए"],
+        "intent": "INTERPRETER_SPECIFIC_YES",
+        "input_matches": ["interpreter chahiye", "hindi interpreter chahiye", "anuvadak chahiye"],
         "native_script": "हाँ, मुझे अनुवादक की ज़रूरत है।",
-        "english_review": "Yes, I need an interpreter."
+        "english_review": "Yes, I require an interpreter."
       },
       {
         "intent": "NHS_OR_ID_PROVIDED",
@@ -118,6 +130,18 @@
         "input_matches": ["number nahi pata", "pata nahi", "yaad nahi", "नहीं पता"],
         "native_script": "नहीं, मुझे मेरा NHS नंबर नहीं पता।",
         "english_review": "No, I do not know my NHS number."
+      },
+      {
+        "intent": "NOT_NEEDED",
+        "input_matches": ["zaroorat nahi hai", "nahi chahiye", "ज़रूरत नहीं है"],
+        "native_script": "ज़रूरत नहीं है।",
+        "english_review": "Not needed."
+      },
+      {
+        "intent": "NEEDED",
+        "input_matches": ["zaroorat hai", "chahiye", "ज़रूरत है"],
+        "native_script": "ज़रूरत है।",
+        "english_review": "Yes, required."
       },
       {
         "intent": "GENERIC_YES",
@@ -164,16 +188,16 @@
         "english_review": "No, I am attending alone."
       },
       {
-        "intent": "INTERPRETER_NO",
-        "input_matches": ["zaroorat nahi hai", "tarjuma nahi chahiye", "ضرورت نہیں ہے"],
+        "intent": "INTERPRETER_SPECIFIC_NO",
+        "input_matches": ["tarjuma nahi chahiye", "interpreter nahi chahiye"],
         "native_script": "نہیں، مترجم کی ضرورت نہیں ہے۔",
         "english_review": "No, an interpreter is not needed."
       },
       {
-        "intent": "INTERPRETER_YES",
-        "input_matches": ["tarjuma chahiye", "interpreter chahiye", "urdu interpreter chahiye", "مترجم چاہیے"],
+        "intent": "INTERPRETER_SPECIFIC_YES",
+        "input_matches": ["tarjuma chahiye", "interpreter chahiye", "urdu interpreter chahiye"],
         "native_script": "ہاں، مجھے مترجم کی ضرورت ہے۔",
-        "english_review": "Yes, I need an interpreter."
+        "english_review": "Yes, I require an interpreter."
       },
       {
         "intent": "NHS_OR_ID_PROVIDED",
@@ -186,6 +210,18 @@
         "input_matches": ["maloom nahi", "number nahi pata", "yaad nahi", "معلوم نہیں"],
         "native_script": "نہیں، مجھے اپنا NHS نمبر معلوم نہیں ہے۔",
         "english_review": "No, I do not know my NHS number."
+      },
+      {
+        "intent": "NOT_NEEDED",
+        "input_matches": ["zaroorat nahi hai", "nahi chahiye", "ضرورت نہیں ہے"],
+        "native_script": "ضرورت نہیں ہے۔",
+        "english_review": "Not needed."
+      },
+      {
+        "intent": "NEEDED",
+        "input_matches": ["zaroorat hai", "chahiye", "ضرورت ہے"],
+        "native_script": "ضرورت ہے۔",
+        "english_review": "Yes, required."
       },
       {
         "intent": "GENERIC_YES",
@@ -202,7 +238,7 @@
       {
         "intent": "GENERAL_ACKNOWLEDGE",
         "input_matches": ["shukriya", "bohot shukriya", "intezar karta hoon", "شکریہ"],
-        "native_script": "ٹھیک ہے، شکریہ۔",
+        "native_script": "ठीक है, شكریہ۔",
         "english_review": "Understood, thank you."
       }
     ],
@@ -232,16 +268,16 @@
         "english_review": "No, I am attending alone."
       },
       {
-        "intent": "INTERPRETER_NO",
-        "input_matches": ["lod nahi hai", "lod nahi", "interpreter nahi lod", "ਲੋੜ ਨਹੀਂ ਹੈ"],
+        "intent": "INTERPRETER_SPECIFIC_NO",
+        "input_matches": ["interpreter nahi lod", "anuvadak nahi lod"],
         "native_script": "ਨਹੀਂ, ਅਨੁਵਾਦਕ ਦੀ ਲੋੜ ਨਹੀਂ ਹੈ।",
         "english_review": "No, an interpreter is not needed."
       },
       {
-        "intent": "INTERPRETER_YES",
-        "input_matches": ["lod hai", "interpreter chahida", "ਲੋੜ ਹੈ"],
+        "intent": "INTERPRETER_SPECIFIC_YES",
+        "input_matches": ["interpreter chahida", "punjabi interpreter chahida"],
         "native_script": "ਹਾਂ, ਮੈਨੂੰ ਅਨੁਵਾਦਕ ਦੀ ਲੋੜ ਹੈ।",
-        "english_review": "Yes, I need an interpreter."
+        "english_review": "Yes, I require an interpreter."
       },
       {
         "intent": "NHS_OR_ID_PROVIDED",
@@ -251,9 +287,21 @@
       },
       {
         "intent": "NHS_UNKNOWN",
-        "input_matches": ["pata nahi", "number nahi pata", "yaad nahi", "ਪਤਾ ਨਹੀਂ"],
+        "input_matches": ["number nahi pata", "yaad nahi", "ਪਤਾ ਨਹੀਂ"],
         "native_script": "ਨਹੀਂ, ਮੈਨੂੰ ਆਪਣਾ NHS ਨੰਬਰ ਨਹੀਂ ਪਤਾ।",
         "english_review": "No, I do not know my NHS number."
+      },
+      {
+        "intent": "NOT_NEEDED",
+        "input_matches": ["lod nahi hai", "lod nahi", "ਨਹੀਂ ਲੋੜ"],
+        "native_script": "ਲੋੜ ਨਹੀਂ ਹੈ।",
+        "english_review": "Not needed."
+      },
+      {
+        "intent": "NEEDED",
+        "input_matches": ["lod hai", "chahida", "ਲੋੜ ਹੈ"],
+        "native_script": "ਲੋੜ ਹੈ।",
+        "english_review": "Yes, required."
       },
       {
         "intent": "GENERIC_YES",
@@ -300,16 +348,16 @@
         "english_review": "No, I am attending alone."
       },
       {
-        "intent": "INTERPRETER_NO",
-        "input_matches": ["proyojon nei", "lagbe na", "interpreter lagbe na", "প্রয়োজন নেই"],
+        "intent": "INTERPRETER_SPECIFIC_NO",
+        "input_matches": ["interpreter lagbe na", "interpreter proyojon nei"],
         "native_script": "না, দোভাষীর প্রয়োজন নেই।",
         "english_review": "No, an interpreter is not needed."
       },
       {
-        "intent": "INTERPRETER_YES",
-        "input_matches": ["lagbe", "interpreter lagbe", "proyojon ache", "প্রয়োজন আছে"],
+        "intent": "INTERPRETER_SPECIFIC_YES",
+        "input_matches": ["interpreter lagbe", "bengali interpreter lagbe"],
         "native_script": "হ্যাঁ, আমার দোভাষীর প্রয়োজন আছে।",
-        "english_review": "Yes, I need an interpreter."
+        "english_review": "Yes, I require an interpreter."
       },
       {
         "intent": "NHS_OR_ID_PROVIDED",
@@ -322,6 +370,18 @@
         "input_matches": ["jana nei", "jani na", "mone nei", "জানা নেই"],
         "native_script": "না, আমার NHS নম্বর জানা নেই।",
         "english_review": "No, I do not know my NHS number."
+      },
+      {
+        "intent": "NOT_NEEDED",
+        "input_matches": ["proyojon nei", "lagbe na", "দরকার নেই"],
+        "native_script": "প্রয়োজন নেই।",
+        "english_review": "Not needed."
+      },
+      {
+        "intent": "NEEDED",
+        "input_matches": ["proyojon ache", "lagbe", "দরকার"],
+        "native_script": "প্রয়োজন আছে।",
+        "english_review": "Yes, required."
       },
       {
         "intent": "GENERIC_YES",
@@ -368,16 +428,16 @@
         "english_review": "No, I am attending alone."
       },
       {
-        "intent": "INTERPRETER_NO",
-        "input_matches": ["jarur nathi", "nathi joitu", "interpreter jarur nathi", "જરૂર નથી"],
+        "intent": "INTERPRETER_SPECIFIC_NO",
+        "input_matches": ["interpreter jarur nathi", "dubhashiya nathi joitu"],
         "native_script": "ના, દુભાષિયાની જરૂર નથી.",
         "english_review": "No, an interpreter is not needed."
       },
       {
-        "intent": "INTERPRETER_YES",
-        "input_matches": ["jarur che", "interpreter joiyye", "જોઈએ"],
+        "intent": "INTERPRETER_SPECIFIC_YES",
+        "input_matches": ["interpreter joiyye", "gujarati interpreter joiyye"],
         "native_script": "હા, મને દુભાષિયાની જરૂર છે.",
-        "english_review": "Yes, I need an interpreter."
+        "english_review": "Yes, I require an interpreter."
       },
       {
         "intent": "NHS_OR_ID_PROVIDED",
@@ -387,9 +447,21 @@
       },
       {
         "intent": "NHS_UNKNOWN",
-        "input_matches": ["khabar nathi", "nathi khabar", "yaad nathi", "ખબર નથી"],
+        "input_matches": ["number nathi khabar", "yaad nathi", "ખબર નથી"],
         "native_script": "ના, મને મારો NHS નંબર ખબર નથી.",
         "english_review": "No, I do not know my NHS number."
+      },
+      {
+        "intent": "NOT_NEEDED",
+        "input_matches": ["jarur nathi", "nathi joitu", "જરૂર નથી"],
+        "native_script": "જરૂર નથી.",
+        "english_review": "Not needed."
+      },
+      {
+        "intent": "NEEDED",
+        "input_matches": ["jarur che", "joiyye", "જરૂર છે"],
+        "native_script": "જરૂર છે.",
+        "english_review": "Yes, required."
       },
       {
         "intent": "GENERIC_YES",
@@ -436,16 +508,16 @@
         "english_review": "No, I am attending alone."
       },
       {
-        "intent": "INTERPRETER_NO",
-        "input_matches": ["nie trzeba", "tlumacz niepotrzebny", "bez tlumacza"],
+        "intent": "INTERPRETER_SPECIFIC_NO",
+        "input_matches": ["tlumacz niepotrzebny", "bez tlumacza"],
         "native_script": "Nie, tłumacz nie jest potrzebny.",
         "english_review": "No, an interpreter is not needed."
       },
       {
-        "intent": "INTERPRETER_YES",
+        "intent": "INTERPRETER_SPECIFIC_YES",
         "input_matches": ["potrzebny tlumacz", "poprosze tlumacza", "potrzebuje tlumacza"],
         "native_script": "Tak, potrzebuję tłumacza.",
-        "english_review": "Yes, I need an interpreter."
+        "english_review": "Yes, I require an interpreter."
       },
       {
         "intent": "NHS_OR_ID_PROVIDED",
@@ -455,9 +527,21 @@
       },
       {
         "intent": "NHS_UNKNOWN",
-        "input_matches": ["nie wiem", "nie znam numeru", "nie pamietam"],
+        "input_matches": ["nie znam numeru", "nie pamietam numeru"],
         "native_script": "Nie, nie znam mojego numeru NHS.",
         "english_review": "No, I do not know my NHS number."
+      },
+      {
+        "intent": "NOT_NEEDED",
+        "input_matches": ["nie trzeba", "niepotrzebne", "zbedne"],
+        "native_script": "Nie trzeba.",
+        "english_review": "Not needed."
+      },
+      {
+        "intent": "NEEDED",
+        "input_matches": ["potrzebne", "poprosze"],
+        "native_script": "Potrzebne.",
+        "english_review": "Yes, required."
       },
       {
         "intent": "GENERIC_YES",
@@ -504,16 +588,16 @@
         "english_review": "No, I am attending alone."
       },
       {
-        "intent": "INTERPRETER_NO",
-        "input_matches": ["nu este nevoie", "fara interpret", "nu multumesc"],
+        "intent": "INTERPRETER_SPECIFIC_NO",
+        "input_matches": ["fara interpret", "nu am nevoie de traducator"],
         "native_script": "Nu, nu este nevoie de interpret.",
         "english_review": "No, an interpreter is not needed."
       },
       {
-        "intent": "INTERPRETER_YES",
+        "intent": "INTERPRETER_SPECIFIC_YES",
         "input_matches": ["am nevoie de interpret", "doresc interpret", "doresc traducator"],
         "native_script": "Da, am nevoie de un interpret.",
-        "english_review": "Yes, I need an interpreter."
+        "english_review": "Yes, I require an interpreter."
       },
       {
         "intent": "NHS_OR_ID_PROVIDED",
@@ -523,9 +607,21 @@
       },
       {
         "intent": "NHS_UNKNOWN",
-        "input_matches": ["nu stiu", "nu stiu numarul", "nu imi amintesc"],
+        "input_matches": ["nu stiu numarul", "nu imi amintesc"],
         "native_script": "Nu, nu știu numărul meu NHS.",
         "english_review": "No, I do not know my NHS number."
+      },
+      {
+        "intent": "NOT_NEEDED",
+        "input_matches": ["nu este nevoie", "nu e nevoie"],
+        "native_script": "Nu este nevoie.",
+        "english_review": "Not needed."
+      },
+      {
+        "intent": "NEEDED",
+        "input_matches": ["este nevoie", "am nevoie"],
+        "native_script": "Este nevoie.",
+        "english_review": "Yes, required."
       },
       {
         "intent": "GENERIC_YES",
@@ -572,16 +668,16 @@
         "english_review": "No, I am attending alone."
       },
       {
-        "intent": "INTERPRETER_NO",
-        "input_matches": ["la daee", "la ahtaj motarjim", "لا داعي لمترجم"],
+        "intent": "INTERPRETER_SPECIFIC_NO",
+        "input_matches": ["la ahtaj motarjim", "mush lazim motarjim"],
         "native_script": "لا، لا داعي لمترجم.",
         "english_review": "No, an interpreter is not needed."
       },
       {
-        "intent": "INTERPRETER_YES",
+        "intent": "INTERPRETER_SPECIFIC_YES",
         "input_matches": ["ahtaj motarjim", "uridu motarjim", "أحتاج مترجم"],
         "native_script": "نعم، أحتاج إلى مترجم.",
-        "english_review": "Yes, I need an interpreter."
+        "english_review": "Yes, I require an interpreter."
       },
       {
         "intent": "NHS_OR_ID_PROVIDED",
@@ -591,9 +687,21 @@
       },
       {
         "intent": "NHS_UNKNOWN",
-        "input_matches": ["la aarif", "ma aarif alraqam", "la atathakar", "لا أعرف"],
+        "input_matches": ["ma aarif alraqam", "la atathakar", "لا أعرف"],
         "native_script": "لا، لا أعرف رقم NHS الخاص بي.",
         "english_review": "No, I do not know my NHS number."
+      },
+      {
+        "intent": "NOT_NEEDED",
+        "input_matches": ["la daee", "laysa lazim", "لا داعي"],
+        "native_script": "لا داعي لذلك.",
+        "english_review": "Not needed."
+      },
+      {
+        "intent": "NEEDED",
+        "input_matches": ["ahtaj", "lazim", "أحتاج"],
+        "native_script": "أحتاج إلى ذلك.",
+        "english_review": "Yes, required."
       },
       {
         "intent": "GENERIC_YES",
