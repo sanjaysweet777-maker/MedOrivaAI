@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import uuid
@@ -8,6 +9,14 @@ from translator import LANGUAGES, patient_translation, staff_translation
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 template_dir = os.path.join(BASE_DIR, 'templates')
+
+# Load MedOriva Rule Dictionary for MVP patient matching
+RULES_DICT_PATH = os.path.join(BASE_DIR, "rules_dictionary.json")
+try:
+    with open(RULES_DICT_PATH, "r", encoding="utf-8") as f:
+        RULES_DATA = json.load(f).get("rules_by_language", {})
+except Exception:
+    RULES_DATA = {}
 
 app = Flask(__name__, template_folder=template_dir)
 app.secret_key = os.environ.get("SECRET_KEY", "medoriva-clinical-mvp-2026-v4")
@@ -291,9 +300,25 @@ def translate_patient():
     lang_code = session.get("lang_code", "ta")
     lang_name = session.get("lang", "Tamil")
 
-    res = patient_translation(raw_text, lang_code)
+    # Step 1: Check rules_dictionary.json first
+    clean_input = raw_text.strip().lower()
+    rules_for_lang = RULES_DATA.get(lang_name, [])
 
-    # Communication cue trigger (Staff attention notification only; non-clinical)
+    for rule in rules_for_lang:
+        if any(match.lower() in clean_input for match in rule.get("input_matches", [])):
+            return jsonify({
+                "original": raw_text,
+                "native": rule["native_script"],
+                "translated": rule["english_review"],
+                "lang": lang_name,
+                "symptom_detected": False,
+                "is_negative": False,
+                "medical_alert": False,
+                "warning": None
+            })
+
+    # Step 2: Fallback to translator if no rule matched
+    res = patient_translation(raw_text, lang_code)
     medical_alert = bool(res.symptom and not res.is_negative)
 
     return jsonify({
