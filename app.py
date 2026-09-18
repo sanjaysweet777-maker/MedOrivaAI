@@ -273,7 +273,6 @@ def translate_staff():
     lang_code = session.get("lang_code", "ta")
     lang_name = session.get("lang", "Tamil")
 
-    # Automatically run plain-language conversion before transmission
     simplified_text, was_simplified = simplify_text(raw_text)
     text_to_translate = simplified_text if was_simplified else raw_text
 
@@ -300,24 +299,40 @@ def translate_patient():
     lang_code = session.get("lang_code", "ta")
     lang_name = session.get("lang", "Tamil")
 
-    # Step 1: Check rules_dictionary.json first
+    # Step 1: Query MedOriva rule dictionary with length-priority resolution
     clean_input = raw_text.strip().lower()
     rules_for_lang = RULES_DATA.get(lang_name, [])
 
+    # Compile all candidate match phrases sorted by length (longest phrase first)
+    match_candidates = []
     for rule in rules_for_lang:
-        if any(match.lower() in clean_input for match in rule.get("input_matches", [])):
-            return jsonify({
-                "original": raw_text,
-                "native": rule["native_script"],
-                "translated": rule["english_review"],
-                "lang": lang_name,
-                "symptom_detected": False,
-                "is_negative": False,
-                "medical_alert": False,
-                "warning": None
-            })
+        for keyword in rule.get("input_matches", []):
+            match_candidates.append((keyword.strip().lower(), rule))
 
-    # Step 2: Fallback to translator if no rule matched
+    # Longest patterns evaluate first so multi-word phrases aren't cut off by single words
+    match_candidates.sort(key=lambda x: len(x[0]), reverse=True)
+
+    matched_rule = None
+    for keyword, rule in match_candidates:
+        # Check whole-word or exact substring match
+        pattern = r'(?:\b|^)' + re.escape(keyword) + r'(?:\b|$)'
+        if re.search(pattern, clean_input) or keyword in clean_input:
+            matched_rule = rule
+            break
+
+    if matched_rule:
+        return jsonify({
+            "original": raw_text,
+            "native": matched_rule["native_script"],
+            "translated": matched_rule["english_review"],
+            "lang": lang_name,
+            "symptom_detected": False,
+            "is_negative": False,
+            "medical_alert": False,
+            "warning": None
+        })
+
+    # Step 2: Fallback to translator engine if no pre-mapped pattern matches
     res = patient_translation(raw_text, lang_code)
     medical_alert = bool(res.symptom and not res.is_negative)
 
