@@ -1,399 +1,615 @@
 {
   "system": "MedOriva Practice Workspace",
-  "contexts": ["Reception", "Appointment"],
+  "version": "2.0-robust",
   "rules_by_language": {
     "Tamil": [
       {
-        "intent": "APPOINTMENT_OR_LETTER_YES",
-        "input_matches": ["aam", "irukku", "appointment irukku", "letter irukku", "aam enaku appointment irukku", "kadam irukku", "ஆம்"],
-        "native_script": "ஆம், என்னிடம் அப்பாயிண்ட்மென்ட் / கடிதம் உள்ளது.",
+        "intent": "APPOINTMENT_SPECIFIC_YES",
+        "input_matches": ["appointment irukku", "aam enaku appointment irukku", "letter irukku", "kadam irukku", "அப்பாயிண்ட்மென்ட் இருக்கிறது"],
+        "native_script": "ஆம், எனக்கு அப்பாயிண்ட்மென்ட் / கடிதம் உள்ளது.",
         "english_review": "[Understanding Check]: Yes, I have an appointment / letter."
       },
       {
+        "intent": "APPOINTMENT_SPECIFIC_NO",
+        "input_matches": ["appointment illai", "illai enaku appointment illai", "no appointment", "அப்பாயிண்ட்மென்ட் இல்லை"],
+        "native_script": "இல்லை, எனக்கு அப்பாயிண்ட்மென்ட் இல்லை.",
+        "english_review": "[Understanding Check]: No, I do not have an appointment."
+      },
+      {
         "intent": "COMPANION_YES",
-        "input_matches": ["aam uravinar", "aam enathu uravinar ullaar", "uravinar ullaar", "kooda aal irukanga", "relative irukanga"],
+        "input_matches": ["aam enathu uravinar ullaar", "uravinar ullaar", "uravinar irukanga", "kooda aal irukanga", "relative ullaar", "உறவினர் உள்ளார்"],
         "native_script": "ஆம், எனது குடும்பத்தினர் / உறவினர் என்னுடன் உள்ளார்.",
-        "english_review": "[Understanding Check]: Yes, a family member / companion is with me."
+        "english_review": "[Understanding Check]: Yes, a companion / family member is with me."
       },
       {
         "intent": "COMPANION_NO",
-        "input_matches": ["illai thaniya vanthen", "yaarum illai", "thaniya", "thaniyaga", "illai"],
+        "input_matches": ["thaniya vanthen", "yaarum illai", "thaniyaga", "naan mattum"],
         "native_script": "இல்லை, நான் தனியாக வந்துள்ளேன்.",
         "english_review": "[Understanding Check]: No, I am attending alone."
       },
       {
         "intent": "INTERPRETER_NO",
-        "input_matches": ["thevai illai", "illai thevai illai", "vendam", "interpreter vendam"],
+        "input_matches": ["thevai illai", "illai thevai illai", "vendam", "interpreter vendam", "தேவை இல்லை"],
         "native_script": "இல்லை, மொழிபெயர்ப்பாளர் தேவை இல்லை.",
         "english_review": "[Understanding Check]: No, an interpreter is not needed."
       },
       {
         "intent": "INTERPRETER_YES",
-        "input_matches": ["thevai", "aam thevai", "tamil interpreter thevai", "interpreter vendum"],
+        "input_matches": ["interpreter thevai", "aam thevai", "tamil interpreter thevai", "மொழிபெயர்ப்பாளர் தேவை"],
         "native_script": "ஆம், எனக்கு மொழிபெயர்ப்பாளர் தேவை.",
         "english_review": "[Understanding Check]: Yes, I require an interpreter."
       },
       {
-        "intent": "ID_OR_NHS_PROVIDED",
-        "input_matches": ["id irukku", "nhs number irukku", "itho card", "itho irukku", "name id"],
-        "native_script": "இதோ எனது அடையாள அட்டை / NHS எண்.",
-        "english_review": "[Understanding Check]: Here is my ID / NHS number / details."
+        "intent": "NHS_OR_ID_PROVIDED",
+        "input_matches": ["nhs number irukku", "id card irukku", "itho card", "itho irukku", "nhs irukku", "என்னிடம் எண் உள்ளது"],
+        "native_script": "இதோ எனது NHS எண் / அடையாள அட்டை.",
+        "english_review": "[Understanding Check]: Here is my NHS number / ID details."
+      },
+      {
+        "intent": "NHS_UNKNOWN",
+        "input_matches": ["theriyathu", "number theriyathu", "maranthuvitten", "therila"],
+        "native_script": "இல்லை, எனக்கு NHS எண் தெரியாது.",
+        "english_review": "[Understanding Check]: No, I do not know my NHS number."
+      },
+      {
+        "intent": "GENERIC_YES",
+        "input_matches": ["aam", "aamaam", "sari", "ok", "ஆம்", "ஆமாம்"],
+        "native_script": "ஆம்.",
+        "english_review": "[Understanding Check]: Yes / Confirmed."
+      },
+      {
+        "intent": "GENERIC_NO",
+        "input_matches": ["illai", "illa", "இல்லை"],
+        "native_script": "இல்லை.",
+        "english_review": "[Understanding Check]: No / Negative."
       },
       {
         "intent": "GENERAL_ACKNOWLEDGE",
-        "input_matches": ["sari", "nandri", "sari nandri", "ukaarugiren", "wait panren", "form nirapukiren", "சரி"],
+        "input_matches": ["nandri", "sari nandri", "ukaarugiren", "wait panren", "நன்றி"],
         "native_script": "சரி, நன்றி. நான் காத்திருக்கிறேன்.",
         "english_review": "[Understanding Check]: Understood, thank you. Proceeding as instructed."
       }
     ],
     "Hindi": [
       {
-        "intent": "APPOINTMENT_OR_LETTER_YES",
-        "input_matches": ["haan", "appointment hai", "letter hai", "haan mera appointment hai", "haan hai", "हाँ"],
+        "intent": "APPOINTMENT_SPECIFIC_YES",
+        "input_matches": ["appointment hai", "haan mera appointment hai", "letter hai", "अपॉइंटमेंट है"],
         "native_script": "हाँ, मेरा अपॉइंटमेंट / पत्र मेरे पास है।",
         "english_review": "[Understanding Check]: Yes, I have an appointment / letter."
       },
       {
+        "intent": "APPOINTMENT_SPECIFIC_NO",
+        "input_matches": ["appointment nahi hai", "mera appointment nahi hai", "अपॉइंटमेंट नहीं है"],
+        "native_script": "नहीं, मेरा अपॉइंटमेंट नहीं है।",
+        "english_review": "[Understanding Check]: No, I do not have an appointment."
+      },
+      {
         "intent": "COMPANION_YES",
-        "input_matches": ["haan koi hai", "parivar sath hai", "relative hai", "koi sath hai", "haan sath hai"],
+        "input_matches": ["parivar sath hai", "relative sath hai", "koi sath hai", "परिवार साथ है"],
         "native_script": "हाँ, मेरे परिवार के सदस्य मेरे साथ हैं।",
         "english_review": "[Understanding Check]: Yes, a companion / family member is with me."
       },
       {
         "intent": "COMPANION_NO",
-        "input_matches": ["akela hoon", "koi nahi hai", "nahi akela", "nahi koi nahi"],
+        "input_matches": ["akela hoon", "koi nahi hai", "अकेला हूँ"],
         "native_script": "नहीं, मैं अकेला आया हूँ।",
         "english_review": "[Understanding Check]: No, I am attending alone."
       },
       {
         "intent": "INTERPRETER_NO",
-        "input_matches": ["nahi zaroorat nahi hai", "zaroorat nahi hai", "nahi chahiye", "interpreter nahi chahiye"],
+        "input_matches": ["zaroorat nahi hai", "interpreter nahi chahiye", "nahi chahiye", "ज़रूरत नहीं है"],
         "native_script": "नहीं, अनुवादक की ज़रूरत नहीं है।",
         "english_review": "[Understanding Check]: No, an interpreter is not needed."
       },
       {
         "intent": "INTERPRETER_YES",
-        "input_matches": ["haan chahiye", "chahiye", "zaroorat hai", "interpreter chahiye"],
+        "input_matches": ["interpreter chahiye", "hindi interpreter chahiye", "अनुवादक चाहिए"],
         "native_script": "हाँ, मुझे अनुवादक की ज़रूरत है।",
         "english_review": "[Understanding Check]: Yes, I require an interpreter."
       },
       {
-        "intent": "ID_OR_NHS_PROVIDED",
-        "input_matches": ["ye raha id", "number hai", "nhs number hai", "id card hai", "ye lijiye"],
-        "native_script": "यह रहा मेरा पहचान पत्र / NHS नंबर।",
-        "english_review": "[Understanding Check]: Here is my ID / NHS number / details."
+        "intent": "NHS_OR_ID_PROVIDED",
+        "input_matches": ["nhs number hai", "id card hai", "ye raha id", "नंबर है"],
+        "native_script": "यह रहा मेरा NHS नंबर / पहचान पत्र।",
+        "english_review": "[Understanding Check]: Here is my NHS number / ID details."
+      },
+      {
+        "intent": "NHS_UNKNOWN",
+        "input_matches": ["number nahi pata", "pata nahi", "yaad nahi", "नहीं पता"],
+        "native_script": "नहीं, मुझे मेरा NHS नंबर नहीं पता।",
+        "english_review": "[Understanding Check]: No, I do not know my NHS number."
+      },
+      {
+        "intent": "GENERIC_YES",
+        "input_matches": ["haan", "ji haan", "ha", "theek hai", "हाँ", "जी हाँ"],
+        "native_script": "हाँ।",
+        "english_review": "[Understanding Check]: Yes / Confirmed."
+      },
+      {
+        "intent": "GENERIC_NO",
+        "input_matches": ["nahi", "nahin", "नहीं"],
+        "native_script": "नहीं।",
+        "english_review": "[Understanding Check]: No / Negative."
       },
       {
         "intent": "GENERAL_ACKNOWLEDGE",
-        "input_matches": ["theek hai", "dhanyawad", "theek hai dhanyawad", "shukriya", "baithta hoon", "form bharta hoon"],
+        "input_matches": ["dhanyawad", "shukriya", "baithta hoon", "धन्यवाद"],
         "native_script": "ठीक है, धन्यवाद।",
         "english_review": "[Understanding Check]: Understood, thank you. Proceeding as instructed."
       }
     ],
     "Urdu": [
       {
-        "intent": "APPOINTMENT_OR_LETTER_YES",
-        "input_matches": ["haan", "appointment hai", "letter hai", "haan meri appointment hai", "khat hai", "ہاں"],
+        "intent": "APPOINTMENT_SPECIFIC_YES",
+        "input_matches": ["appointment hai", "meri appointment hai", "khat hai", "اپائنٹمنٹ ہے"],
         "native_script": "ہاں، میری اپائنٹمنٹ / خط میرے پاس ہے۔",
         "english_review": "[Understanding Check]: Yes, I have an appointment / letter."
       },
       {
+        "intent": "APPOINTMENT_SPECIFIC_NO",
+        "input_matches": ["appointment nahi hai", "meri appointment nahi hai", "اپائنٹمنٹ نہیں ہے"],
+        "native_script": "نہیں، میری اپائنٹمنٹ نہیں ہے۔",
+        "english_review": "[Understanding Check]: No, I do not have an appointment."
+      },
+      {
         "intent": "COMPANION_YES",
-        "input_matches": ["haan sath hai", "khandan sath hai", "relative sath hai", "koi sath hai"],
+        "input_matches": ["khandan sath hai", "relative sath hai", "koi sath hai", "ساتھ ہے"],
         "native_script": "ہاں، میرے ساتھ کوئی موجود ہے۔",
         "english_review": "[Understanding Check]: Yes, a companion / family member is with me."
       },
       {
         "intent": "COMPANION_NO",
-        "input_matches": ["akela hoon", "koi nahi hai", "nahi akela", "tanha hoon"],
+        "input_matches": ["akela hoon", "tanha hoon", "koi nahi hai", "اکیلا ہوں"],
         "native_script": "نہیں، میں اکیلا آیا ہوں۔",
         "english_review": "[Understanding Check]: No, I am attending alone."
       },
       {
         "intent": "INTERPRETER_NO",
-        "input_matches": ["nahi zaroorat nahi hai", "zaroorat nahi hai", "tarjuma nahi chahiye", "nahi chahiye"],
+        "input_matches": ["zaroorat nahi hai", "tarjuma nahi chahiye", "ضرورت نہیں ہے"],
         "native_script": "نہیں، مترجم کی ضرورت نہیں ہے۔",
         "english_review": "[Understanding Check]: No, an interpreter is not needed."
       },
       {
         "intent": "INTERPRETER_YES",
-        "input_matches": ["haan zaroorat hai", "tarjuma chahiye", "interpreter chahiye", "urdu interpreter chahiye"],
+        "input_matches": ["tarjuma chahiye", "interpreter chahiye", "urdu interpreter chahiye", "مترجم چاہیے"],
         "native_script": "ہاں، مجھے مترجم کی ضرورت ہے۔",
         "english_review": "[Understanding Check]: Yes, I require an interpreter."
       },
       {
-        "intent": "ID_OR_NHS_PROVIDED",
-        "input_matches": ["id card hai", "nhs number hai", "ye lijiye", "ye raha id"],
-        "native_script": "یہ رہا میرا شناختی کارڈ / NHS نمبر۔",
-        "english_review": "[Understanding Check]: Here is my ID / NHS number / details."
+        "intent": "NHS_OR_ID_PROVIDED",
+        "input_matches": ["nhs number hai", "id card hai", "ye lijiye id", "نمبر ہے"],
+        "native_script": "یہ رہا میرا NHS نمبر / شناختی کارڈ۔",
+        "english_review": "[Understanding Check]: Here is my NHS number / ID details."
+      },
+      {
+        "intent": "NHS_UNKNOWN",
+        "input_matches": ["maloom nahi", "number nahi pata", "yaad nahi", "معلوم نہیں"],
+        "native_script": "نہیں، مجھے اپنا NHS نمبر معلوم نہیں ہے۔",
+        "english_review": "[Understanding Check]: No, I do not know my NHS number."
+      },
+      {
+        "intent": "GENERIC_YES",
+        "input_matches": ["haan", "jee haan", "theek hai", "ہاں", "جی ہاں"],
+        "native_script": "ہاں۔",
+        "english_review": "[Understanding Check]: Yes / Confirmed."
+      },
+      {
+        "intent": "GENERIC_NO",
+        "input_matches": ["nahi", "nahin", "نہیں"],
+        "native_script": "نہیں।",
+        "english_review": "[Understanding Check]: No / Negative."
       },
       {
         "intent": "GENERAL_ACKNOWLEDGE",
-        "input_matches": ["theek hai", "shukriya", "theek hai shukriya", "intezar karta hoon", "baith jata hoon"],
+        "input_matches": ["shukriya", "bohot shukriya", "intezar karta hoon", "شکریہ"],
         "native_script": "ٹھیک ہے، شکریہ۔",
         "english_review": "[Understanding Check]: Understood, thank you. Proceeding as instructed."
       }
     ],
     "Punjabi": [
       {
-        "intent": "APPOINTMENT_OR_LETTER_YES",
-        "input_matches": ["haan", "appointment hai", "chitti hai", "haan ji", "meri appointment hai", "ਹਾਂ"],
+        "intent": "APPOINTMENT_SPECIFIC_YES",
+        "input_matches": ["appointment hai", "chitti hai", "meri appointment hai", "ਅਪਾਇੰਟਮੈਂਟ ਹੈ"],
         "native_script": "ਹਾਂ, ਮੇਰੀ ਅਪਾਇੰਟਮੈਂਟ / ਚਿੱਠੀ ਮੇਰੇ ਕੋਲ ਹੈ।",
         "english_review": "[Understanding Check]: Yes, I have an appointment / letter."
       },
       {
+        "intent": "APPOINTMENT_SPECIFIC_NO",
+        "input_matches": ["appointment nahi hai", "meri appointment nahi", "ਅਪਾਇੰਟਮੈਂਟ ਨਹੀਂ ਹੈ"],
+        "native_script": "ਨਹੀਂ, ਮੇਰੀ ਕੋਈ ਅਪਾਇੰਟਮੈਂਟ ਨਹੀਂ ਹੈ।",
+        "english_review": "[Understanding Check]: No, I do not have an appointment."
+      },
+      {
         "intent": "COMPANION_YES",
-        "input_matches": ["haan naal hai", "parivar naal hai", "relative naal hai", "koi naal hai"],
+        "input_matches": ["parivar naal hai", "relative naal hai", "koi naal hai", "ਨਾਲ ਹੈ"],
         "native_script": "ਹਾਂ, ਮੇਰੇ ਨਾਲ ਪਰਿਵਾਰ ਦਾ ਮੈਂਬਰ ਹੈ।",
         "english_review": "[Understanding Check]: Yes, a companion / family member is with me."
       },
       {
         "intent": "COMPANION_NO",
-        "input_matches": ["kalla haan", "koi nahi naal", "nahi kalla", "ikalla"],
+        "input_matches": ["kalla haan", "ikalla", "koi nahi naal", "ਇਕੱਲਾ ਹਾਂ"],
         "native_script": "ਨਹੀਂ, ਮੈਂ ਇਕੱਲਾ ਆਇਆ ਹਾਂ।",
         "english_review": "[Understanding Check]: No, I am attending alone."
       },
       {
         "intent": "INTERPRETER_NO",
-        "input_matches": ["nahi lod nahi hai", "lod nahi hai", "lod nahi", "interpreter nahi lod"],
+        "input_matches": ["lod nahi hai", "lod nahi", "interpreter nahi lod", "ਲੋੜ ਨਹੀਂ ਹੈ"],
         "native_script": "ਨਹੀਂ, ਅਨੁਵਾਦਕ ਦੀ ਲੋੜ ਨਹੀਂ ਹੈ।",
         "english_review": "[Understanding Check]: No, an interpreter is not needed."
       },
       {
         "intent": "INTERPRETER_YES",
-        "input_matches": ["haan lod hai", "lod hai", "interpreter chahida", "punjabi interpreter chahida"],
+        "input_matches": ["lod hai", "interpreter chahida", "ਲੋੜ ਹੈ"],
         "native_script": "ਹਾਂ, ਮੈਨੂੰ ਅਨੁਵਾਦਕ ਦੀ ਲੋੜ ਹੈ।",
         "english_review": "[Understanding Check]: Yes, I require an interpreter."
       },
       {
-        "intent": "ID_OR_NHS_PROVIDED",
-        "input_matches": ["id card kol hai", "nhs number hai", "aa lo id", "card kol hai"],
-        "native_script": "ਇਹ ਰਿਹਾ ਮੇਰਾ ਪਛਾਣ ਪੱਤਰ / NHS ਨੰਬਰ।",
-        "english_review": "[Understanding Check]: Here is my ID / NHS number / details."
+        "intent": "NHS_OR_ID_PROVIDED",
+        "input_matches": ["nhs number hai", "id card kol hai", "aa lo id", "ਨੰਬਰ ਹੈ"],
+        "native_script": "ਇਹ ਰਿਹਾ ਮੇਰਾ NHS ਨੰਬਰ / ਸ਼ਨਾਖਤੀ ਕਾਰਡ।",
+        "english_review": "[Understanding Check]: Here is my NHS number / ID details."
+      },
+      {
+        "intent": "NHS_UNKNOWN",
+        "input_matches": ["pata nahi", "number nahi pata", "yaad nahi", "ਪਤਾ ਨਹੀਂ"],
+        "native_script": "ਨਹੀਂ, ਮੈਨੂੰ ਆਪਣਾ NHS ਨੰਬਰ ਨਹੀਂ ਪਤਾ।",
+        "english_review": "[Understanding Check]: No, I do not know my NHS number."
+      },
+      {
+        "intent": "GENERIC_YES",
+        "input_matches": ["haan", "haan ji", "ji haan", "theek hai", "ਹਾਂ", "ਹਾਂਜੀ"],
+        "native_script": "ਹਾਂ।",
+        "english_review": "[Understanding Check]: Yes / Confirmed."
+      },
+      {
+        "intent": "GENERIC_NO",
+        "input_matches": ["nahi", "nahi ji", "ਨਹੀਂ"],
+        "native_script": "ਨਹੀਂ।",
+        "english_review": "[Understanding Check]: No / Negative."
       },
       {
         "intent": "GENERAL_ACKNOWLEDGE",
-        "input_matches": ["theek hai", "dhanvaad", "theek hai dhanvaad", "ji dhanvaad", "baithda haan"],
+        "input_matches": ["dhanvaad", "sat sri akal", "baithda haan", "ਧੰਨਵਾਦ"],
         "native_script": "ਠੀਕ ਹੈ, ਧੰਨਵਾਦ।",
         "english_review": "[Understanding Check]: Understood, thank you. Proceeding as instructed."
       }
     ],
     "Bengali": [
       {
-        "intent": "APPOINTMENT_OR_LETTER_YES",
-        "input_matches": ["hyan", "appointment ache", "chithi ache", "hyan ache", "amar appointment ache", "হ্যাঁ"],
+        "intent": "APPOINTMENT_SPECIFIC_YES",
+        "input_matches": ["appointment ache", "chithi ache", "amar appointment ache", "অ্যাপয়েন্টমেন্ট আছে"],
         "native_script": "হ্যাঁ, আমার অ্যাপয়েন্টমেন্ট / চিঠি আছে।",
         "english_review": "[Understanding Check]: Yes, I have an appointment / letter."
       },
       {
+        "intent": "APPOINTMENT_SPECIFIC_NO",
+        "input_matches": ["appointment nei", "amar appointment nei", "অ্যাপয়েন্টমেন্ট নেই"],
+        "native_script": "না, আমার অ্যাপয়েন্টমেন্ট নেই।",
+        "english_review": "[Understanding Check]: No, I do not have an appointment."
+      },
+      {
         "intent": "COMPANION_YES",
-        "input_matches": ["hyan shonge ache", "poribar shonge", "relative shonge ache", "lok ache"],
+        "input_matches": ["poribar shonge", "relative shonge ache", "lok ache shonge", "সাথে আছে"],
         "native_script": "হ্যাঁ, আমার সাথে পরিবারের সদস্য আছেন।",
         "english_review": "[Understanding Check]: Yes, a companion / family member is with me."
       },
       {
         "intent": "COMPANION_NO",
-        "input_matches": ["eka eshechi", "keu nei", "na eka", "shonge keu nei"],
+        "input_matches": ["eka eshechi", "keu nei", "shonge keu nei", "একা"],
         "native_script": "না, আমি একাই এসেছি।",
         "english_review": "[Understanding Check]: No, I am attending alone."
       },
       {
         "intent": "INTERPRETER_NO",
-        "input_matches": ["na proyojon nei", "proyojon nei", "lagbe na", "interpreter lagbe na"],
+        "input_matches": ["proyojon nei", "lagbe na", "interpreter lagbe na", "প্রয়োজন নেই"],
         "native_script": "না, দোভাষীর প্রয়োজন নেই।",
         "english_review": "[Understanding Check]: No, an interpreter is not needed."
       },
       {
         "intent": "INTERPRETER_YES",
-        "input_matches": ["hyan lagbe", "proyojon ache", "interpreter lagbe", "bengali interpreter lagbe"],
+        "input_matches": ["lagbe", "interpreter lagbe", "proyojon ache", "প্রয়োজন আছে"],
         "native_script": "হ্যাঁ, আমার দোভাষীর প্রয়োজন আছে।",
         "english_review": "[Understanding Check]: Yes, I require an interpreter."
       },
       {
-        "intent": "ID_OR_NHS_PROVIDED",
-        "input_matches": ["id ache", "nhs number ache", "ei je card", "id card ache"],
-        "native_script": "এই যে আমার পরিচয়পত্র / NHS নম্বর।",
-        "english_review": "[Understanding Check]: Here is my ID / NHS number / details."
+        "intent": "NHS_OR_ID_PROVIDED",
+        "input_matches": ["nhs number ache", "id ache", "ei je card", "নম্বর আছে"],
+        "native_script": "এই যে আমার NHS নম্বর / পরিচয়পত্র।",
+        "english_review": "[Understanding Check]: Here is my NHS number / ID details."
+      },
+      {
+        "intent": "NHS_UNKNOWN",
+        "input_matches": ["jana nei", "jani na", "mone nei", "জানা নেই"],
+        "native_script": "না, আমার NHS নম্বর জানা নেই।",
+        "english_review": "[Understanding Check]: No, I do not know my NHS number."
+      },
+      {
+        "intent": "GENERIC_YES",
+        "input_matches": ["hyan", "ji hyan", "thik ache", "হ্যাঁ"],
+        "native_script": "হ্যাঁ।",
+        "english_review": "[Understanding Check]: Yes / Confirmed."
+      },
+      {
+        "intent": "GENERIC_NO",
+        "input_matches": ["na", "nei", "না"],
+        "native_script": "না।",
+        "english_review": "[Understanding Check]: No / Negative."
       },
       {
         "intent": "GENERAL_ACKNOWLEDGE",
-        "input_matches": ["thik ache", "dhonnobad", "thik ache dhonnobad", "boschi", "opekkha korchi"],
+        "input_matches": ["dhonnobad", "boschi", "opekkha korchi", "ধন্যবাদ"],
         "native_script": "ঠিক আছে, ধন্যবাদ।",
         "english_review": "[Understanding Check]: Understood, thank you. Proceeding as instructed."
       }
     ],
     "Gujarati": [
       {
-        "intent": "APPOINTMENT_OR_LETTER_YES",
-        "input_matches": ["ha", "appointment che", "letter che", "maro appointment che", "ha che", "હા"],
+        "intent": "APPOINTMENT_SPECIFIC_YES",
+        "input_matches": ["appointment che", "letter che", "maro appointment che", "એપોઇન્ટમેન્ટ છે"],
         "native_script": "હા, મારો એપોઇન્ટમેન્ટ / પત્ર મારી પાસે છે.",
         "english_review": "[Understanding Check]: Yes, I have an appointment / letter."
       },
       {
+        "intent": "APPOINTMENT_SPECIFIC_NO",
+        "input_matches": ["appointment nathi", "maro appointment nathi", "એપોઇન્ટમેન્ટ નથી"],
+        "native_script": "ના, મારો એપોઇન્ટમેન્ટ નથી.",
+        "english_review": "[Understanding Check]: No, I do not have an appointment."
+      },
+      {
         "intent": "COMPANION_YES",
-        "input_matches": ["ha sathe che", "parivar sathe che", "relative che", "sathe koi che"],
+        "input_matches": ["parivar sathe che", "relative che", "sathe koi che", "સાથે છે"],
         "native_script": "હા, મારી સાથે પરિવારના સભ્ય છે.",
         "english_review": "[Understanding Check]: Yes, a companion / family member is with me."
       },
       {
         "intent": "COMPANION_NO",
-        "input_matches": ["eklo chu", "ekli chu", "koi nathi", "na eklo chu"],
+        "input_matches": ["eklo chu", "ekli chu", "koi nathi", "એકલો છું"],
         "native_script": "ના, હું એકલો આવ્યો છું.",
         "english_review": "[Understanding Check]: No, I am attending alone."
       },
       {
         "intent": "INTERPRETER_NO",
-        "input_matches": ["na jarur nathi", "jarur nathi", "nathi joitu", "interpreter jarur nathi"],
+        "input_matches": ["jarur nathi", "nathi joitu", "interpreter jarur nathi", "જરૂર નથી"],
         "native_script": "ના, દુભાષિયાની જરૂર નથી.",
         "english_review": "[Understanding Check]: No, an interpreter is not needed."
       },
       {
         "intent": "INTERPRETER_YES",
-        "input_matches": ["ha jarur che", "joiyye", "interpreter joiyye", "gujarati interpreter joiyye"],
+        "input_matches": ["jarur che", "interpreter joiyye", "જોઈએ"],
         "native_script": "હા, મને દુભાષિયાની જરૂર છે.",
         "english_review": "[Understanding Check]: Yes, I require an interpreter."
       },
       {
-        "intent": "ID_OR_NHS_PROVIDED",
-        "input_matches": ["id che", "nhs number che", "aa rahyo card", "id card che"],
-        "native_script": "આ રહ્યો મારો ઓળખપત્ર / NHS નંબર.",
-        "english_review": "[Understanding Check]: Here is my ID / NHS number / details."
+        "intent": "NHS_OR_ID_PROVIDED",
+        "input_matches": ["nhs number che", "id card che", "aa rahyo card", "નંબર છે"],
+        "native_script": "આ રહ્યો મારો NHS નંબર / ઓળખપત્ર.",
+        "english_review": "[Understanding Check]: Here is my NHS number / ID details."
+      },
+      {
+        "intent": "NHS_UNKNOWN",
+        "input_matches": ["khabar nathi", "nathi khabar", "yaad nathi", "ખબર નથી"],
+        "native_script": "ના, મને મારો NHS નંબર ખબર નથી.",
+        "english_review": "[Understanding Check]: No, I do not know my NHS number."
+      },
+      {
+        "intent": "GENERIC_YES",
+        "input_matches": ["ha", "haji", "saru", "હા", "હાજી"],
+        "native_script": "હા.",
+        "english_review": "[Understanding Check]: Yes / Confirmed."
+      },
+      {
+        "intent": "GENERIC_NO",
+        "input_matches": ["na", "nathi", "ના"],
+        "native_script": "ના.",
+        "english_review": "[Understanding Check]: No / Negative."
       },
       {
         "intent": "GENERAL_ACKNOWLEDGE",
-        "input_matches": ["saru", "aabhar", "saru aabhar", "besu chu", "raah jou chu"],
+        "input_matches": ["aabhar", "besu chu", "raah jou chu", "આભાર"],
         "native_script": "સારું, આભાર.",
         "english_review": "[Understanding Check]: Understood, thank you. Proceeding as instructed."
       }
     ],
     "Polish": [
       {
-        "intent": "APPOINTMENT_OR_LETTER_YES",
-        "input_matches": ["tak", "mam wizyte", "mam list", "tak mam wizyte", "wizyta", "tak mam"],
+        "intent": "APPOINTMENT_SPECIFIC_YES",
+        "input_matches": ["mam wizyte", "mam list", "tak mam wizyte", "wizyta"],
         "native_script": "Tak, mam umówioną wizytę / list.",
         "english_review": "[Understanding Check]: Yes, I have an appointment / letter."
       },
       {
+        "intent": "APPOINTMENT_SPECIFIC_NO",
+        "input_matches": ["nie mam wizyty", "brak wizyty", "bez wizyty"],
+        "native_script": "Nie, nie mam umówionej wizyty.",
+        "english_review": "[Understanding Check]: No, I do not have an appointment."
+      },
+      {
         "intent": "COMPANION_YES",
-        "input_matches": ["tak ktos ze mna jest", "z kims", "z rodzina", "jest ze mna maz", "jest ze mna zona"],
-        "native_script": "Tak, jest ze mną członek rodziny / osoba towarzysząca.",
+        "input_matches": ["ktos ze mna jest", "z rodzina", "jest ze mna maz", "jest ze mna zona"],
+        "native_script": "Tak, jest ze mną osoba towarzysząca / rodzina.",
         "english_review": "[Understanding Check]: Yes, a companion / family member is with me."
       },
       {
         "intent": "COMPANION_NO",
-        "input_matches": ["sam", "jestem sam", "sama", "nikogo nie ma", "nie sam"],
+        "input_matches": ["jestem sam", "sama", "nikogo nie ma"],
         "native_script": "Nie, przyszedłem / przyszłam sam(a).",
         "english_review": "[Understanding Check]: No, I am attending alone."
       },
       {
         "intent": "INTERPRETER_NO",
-        "input_matches": ["nie trzeba", "nie nie trzeba", "tlumacz niepotrzebny", "bez tlumacza"],
+        "input_matches": ["nie trzeba", "tlumacz niepotrzebny", "bez tlumacza"],
         "native_script": "Nie, tłumacz nie jest potrzebny.",
         "english_review": "[Understanding Check]: No, an interpreter is not needed."
       },
       {
         "intent": "INTERPRETER_YES",
-        "input_matches": ["tak potrzebuje", "potrzebny tlumacz", "poprosze tlumacza", "tak tlumacz"],
+        "input_matches": ["potrzebny tlumacz", "poprosze tlumacza", "potrzebuje tlumacza"],
         "native_script": "Tak, potrzebuję tłumacza.",
         "english_review": "[Understanding Check]: Yes, I require an interpreter."
       },
       {
-        "intent": "ID_OR_NHS_PROVIDED",
-        "input_matches": ["mam numer nhs", "oto dowod", "mam dokument", "mam id", "prosze oto dowod"],
-        "native_script": "Oto mój dokument tożsamości / numer NHS.",
-        "english_review": "[Understanding Check]: Here is my ID / NHS number / details."
+        "intent": "NHS_OR_ID_PROVIDED",
+        "input_matches": ["mam numer nhs", "oto dowod", "mam dokument", "oto id"],
+        "native_script": "Oto mój numer NHS / dokument tożsamości.",
+        "english_review": "[Understanding Check]: Here is my NHS number / ID details."
+      },
+      {
+        "intent": "NHS_UNKNOWN",
+        "input_matches": ["nie wiem", "nie znam numeru", "nie pamietam"],
+        "native_script": "Nie, nie znam mojego numeru NHS.",
+        "english_review": "[Understanding Check]: No, I do not know my NHS number."
+      },
+      {
+        "intent": "GENERIC_YES",
+        "input_matches": ["tak", "jasne", "dobrze"],
+        "native_script": "Tak.",
+        "english_review": "[Understanding Check]: Yes / Confirmed."
+      },
+      {
+        "intent": "GENERIC_NO",
+        "input_matches": ["nie"],
+        "native_script": "Nie.",
+        "english_review": "[Understanding Check]: No / Negative."
       },
       {
         "intent": "GENERAL_ACKNOWLEDGE",
-        "input_matches": ["dobrze", "dziekuje", "dobrze dziekuje", "siadam", "poczekam"],
+        "input_matches": ["dziekuje", "siadam", "poczekam", "dziękuję"],
         "native_script": "Dobrze, dziękuję.",
         "english_review": "[Understanding Check]: Understood, thank you. Proceeding as instructed."
       }
     ],
     "Romanian": [
       {
-        "intent": "APPOINTMENT_OR_LETTER_YES",
-        "input_matches": ["da", "am programare", "am scrisoarea", "da am programare", "programare"],
+        "intent": "APPOINTMENT_SPECIFIC_YES",
+        "input_matches": ["am programare", "am scrisoarea", "da am programare", "programare"],
         "native_script": "Da, am o programare / scrisoarea la mine.",
         "english_review": "[Understanding Check]: Yes, I have an appointment / letter."
       },
       {
+        "intent": "APPOINTMENT_SPECIFIC_NO",
+        "input_matches": ["nu am programare", "fara programare"],
+        "native_script": "Nu, nu am programare.",
+        "english_review": "[Understanding Check]: No, I do not have an appointment."
+      },
+      {
         "intent": "COMPANION_YES",
-        "input_matches": ["da este cineva", "cu familia", "cu sotia", "cu sotul", "este cineva cu mine"],
+        "input_matches": ["este cineva cu mine", "cu familia", "cu sotia", "cu sotul"],
         "native_script": "Da, este cineva din familie cu mine.",
         "english_review": "[Understanding Check]: Yes, a companion / family member is with me."
       },
       {
         "intent": "COMPANION_NO",
-        "input_matches": ["singur", "sunt singur", "nu sunt singur", "fara nimeni"],
+        "input_matches": ["sunt singur", "singura", "fara nimeni"],
         "native_script": "Nu, am venit singur(ă).",
         "english_review": "[Understanding Check]: No, I am attending alone."
       },
       {
         "intent": "INTERPRETER_NO",
-        "input_matches": ["nu este nevoie", "nu nu este nevoie", "fara interpret", "nu multumesc"],
+        "input_matches": ["nu este nevoie", "fara interpret", "nu multumesc"],
         "native_script": "Nu, nu este nevoie de interpret.",
         "english_review": "[Understanding Check]: No, an interpreter is not needed."
       },
       {
         "intent": "INTERPRETER_YES",
-        "input_matches": ["da am nevoie", "am nevoie de interpret", "doresc interpret", "da traducator"],
+        "input_matches": ["am nevoie de interpret", "doresc interpret", "doresc traducator"],
         "native_script": "Da, am nevoie de un interpret.",
         "english_review": "[Understanding Check]: Yes, I require an interpreter."
       },
       {
-        "intent": "ID_OR_NHS_PROVIDED",
+        "intent": "NHS_OR_ID_PROVIDED",
         "input_matches": ["am numarul nhs", "am buletinul", "iata id", "am actul"],
-        "native_script": "Iată actul meu de identitate / numărul NHS.",
-        "english_review": "[Understanding Check]: Here is my ID / NHS number / details."
+        "native_script": "Iată numărul meu NHS / actul de identitate.",
+        "english_review": "[Understanding Check]: Here is my NHS number / ID details."
+      },
+      {
+        "intent": "NHS_UNKNOWN",
+        "input_matches": ["nu stiu", "nu stiu numarul", "nu imi amintesc"],
+        "native_script": "Nu, nu știu numărul meu NHS.",
+        "english_review": "[Understanding Check]: No, I do not know my NHS number."
+      },
+      {
+        "intent": "GENERIC_YES",
+        "input_matches": ["da", "sigur", "bine"],
+        "native_script": "Da.",
+        "english_review": "[Understanding Check]: Yes / Confirmed."
+      },
+      {
+        "intent": "GENERIC_NO",
+        "input_matches": ["nu"],
+        "native_script": "Nu.",
+        "english_review": "[Understanding Check]: No / Negative."
       },
       {
         "intent": "GENERAL_ACKNOWLEDGE",
-        "input_matches": ["bine", "multumesc", "bine multumesc", "iau loc", "astept"],
+        "input_matches": ["multumesc", "iau loc", "astept", "mulțumesc"],
         "native_script": "Bine, mulțumesc.",
         "english_review": "[Understanding Check]: Understood, thank you. Proceeding as instructed."
       }
     ],
     "Arabic": [
       {
-        "intent": "APPOINTMENT_OR_LETTER_YES",
-        "input_matches": ["naam", "indi maweid", "maee khetab", "3indi maw3id", "naam maweid", "نعم", "عندي موعد"],
+        "intent": "APPOINTMENT_SPECIFIC_YES",
+        "input_matches": ["indi maweid", "maee khetab", "3indi maw3id", "عندي موعد", "لدي موعد"],
         "native_script": "نعم، لدي موعد / الخطاب معي.",
         "english_review": "[Understanding Check]: Yes, I have an appointment / letter."
       },
       {
+        "intent": "APPOINTMENT_SPECIFIC_NO",
+        "input_matches": ["laysa ladaya maweid", "ma indi maweid", "ليس لدي موعد"],
+        "native_script": "لا، ليس لدي موعد مسبق.",
+        "english_review": "[Understanding Check]: No, I do not have an appointment."
+      },
+      {
         "intent": "COMPANION_YES",
-        "input_matches": ["naam maee ahad", "maee aela", "maee zawjati", "maee zawji", "ahad maee"],
+        "input_matches": ["maee ahad", "maee aela", "maee zawjati", "أحد معي", "معي عائلتي"],
         "native_script": "نعم، أحد أفراد عائلتي معي.",
         "english_review": "[Understanding Check]: Yes, a companion / family member is with me."
       },
       {
         "intent": "COMPANION_NO",
-        "input_matches": ["wahdi", "ana wahdi", "la wahdi", "laysa maee ahad"],
+        "input_matches": ["wahdi", "ana wahdi", "laysa maee ahad", "بمفردي"],
         "native_script": "لا، أنا بمفردي.",
         "english_review": "[Understanding Check]: No, I am attending alone."
       },
       {
         "intent": "INTERPRETER_NO",
-        "input_matches": ["la daee", "la la daee", "la ahtaj motarjim", "la shukran"],
+        "input_matches": ["la daee", "la ahtaj motarjim", "لا داعي لمترجم"],
         "native_script": "لا، لا داعي لمترجم.",
         "english_review": "[Understanding Check]: No, an interpreter is not needed."
       },
       {
         "intent": "INTERPRETER_YES",
-        "input_matches": ["naam ahtaj", "ahtaj motarjim", "uridu motarjim", "naam motarjim"],
+        "input_matches": ["ahtaj motarjim", "uridu motarjim", "أحتاج مترجم"],
         "native_script": "نعم، أحتاج إلى مترجم.",
         "english_review": "[Understanding Check]: Yes, I require an interpreter."
       },
       {
-        "intent": "ID_OR_NHS_PROVIDED",
-        "input_matches": ["hatha howiya", "raqam nhs", "indi raqam", "howiya maee"],
-        "native_script": "تفضل، هذه بطاقة هويتي / رقم NHS الخاص بي.",
-        "english_review": "[Understanding Check]: Here is my ID / NHS number / details."
+        "intent": "NHS_OR_ID_PROVIDED",
+        "input_matches": ["hatha howiya", "raqam nhs", "indi raqam nhs", "بطاقة الهوية"],
+        "native_script": "تفضل، هذا رقم NHS / بطاقة هويتي.",
+        "english_review": "[Understanding Check]: Here is my NHS number / ID details."
+      },
+      {
+        "intent": "NHS_UNKNOWN",
+        "input_matches": ["la aarif", "ma aarif alraqam", "la atathakar", "لا أعرف"],
+        "native_script": "لا، لا أعرف رقم NHS الخاص بي.",
+        "english_review": "[Understanding Check]: No, I do not know my NHS number."
+      },
+      {
+        "intent": "GENERIC_YES",
+        "input_matches": ["naam", "ajall", "hasanan", "نعم", "أجل"],
+        "native_script": "نعم.",
+        "english_review": "[Understanding Check]: Yes / Confirmed."
+      },
+      {
+        "intent": "GENERIC_NO",
+        "input_matches": ["la", "kalla", "لا", "كلا"],
+        "native_script": "لا.",
+        "english_review": "[Understanding Check]: No / Negative."
       },
       {
         "intent": "GENERAL_ACKNOWLEDGE",
-        "input_matches": ["shukran", "hasanan", "tayyeb", "sa ajles", "sa intazer"],
+        "input_matches": ["shukran", "tayyeb", "sa ajles", "شكراً"],
         "native_script": "حسناً، شكراً لك.",
         "english_review": "[Understanding Check]: Understood, thank you. Proceeding as instructed."
       }
