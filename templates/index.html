@@ -601,6 +601,9 @@
 <!-- ═══ VERIFICATION LOOP OVERRIDE ═══════════════════════════════════════════ -->
 <script>
 // Multilingual Confirmation Dictionary
+// Multilingual Confirmation Dictionary for all 9 Portal Languages
+// Multilingual Confirmation Dictionary for all 9 Portal Languages
+// Multilingual Confirmation Dictionary for all 9 Portal Languages
 const VERIFY_PROMPTS = {
   "Tamil": {
     staff: "Please confirm that the information provided is understood and correct.",
@@ -618,6 +621,14 @@ const VERIFY_PROMPTS = {
     ack_no: "नहीं, सुधार चाहिए।",
     ack_no_eng: "No, I need to correct this."
   },
+  "Malayalam": {
+    staff: "Please confirm that the information provided is understood and correct.",
+    native: "നൽകിയ വിവരങ്ങൾ മനസ്സിലായെന്നും ശരിയാണെന്നും ദയവായി സ്ഥിരീകരിക്കുക.",
+    ack_yes: "അതെ, വിവരങ്ങൾ ശരിയാണ്.",
+    ack_yes_eng: "Yes, the information is correct and understood.",
+    ack_no: "അല്ല, എനിക്ക് ഇത് തിരുത്തണം.",
+    ack_no_eng: "No, I need to correct this."
+  },
   "Urdu": {
     staff: "Please confirm that the information provided is understood and correct.",
     native: "براہ کرم تصدیق کریں کہ فراہم کردہ معلومات درست ہیں اور سمجھ آ گئی ہیں۔",
@@ -626,28 +637,12 @@ const VERIFY_PROMPTS = {
     ack_no: "نہیں، تبدیلی درکار ہے۔",
     ack_no_eng: "No, I need to correct this."
   },
-  "Punjabi": {
-    staff: "Please confirm that the information provided is understood and correct.",
-    native: "ਕਿਰਪਾ ਕਰਕੇ ਪੁਸ਼ਟੀ ਕਰੋ ਕਿ ਦਿੱਤੀ ਗਈ ਜਾਣਕਾਰੀ ਸਹੀ ਹੈ।",
-    ack_yes: "ਹਾਂ, ਜਾਣਕਾਰੀ ਸਹੀ ਹੈ।",
-    ack_yes_eng: "Yes, the information is correct and understood.",
-    ack_no: "ਨਹੀਂ, ਮੈਂ ਬਦਲਣਾ ਚਾਹੁੰਦਾ ਹਾਂ।",
-    ack_no_eng: "No, I need to correct this."
-  },
   "Bengali": {
     staff: "Please confirm that the information provided is understood and correct.",
     native: "অনুগ্রহ করে নিশ্চিত করুন যে প্রদত্ত তথ্য সঠিক এবং বোঝা গেছে।",
     ack_yes: "হ্যাঁ, তথ্য সঠিক।",
     ack_yes_eng: "Yes, the information is correct and understood.",
     ack_no: "না, সংশোধন প্রয়োজন।",
-    ack_no_eng: "No, I need to correct this."
-  },
-  "Gujarati": {
-    staff: "Please confirm that the information provided is understood and correct.",
-    native: "કૃપા કરીને પુષ્ટિ કરો કે આપેલી માહિતી સાચી છે.",
-    ack_yes: "હા, માહિતી સાચી છે.",
-    ack_yes_eng: "Yes, the information is correct and understood.",
-    ack_no: "ના, મારે સુધારો કરવો છે.",
     ack_no_eng: "No, I need to correct this."
   },
   "Polish": {
@@ -666,6 +661,14 @@ const VERIFY_PROMPTS = {
     ack_no: "Nu, doresc să corectez.",
     ack_no_eng: "No, I need to correct this."
   },
+  "Somali": {
+    staff: "Please confirm that the information provided is understood and correct.",
+    native: "Fadlan xaqiiji in macluumaadka lagu siiyay aad fahantay oo uu sax yahay.",
+    ack_yes: "Haa, macluumaadku waa sax.",
+    ack_yes_eng: "Yes, the information is correct and understood.",
+    ack_no: "Maya, waxaan u baahanahay inaan saxo.",
+    ack_no_eng: "No, I need to correct this."
+  },
   "Arabic": {
     staff: "Please confirm that the information provided is understood and correct.",
     native: "يرجى التأكيد على أن المعلومات المقدمة مفهومة وصحيحة.",
@@ -675,7 +678,6 @@ const VERIFY_PROMPTS = {
     ack_no_eng: "No, I need to correct this."
   }
 };
-
 function runUnderstandingCheck() {
   const chatArea = document.getElementById("chatArea");
   const emptyChat = document.getElementById("emptyChat");
