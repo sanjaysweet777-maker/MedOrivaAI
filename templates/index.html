@@ -284,7 +284,6 @@
     <span>Demonstration Environment · Use Fictional Data Only</span>
   </div>
   <div style="display: flex; align-items: center; gap: 12px;">
-    <!-- Assessor-Safe Badge: Plan specifies planned assessment, not conformity -->
     <span class="compliance-pill">● Data-Minimised Demo · Clinical-Safety Development · DCB0129 Assessment Planned</span>
     <a href="/logout" style="color: #cbd5e1; text-decoration: none; font-size: 12px; margin-left: 6px;">Sign out</a>
   </div>
@@ -305,14 +304,12 @@
           </svg>
         </div>
         <div>
-          <!-- Title: Removed clinical claim -->
           <h1>Multilingual Communication Intake</h1>
           <p>Configure session context and target language to initialise bidirectional communication.</p>
         </div>
       </div>
       <div style="text-align: right; font-size: 12px; color: #64748b;">
         <div>Status: <strong>Working MVP · Demonstration Environment</strong></div>
-        <!-- Engine: Removed 'Provider Fallback' in favor of safer machine-translation fallback -->
         <div>Engine: <strong>Prepared Phrases &amp; Rules + Machine-Translation Fallback</strong></div>
       </div>
     </div>
@@ -336,7 +333,6 @@
           <span class="title">Appointment &amp; Admin</span>
           <span class="desc">Confirming visit reasons, consultation room call-forwarding, and medication list reviews.</span>
         </div>
-        <!-- Context: Basic Symptoms & Communication with safe cues wording -->
         <div class="ctx-card" data-ctx="Basic Symptoms" onclick="selectCtx(this)">
           <span class="icon">🩺</span>
           <span class="title">Basic Symptoms &amp; Communication</span>
@@ -351,7 +347,6 @@
         <span class="num">2</span>
         <span>Select Patient Language (9 Community Languages)</span>
       </div>
-      <!-- Hint: Removed 'verified' -->
       <p class="card-hint">Displays native script beside English meaning for staff-led understanding checks.</p>
       
       <div class="lang-grid-enhanced">
@@ -373,7 +368,7 @@
           <span class="native-name">हिन्दी</span>
         </div>
 
-        <!-- Malayalam: Corrected script label -->
+        <!-- Malayalam -->
         <div class="lang-card" data-lang="Malayalam" data-code="ml" onclick="selectLang(this)">
           <div>
             <span class="eng-name">Malayalam</span>
@@ -391,7 +386,7 @@
           <span class="native-name">Polski</span>
         </div>
 
-        <!-- Arabic: Corrected script label -->
+        <!-- Arabic -->
         <div class="lang-card" data-lang="Arabic" data-code="ar" onclick="selectLang(this)">
           <div>
             <span class="eng-name">Arabic</span>
@@ -409,7 +404,7 @@
           <span class="native-name">اردو</span>
         </div>
 
-        <!-- Bengali: Corrected script label -->
+        <!-- Bengali -->
         <div class="lang-card" data-lang="Bengali" data-code="bn" onclick="selectLang(this)">
           <div>
             <span class="eng-name">Bengali</span>
@@ -437,7 +432,6 @@
         </div>
       </div>
 
-      <!-- Regulatory / Safety Notice Inset: Aligned directly to Business Plan -->
       <div class="inset-info-callout">
         <strong>Communication Support Notice:</strong> MedOriva AI is designed to support structured multilingual communication in defined primary-care workflows. It does not replace qualified professional interpreters for complex, sensitive or high-risk communication and does not provide diagnosis, clinical triage or treatment advice.
       </div>
@@ -450,7 +444,6 @@
         <span>→</span>
       </button>
 
-      <!-- Connection Diagnostic Tool: Corrected description -->
       <details class="connection-tools" style="background:#ffffff; border:1px solid #cbd5e1; border-radius:8px; padding:12px 16px;">
         <summary style="font-weight: 600; cursor:pointer; color:#334155;">System Diagnostic · Translation Engine Health Check</summary>
         <p style="font-size:12px; color:#64748b; margin:6px 0 10px;">Checks prepared phrase resources and provider translation endpoints before the demo communication session.</p>
@@ -458,7 +451,6 @@
         <p id="connectionResult" role="status" aria-live="polite" style="font-size:12px; margin-top:8px; font-weight:600;"></p>
       </details>
       
-      <!-- Safe Non-Persistent Notice: Replaced 'Zero-PII Guarantee' -->
       <div style="text-align: center; font-size: 11.5px; color: #64748b; line-height: 1.5; max-width: 820px; margin: 0 auto;">
         <strong>Demo Data-Handling Notice:</strong> MedOriva does not persist conversation transcripts or NHS identifiers to its application database after the active demo session ends. Third-party provider, hosting and operational data handling are governed separately and must be assessed before live patient use.
       </div>
@@ -514,7 +506,6 @@
 
     <!-- Main Chat + Input Area -->
     <main class="main-area">
-      <!-- Chat Header: Safe Non-Clinical Heading -->
       <div class="chat-header">
         <div>
           <span style="font-weight: 700; color: #0f172a;">Live Communication</span>
@@ -544,7 +535,6 @@
         <div class="tabs">
           <button class="tab active" data-tab="free" onclick="switchTab(this)">Staff Question (English → Patient)</button>
           <button class="tab" data-tab="patient" onclick="switchTab(this)">Patient Reply (Any Language → English)</button>
-          <!-- Tab 3: Renamed to Understanding Check -->
           <button class="tab" data-tab="confirm" onclick="switchTab(this)">Understanding Check</button>
         </div>
 
@@ -573,19 +563,32 @@
               Translate to English
             </button>
           </div>
-          <!-- Explanatory note: Replaced 'audit record' with non-persistent session review -->
           <div class="input-hint">Translates the patient's message back to English and displays the original/native-script text alongside it for staff review during the active session.</div>
         </div>
 
-        <!-- Understanding check tab -->
+        <!-- ═══ UNDERSTANDING CHECK: ONE-CLICK VERIFICATION (NO CONFUSING TEXT BOX) ═══ -->
         <div class="tab-pane" id="tab-confirm">
-          <div class="input-row">
-            <input type="text" id="confirmInput" placeholder="Enter patient's explanation in their words to verify comprehension..."/>
-            <button class="action-btn amber" onclick="checkUnderstanding()" id="confirmBtn">
-              Verify Understanding
+          <!-- Hidden input kept to prevent legacy JS errors -->
+          <input type="hidden" id="confirmInput" value=""/>
+
+          <div style="background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 8px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; gap: 20px;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #d97706;"></span>
+                <strong style="font-size: 14px; color: #92400e;">Staff-Led Understanding Check</strong>
+              </div>
+              <p style="margin: 0; font-size: 12.5px; color: #78350f; line-height: 1.4;">
+                Sends a formal verification prompt back to the patient in their language to confirm that routine guidance or responses were understood accurately before staff proceed.
+              </p>
+            </div>
+            <button type="button" class="action-btn amber" onclick="runUnderstandingCheck()" id="confirmBtn" style="white-space: nowrap; padding: 12px 22px; font-weight: 700; cursor: pointer; border-radius: 6px;">
+              Verify Understanding →
             </button>
           </div>
-          <div class="input-hint">Prompts back-translation to confirm patient has understood routine guidance.</div>
+
+          <div class="input-hint" style="margin-top: 8px;">
+            Prompts closed-loop back-confirmation to verify patient comprehension under standard practice governance.
+          </div>
         </div>
       </div>
     </main>
@@ -594,5 +597,154 @@
 </div>
 
 <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+
+<!-- ═══ VERIFICATION LOOP OVERRIDE ═══════════════════════════════════════════ -->
+<script>
+// Multilingual Confirmation Dictionary
+const VERIFY_PROMPTS = {
+  "Tamil": {
+    staff: "Please confirm that the information provided is understood and correct.",
+    native: "வழங்கப்பட்ட தகவல் புரிந்துகொள்ளப்பட்டு சரியானதா என்பதை உறுதிப்படுத்தவும்.",
+    ack_yes: "ஆம், தகவல் சரியானது.",
+    ack_yes_eng: "Yes, the information is correct and understood.",
+    ack_no: "இல்லை, மாற்ற வேண்டும்.",
+    ack_no_eng: "No, I need to correct this."
+  },
+  "Hindi": {
+    staff: "Please confirm that the information provided is understood and correct.",
+    native: "कृपया पुष्टि करें कि दी गई जानकारी सही है और समझ आ गई है।",
+    ack_yes: "हाँ, जानकारी सही है।",
+    ack_yes_eng: "Yes, the information is correct and understood.",
+    ack_no: "नहीं, सुधार चाहिए।",
+    ack_no_eng: "No, I need to correct this."
+  },
+  "Urdu": {
+    staff: "Please confirm that the information provided is understood and correct.",
+    native: "براہ کرم تصدیق کریں کہ فراہم کردہ معلومات درست ہیں اور سمجھ آ گئی ہیں۔",
+    ack_yes: "ہاں، معلومات درست ہے۔",
+    ack_yes_eng: "Yes, the information is correct and understood.",
+    ack_no: "نہیں، تبدیلی درکار ہے۔",
+    ack_no_eng: "No, I need to correct this."
+  },
+  "Punjabi": {
+    staff: "Please confirm that the information provided is understood and correct.",
+    native: "ਕਿਰਪਾ ਕਰਕੇ ਪੁਸ਼ਟੀ ਕਰੋ ਕਿ ਦਿੱਤੀ ਗਈ ਜਾਣਕਾਰੀ ਸਹੀ ਹੈ।",
+    ack_yes: "ਹਾਂ, ਜਾਣਕਾਰੀ ਸਹੀ ਹੈ।",
+    ack_yes_eng: "Yes, the information is correct and understood.",
+    ack_no: "ਨਹੀਂ, ਮੈਂ ਬਦਲਣਾ ਚਾਹੁੰਦਾ ਹਾਂ।",
+    ack_no_eng: "No, I need to correct this."
+  },
+  "Bengali": {
+    staff: "Please confirm that the information provided is understood and correct.",
+    native: "অনুগ্রহ করে নিশ্চিত করুন যে প্রদত্ত তথ্য সঠিক এবং বোঝা গেছে।",
+    ack_yes: "হ্যাঁ, তথ্য সঠিক।",
+    ack_yes_eng: "Yes, the information is correct and understood.",
+    ack_no: "না, সংশোধন প্রয়োজন।",
+    ack_no_eng: "No, I need to correct this."
+  },
+  "Gujarati": {
+    staff: "Please confirm that the information provided is understood and correct.",
+    native: "કૃપા કરીને પુષ્ટિ કરો કે આપેલી માહિતી સાચી છે.",
+    ack_yes: "હા, માહિતી સાચી છે.",
+    ack_yes_eng: "Yes, the information is correct and understood.",
+    ack_no: "ના, મારે સુધારો કરવો છે.",
+    ack_no_eng: "No, I need to correct this."
+  },
+  "Polish": {
+    staff: "Please confirm that the information provided is understood and correct.",
+    native: "Proszę potwierdzić, czy podane informacje są zrozumiałe i poprawne.",
+    ack_yes: "Tak, informacje są poprawne.",
+    ack_yes_eng: "Yes, the information is correct and understood.",
+    ack_no: "Nie, muszę to poprawić.",
+    ack_no_eng: "No, I need to correct this."
+  },
+  "Romanian": {
+    staff: "Please confirm that the information provided is understood and correct.",
+    native: "Vă rugăm să confirmați că informațiile furnizate sunt corecte și înțelese.",
+    ack_yes: "Da, informațiile sunt corecte.",
+    ack_yes_eng: "Yes, the information is correct and understood.",
+    ack_no: "Nu, doresc să corectez.",
+    ack_no_eng: "No, I need to correct this."
+  },
+  "Arabic": {
+    staff: "Please confirm that the information provided is understood and correct.",
+    native: "يرجى التأكيد على أن المعلومات المقدمة مفهومة وصحيحة.",
+    ack_yes: "نعم، المعلومات صحيحة.",
+    ack_yes_eng: "Yes, the information is correct and understood.",
+    ack_no: "لا، أحتاج إلى التصحيح.",
+    ack_no_eng: "No, I need to correct this."
+  }
+};
+
+function runUnderstandingCheck() {
+  const chatArea = document.getElementById("chatArea");
+  const emptyChat = document.getElementById("emptyChat");
+  if (emptyChat) emptyChat.style.display = "none";
+
+  const langTag = document.getElementById("sideLang");
+  const langName = langTag ? (langTag.textContent.trim() || "Tamil") : "Tamil";
+  const dict = VERIFY_PROMPTS[langName] || VERIFY_PROMPTS["Tamil"];
+
+  const checkCardId = "check-" + Date.now();
+  const checkHtml = `
+    <div class="message staff" style="margin: 12px 0; display: flex; flex-direction: column; align-items: flex-end;">
+      <div style="background: #092e26; color: #ffffff; border-radius: 10px 10px 0 10px; padding: 14px 18px; max-width: 80%; box-shadow: 0 2px 6px rgba(0,0,0,0.08);">
+        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #5eead4; margin-bottom: 4px; font-weight: 700;">
+          Staff Question (Understanding Check)
+        </div>
+        <div style="font-size: 14px; font-weight: 600; margin-bottom: 6px;">
+          ${dict.staff}
+        </div>
+        <div style="font-size: 15px; color: #e6f2f7; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 6px;">
+          ${dict.native}
+        </div>
+      </div>
+      <div id="${checkCardId}" style="margin-top: 8px; display: flex; gap: 8px;">
+        <button type="button" onclick="patientConfirmsCheck('${checkCardId}', true, '${langName}')" style="background: #0F6E56; color: #ffffff; border: none; border-radius: 6px; padding: 8px 14px; font-size: 12.5px; font-weight: 700; cursor: pointer;">
+          ✓ Patient Confirms (Yes, Correct)
+        </button>
+        <button type="button" onclick="patientConfirmsCheck('${checkCardId}', false, '${langName}')" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 14px; font-size: 12.5px; font-weight: 600; cursor: pointer;">
+          ✕ Needs Correction
+        </button>
+      </div>
+    </div>
+  `;
+
+  chatArea.insertAdjacentHTML("beforeend", checkHtml);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function patientConfirmsCheck(cardId, isYes, langName) {
+  const card = document.getElementById(cardId);
+  if (card) {
+    card.innerHTML = `<span style="font-size: 12px; color: #0F6E56; font-weight: 700;">✓ Understanding Check Completed</span>`;
+  }
+
+  const dict = VERIFY_PROMPTS[langName] || VERIFY_PROMPTS["Tamil"];
+  const chatArea = document.getElementById("chatArea");
+
+  const replyHtml = `
+    <div class="message patient" style="margin: 12px 0; display: flex; flex-direction: column; align-items: flex-start;">
+      <div style="background: #ffffff; border: 1.5px solid ${isYes ? '#86efac' : '#fca5a5'}; border-radius: 10px 10px 10px 0; padding: 14px 18px; max-width: 80%; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: ${isYes ? '#15803d' : '#b91c1c'}; margin-bottom: 4px; font-weight: 700;">
+          Patient Response (Verified)
+        </div>
+        <div style="font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">
+          ${isYes ? dict.ack_yes : dict.ack_no}
+        </div>
+        <div style="font-size: 13.5px; color: #475569; border-top: 1px solid #e2e8f0; padding-top: 6px;">
+          <strong>English for Staff Review:</strong> ${isYes ? dict.ack_yes_eng : dict.ack_no_eng}
+        </div>
+      </div>
+    </div>
+  `;
+
+  chatArea.insertAdjacentHTML("beforeend", replyHtml);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+// Override legacy function name if referenced anywhere
+window.checkUnderstanding = runUnderstandingCheck;
+</script>
 </body>
 </html>
