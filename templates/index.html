@@ -597,11 +597,11 @@
 
 <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 
-<!-- ═══ VERIFICATION LOOP OVERRIDE ═══════════════════════════════════════════ -->
+<!-- ═══ MULTILINGUAL CONFIRMATION ENGINE (CANONICAL + RTL) ═════════════════ -->
 <script>
-// Multilingual Confirmation Dictionary
-const VERIFY_PROMPTS = {
+const VERIFY_CONFIG = {
   "Tamil": {
+    code: "ta", dir: "ltr",
     staff: "Please confirm that the information provided is understood and correct.",
     native: "வழங்கப்பட்ட தகவல் புரிந்துகொள்ளப்பட்டு சரியானதா என்பதை உறுதிப்படுத்தவும்.",
     ack_yes: "ஆம், தகவல் சரியானது.",
@@ -610,6 +610,7 @@ const VERIFY_PROMPTS = {
     ack_no_eng: "No, I need to correct this."
   },
   "Hindi": {
+    code: "hi", dir: "ltr",
     staff: "Please confirm that the information provided is understood and correct.",
     native: "कृपया पुष्टि करें कि दी गई जानकारी सही है और समझ आ गई है।",
     ack_yes: "हाँ, जानकारी सही है।",
@@ -618,6 +619,7 @@ const VERIFY_PROMPTS = {
     ack_no_eng: "No, I need to correct this."
   },
   "Malayalam": {
+    code: "ml", dir: "ltr",
     staff: "Please confirm that the information provided is understood and correct.",
     native: "നൽകിയിരിക്കുന്ന വിവരങ്ങൾ മനസ്സിലായെന്നും ശരിയാണെന്നും ദയവായി സ്ഥിരീകരിക്കുക.",
     ack_yes: "അതെ, വിവരങ്ങൾ ശരിയാണ്.",
@@ -625,23 +627,8 @@ const VERIFY_PROMPTS = {
     ack_no: "ഇല്ല, മാറ്റം വരുത്തണം.",
     ack_no_eng: "No, I need to correct this."
   },
-  "Urdu": {
-    staff: "Please confirm that the information provided is understood and correct.",
-    native: "براہ کرم تصدیق کریں کہ فراہم کردہ معلومات درست ہیں اور سمجھ آ گئی ہیں۔",
-    ack_yes: "ہاں، معلومات درست ہے۔",
-    ack_yes_eng: "Yes, the information is correct and understood.",
-    ack_no: "نہیں، تبدیلی درکار ہے۔",
-    ack_no_eng: "No, I need to correct this."
-  },
-  "Bengali": {
-    staff: "Please confirm that the information provided is understood and correct.",
-    native: "অনুগ্রহ করে নিশ্চিত করুন যে প্রদত্ত তথ্য সঠিক এবং বোঝা গেছে।",
-    ack_yes: "হ্যাঁ, তথ্য সঠিক।",
-    ack_yes_eng: "Yes, the information is correct and understood.",
-    ack_no: "না, সংশোধন প্রয়োজন।",
-    ack_no_eng: "No, I need to correct this."
-  },
   "Polish": {
+    code: "pl", dir: "ltr",
     staff: "Please confirm that the information provided is understood and correct.",
     native: "Proszę potwierdzić, czy podane informacje są zrozumiałe i poprawne.",
     ack_yes: "Tak, informacje są poprawne.",
@@ -649,31 +636,53 @@ const VERIFY_PROMPTS = {
     ack_no: "Nie, muszę to poprawić.",
     ack_no_eng: "No, I need to correct this."
   },
-  "Romanian": {
-    staff: "Please confirm that the information provided is understood and correct.",
-    native: "Vă rugăm să confirmați că informațiile furnizate sunt corecte și înțelese.",
-    ack_yes: "Da, informațiile sunt corecte.",
-    ack_yes_eng: "Yes, the information is correct and understood.",
-    ack_no: "Nu, doresc să corectez.",
-    ack_no_eng: "No, I need to correct this."
-  },
   "Arabic": {
+    code: "ar", dir: "rtl",
     staff: "Please confirm that the information provided is understood and correct.",
     native: "يرجى التأكيد على أن المعلومات المقدمة مفهومة وصحيحة.",
-    ack_yes: "نعم، المعلومات صحيحة.",
+    ack_yes: "نعم، المعلومات صحيحة ومفهومة.",
     ack_yes_eng: "Yes, the information is correct and understood.",
-    ack_no: "لا، أحتاج إلى التصحيح.",
+    ack_no: "لا، أحتاج إلى تصحيح هذه المعلومات.",
+    ack_no_eng: "No, I need to correct this."
+  },
+  "Urdu": {
+    code: "ur", dir: "rtl",
+    staff: "Please confirm that the information provided is understood and correct.",
+    native: "براہ کرم تصدیق کریں کہ فراہم کردہ معلومات درست ہیں اور سمجھ آ گئی ہیں۔",
+    ack_yes: "جی ہاں، معلومات درست ہیں اور سمجھ آ گئی ہیں۔",
+    ack_yes_eng: "Yes, the information is correct and understood.",
+    ack_no: "نہیں، مجھے اس میں درستی کروانی ہے۔",
+    ack_no_eng: "No, I need to correct this."
+  },
+  "Bengali": {
+    code: "bn", dir: "ltr",
+    staff: "Please confirm that the information provided is understood and correct.",
+    native: "অনুগ্রহ করে নিশ্চিত করুন যে প্রদত্ত তথ্য সঠিক এবং বোঝা গেছে।",
+    ack_yes: "হ্যাঁ, তথ্য সঠিক এবং বোঝা গেছে।",
+    ack_yes_eng: "Yes, the information is correct and understood.",
+    ack_no: "না, এটি সংশোধন করা প্রয়োজন।",
     ack_no_eng: "No, I need to correct this."
   },
   "Somali": {
+    code: "so", dir: "ltr",
     staff: "Please confirm that the information provided is understood and correct.",
     native: "Fadlan xaqiiji in xogta lagu siiyay aad fahantay oo ay sax tahay.",
-    ack_yes: "Haa, xogtu waa sax.",
+    ack_yes: "Haa, xogtu waa sax waana fahmay.",
     ack_yes_eng: "Yes, the information is correct and understood.",
-    ack_no: "Maya, waxaan rabaa inaan saxo.",
+    ack_no: "Maya, waxaan rabaa inaan saxo xogtan.",
+    ack_no_eng: "No, I need to correct this."
+  },
+  "Romanian": {
+    code: "ro", dir: "ltr",
+    staff: "Please confirm that the information provided is understood and correct.",
+    native: "Vă rugăm să confirmați că informațiile furnizate sunt corecte și înțelese.",
+    ack_yes: "Da, informațiile sunt corecte și înțelese.",
+    ack_yes_eng: "Yes, the information is correct and understood.",
+    ack_no: "Nu, doresc să corectez aceste informații.",
     ack_no_eng: "No, I need to correct this."
   },
   "Punjabi": {
+    code: "pa", dir: "ltr",
     staff: "Please confirm that the information provided is understood and correct.",
     native: "ਕਿਰਪਾ ਕਰਕੇ ਪੁਸ਼ਟੀ ਕਰੋ ਕਿ ਦਿੱਤੀ ਗਈ ਜਾਣਕਾਰੀ ਸਹੀ ਹੈ।",
     ack_yes: "ਹਾਂ, ਜਾਣਕਾਰੀ ਸਹੀ ਹੈ।",
@@ -682,6 +691,7 @@ const VERIFY_PROMPTS = {
     ack_no_eng: "No, I need to correct this."
   },
   "Gujarati": {
+    code: "gu", dir: "ltr",
     staff: "Please confirm that the information provided is understood and correct.",
     native: "કૃપા કરીને પુષ્ટિ કરો કે આપેલી માહિતી સાચી છે.",
     ack_yes: "હા, માહિતી સાચી છે.",
@@ -691,36 +701,73 @@ const VERIFY_PROMPTS = {
   }
 };
 
+function getCanonicalLanguage() {
+  if (typeof selectedLang !== 'undefined' && selectedLang) {
+    return selectedLang;
+  }
+  const activeCard = document.querySelector('.lang-card.active');
+  if (activeCard && activeCard.getAttribute('data-lang')) {
+    return activeCard.getAttribute('data-lang');
+  }
+  const sideLang = document.getElementById('sideLang');
+  if (sideLang && sideLang.getAttribute('data-lang')) {
+    return sideLang.getAttribute('data-lang');
+  }
+  if (sideLang && sideLang.textContent) {
+    const raw = sideLang.textContent.trim();
+    const token = raw.split(/[\s\(\-_/]/)[0].toLowerCase();
+    for (const key of Object.keys(VERIFY_CONFIG)) {
+      if (key.toLowerCase() === token) return key;
+    }
+  }
+  return null;
+}
+
 function runUnderstandingCheck() {
   const chatArea = document.getElementById("chatArea");
   const emptyChat = document.getElementById("emptyChat");
   if (emptyChat) emptyChat.style.display = "none";
 
-  const langTag = document.getElementById("sideLang");
-  const langName = langTag ? (langTag.textContent.trim() || "Tamil") : "Tamil";
-  const dict = VERIFY_PROMPTS[langName] || VERIFY_PROMPTS["Tamil"];
+  const langKey = getCanonicalLanguage();
+  const config = langKey ? VERIFY_CONFIG[langKey] : null;
+
+  if (!config) {
+    const errorHtml = `
+      <div class="msg-row system" style="display: flex; width: 100%; margin-bottom: 12px; justify-content: center;">
+        <div style="max-width: 80%; background: #fff1f2; border: 1.5px solid #fecdd3; border-radius: 8px; padding: 12px 16px; color: #9f1239; font-size: 13px;">
+          <strong>Verification Unavailable:</strong> No verified confirmation prompts found for "${langKey || 'Unselected Language'}". Understanding check halted without cross-language fallback.
+        </div>
+      </div>
+    `;
+    chatArea.insertAdjacentHTML("beforeend", errorHtml);
+    chatArea.scrollTop = chatArea.scrollHeight;
+    return;
+  }
 
   const checkCardId = "check-" + Date.now();
+  const isRtl = config.dir === "rtl";
+  const alignClass = isRtl ? "text-align: right;" : "text-align: left;";
+
   const checkHtml = `
-    <div class="message staff" style="margin: 12px 0; display: flex; flex-direction: column; align-items: flex-end;">
-      <div style="background: #092e26; color: #ffffff; border-radius: 10px 10px 0 10px; padding: 14px 18px; max-width: 80%; box-shadow: 0 2px 6px rgba(0,0,0,0.08);">
+    <div class="msg-row staff" style="display: flex; width: 100%; margin-bottom: 12px; justify-content: flex-end;">
+      <div style="max-width: 76%; background: #092e26; color: #ffffff; border-radius: 12px 12px 2px 12px; padding: 14px 18px; box-shadow: 0 2px 6px rgba(0,0,0,0.08);">
         <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #5eead4; margin-bottom: 4px; font-weight: 700;">
           Staff Question (Understanding Check)
         </div>
-        <div style="font-size: 14px; font-weight: 600; margin-bottom: 6px;">
-          ${dict.staff}
+        <div style="font-size: 14px; font-weight: 600; margin-bottom: 6px; text-align: left;" dir="ltr">
+          ${escapeHtml(config.staff)}
         </div>
-        <div style="font-size: 15px; color: #e6f2f7; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 6px;">
-          ${dict.native}
+        <div dir="${config.dir}" lang="${config.code}" style="font-size: 15px; color: #e6f2f7; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 6px; ${alignClass} unicode-bidi: isolate; line-height: 1.5;">
+          ${escapeHtml(config.native)}
         </div>
-      </div>
-      <div id="${checkCardId}" style="margin-top: 8px; display: flex; gap: 8px;">
-        <button type="button" onclick="patientConfirmsCheck('${checkCardId}', true, '${langName}')" style="background: #0F6E56; color: #ffffff; border: none; border-radius: 6px; padding: 8px 14px; font-size: 12.5px; font-weight: 700; cursor: pointer;">
-          ✓ Patient Confirms (Yes, Correct)
-        </button>
-        <button type="button" onclick="patientConfirmsCheck('${checkCardId}', false, '${langName}')" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 14px; font-size: 12.5px; font-weight: 600; cursor: pointer;">
-          ✕ Needs Correction
-        </button>
+        <div id="${checkCardId}" style="margin-top: 10px; display: flex; gap: 8px; justify-content: flex-start;" dir="ltr">
+          <button type="button" onclick="patientConfirmsCheck('${checkCardId}', true, '${langKey}')" style="background: #0F6E56; color: #ffffff; border: none; border-radius: 6px; padding: 8px 14px; font-size: 12.5px; font-weight: 700; cursor: pointer;">
+            ✓ Patient Confirms (Yes, Correct)
+          </button>
+          <button type="button" onclick="patientConfirmsCheck('${checkCardId}', false, '${langKey}')" style="background: #ffffff; color: #b91c1c; border: 1.5px solid #f87171; border-radius: 6px; padding: 8px 14px; font-size: 12.5px; font-weight: 700; cursor: pointer;">
+            ✕ Needs Correction
+          </button>
+        </div>
       </div>
     </div>
   `;
@@ -729,27 +776,54 @@ function runUnderstandingCheck() {
   chatArea.scrollTop = chatArea.scrollHeight;
 }
 
-function patientConfirmsCheck(cardId, isYes, langName) {
+function patientConfirmsCheck(cardId, isYes, langKey) {
   const card = document.getElementById(cardId);
+  const config = VERIFY_CONFIG[langKey];
+  if (!config) return;
+
   if (card) {
-    card.innerHTML = `<span style="font-size: 12px; color: #0F6E56; font-weight: 700;">✓ Understanding Check Completed</span>`;
+    if (isYes) {
+      card.innerHTML = `
+        <span style="display: inline-flex; align-items: center; gap: 6px; background: #e6f5eb; color: #0F6E56; border: 1px solid #86efac; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">
+          ✓ Patient confirmed.
+        </span>
+      `;
+    } else {
+      card.innerHTML = `
+        <span style="display: inline-flex; align-items: center; gap: 6px; background: #fef2f2; color: #b91c1c; border: 1.5px solid #fca5a5; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">
+          ⚠ Correction required
+        </span>
+      `;
+    }
   }
 
-  const dict = VERIFY_PROMPTS[langName] || VERIFY_PROMPTS["Tamil"];
   const chatArea = document.getElementById("chatArea");
+  const isRtl = config.dir === "rtl";
+  const alignClass = isRtl ? "text-align: right;" : "text-align: left;";
+  const statusColor = isYes ? "#15803d" : "#b91c1c";
+  const borderColor = isYes ? "#86efac" : "#fca5a5";
+  const statusBadge = isYes ? "Patient Response (Confirmed)" : "Patient Response (Correction Required)";
+
+  const patientText = isYes ? config.ack_yes : config.ack_no;
+  const staffReview = isYes ? config.ack_yes_eng : config.ack_no_eng;
 
   const replyHtml = `
-    <div class="message patient" style="margin: 12px 0; display: flex; flex-direction: column; align-items: flex-start;">
-      <div style="background: #ffffff; border: 1.5px solid ${isYes ? '#86efac' : '#fca5a5'}; border-radius: 10px 10px 10px 0; padding: 14px 18px; max-width: 80%; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
-        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: ${isYes ? '#15803d' : '#b91c1c'}; margin-bottom: 4px; font-weight: 700;">
-          Patient Response (Verified)
+    <div class="msg-row patient" style="display: flex; width: 100%; margin-bottom: 12px; justify-content: flex-start;">
+      <div style="max-width: 76%; background: #ffffff; border: 1.5px solid ${borderColor}; border-radius: 12px 12px 12px 2px; padding: 14px 18px; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: ${statusColor}; margin-bottom: 4px; font-weight: 700;" dir="ltr">
+          ${statusBadge}
         </div>
-        <div style="font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">
-          ${isYes ? dict.ack_yes : dict.ack_no}
+        <div dir="${config.dir}" lang="${config.code}" style="font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 6px; ${alignClass} unicode-bidi: isolate; line-height: 1.4;">
+          ${escapeHtml(patientText)}
         </div>
-        <div style="font-size: 13.5px; color: #475569; border-top: 1px solid #e2e8f0; padding-top: 6px;">
-          <strong>English for Staff Review:</strong> ${isYes ? dict.ack_yes_eng : dict.ack_no_eng}
+        <div dir="ltr" style="font-size: 13.5px; color: #475569; border-top: 1px solid #e2e8f0; padding-top: 6px; text-align: left; line-height: 1.4;">
+          <strong style="color: #334155;">English for Staff Review:</strong> ${escapeHtml(staffReview)}
         </div>
+        ${!isYes ? `
+          <div dir="ltr" style="margin-top: 8px; padding: 6px 10px; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 6px; font-size: 11.5px; color: #9f1239; font-weight: 600;">
+            Workflow open: Clarify details with patient and re-run Understanding Check when ready.
+          </div>
+        ` : ''}
       </div>
     </div>
   `;
@@ -758,7 +832,6 @@ function patientConfirmsCheck(cardId, isYes, langName) {
   chatArea.scrollTop = chatArea.scrollHeight;
 }
 
-// Override legacy function name if referenced anywhere
 window.checkUnderstanding = runUnderstandingCheck;
 </script>
 </body>
