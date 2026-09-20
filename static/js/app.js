@@ -1,4 +1,5 @@
 // MedOriva AI — Client Application Script
+// Primary Care Multilingual Intake & Communication Workspace
 let selectedContext = null;
 let selectedLang = null;
 let selectedLangCode = null;
@@ -106,7 +107,7 @@ async function endSession() {
 }
 
 // ============================================================
-// 3. TRANSLATION CONNECTION TEST
+// 3. TRANSLATION CONNECTION TEST (Diagnostic Check)
 // ============================================================
 
 async function checkTranslationConnection() {
@@ -143,7 +144,7 @@ async function checkTranslationConnection() {
 }
 
 // ============================================================
-// 4. STAFF & PATIENT CHAT LOGIC (Priority 2 Review Warnings Visible)
+// 4. STAFF & PATIENT CHAT LOGIC
 // ============================================================
 
 function renderPrompts(prompts) {
@@ -254,7 +255,6 @@ async function translatePatient() {
         }
 
         const isUnavailable = (data.status === 'unavailable') || !data.translated;
-        // Priority 2 Fix: Actionable guidance on unavailable output
         const englishDisplay = isUnavailable 
             ? 'Translation unavailable — rephrase, use supported native-script input, or seek interpreter support.' 
             : data.translated;
@@ -265,8 +265,8 @@ async function translatePatient() {
             nativeScript: data.native || text,
             lang: data.lang || selectedLang || 'Patient',
             alert: data.medical_alert,
-            symptom: data.symptom_detected,
-            isNegative: data.is_negative,
+            polarity: data.polarity || 'neutral',
+            reviewCue: data.review_cue || null,
             warning: data.warning || null,
             unavailable: isUnavailable
         });
@@ -326,6 +326,23 @@ function appendMessage(sender, msg) {
     } else {
         const borderStyle = msg.unavailable ? 'border-left:4px solid #ef4444;' : 'border-left:4px solid #0284c7;';
 
+        // Non-Clinical Linguistic Cue: Meaning Check (Negation) vs. Communication Cue (Symptom)
+        let cueMarkup = '';
+        if (msg.reviewCue) {
+            const isNeg = msg.polarity === 'negative';
+            const cueBorder = isNeg ? '#bfdbfe' : '#fde68a';
+            const cueBg = isNeg ? '#eff6ff' : '#fffbeb';
+            const cueColor = isNeg ? '#1e40af' : '#92400e';
+            const cueLabel = isNeg ? 'Meaning Check' : 'Communication Cue';
+
+            cueMarkup = `
+                <div style="margin-top:8px;padding:6px 10px;background:${cueBg};border:1px solid ${cueBorder};border-radius:6px;font-size:11.5px;color:${cueColor};display:flex;align-items:center;gap:6px;" dir="ltr">
+                    <span style="font-weight:800;">ℹ️ ${cueLabel}:</span>
+                    <span>${escapeHtml(msg.reviewCue)}</span>
+                </div>
+            `;
+        }
+
         const warningMarkup = msg.warning ? `
             <div style="font-size:11px;color:#475569;margin-top:6px;font-weight:600;display:flex;align-items:center;gap:4px;" dir="ltr">
                 <span>ℹ️</span> <span>${escapeHtml(msg.warning)}</span>
@@ -344,6 +361,7 @@ function appendMessage(sender, msg) {
                     <div><strong style="color:#334155;">Patient Typed:</strong> <em>${escapeHtml(msg.typedInput || '')}</em></div>
                     <div ${dirAttr}><strong style="color:#334155;">Native-Script Mapping:</strong> ${escapeHtml(msg.nativeScript || '')}</div>
                 </div>
+                ${cueMarkup}
                 ${warningMarkup}
             </div>
         `;
