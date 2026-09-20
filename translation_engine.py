@@ -361,7 +361,7 @@ STAFF_LOOKUP = {
         "ml": "നിങ്ങളുടെ NHS നമ്പർ ഉണ്ടോ?",
         "pl": "Czy ma Pan/Pani swój numer NHS?",
         "ar": "هل لديك رقم NHS الخاص بك؟",
-        "ur": "کیا آپ کے پاس آپ کا NHS نمبر ہے؟",
+        "ur": "کیا آپ کے پاس آپ کا NHS नंबर ہے؟",
         "bn": "আপনার কি NHS নম্বর আছে?",
         "so": "Ma haysataa lambarkaaga NHS?",
         "ro": "Aveți numărul dumneavoastră NHS?"
@@ -449,11 +449,19 @@ def staff_translation(text, language):
 # ============================================================
 # PATIENT DISPATCHER WITH STRICT ROMANISED GUARDS
 # Contains the two exact verified Romanised Tamil chest pain entries
+# with pure native-script mappings
 # ============================================================
 EXACT_ROMANISED = {
     'ta': {
         'enaku nenji vali irukku': 'I have chest pain.',
         'enaku nenji vali illa': 'I do not have chest pain.'
+    }
+}
+
+ROMANISED_NATIVE_MAP = {
+    'ta': {
+        'enaku nenji vali irukku': 'எனக்கு நெஞ்சு வலி இருக்கிறது.',
+        'enaku nenji vali illa': 'எனக்கு நெஞ்சு வலி இல்லை.'
     }
 }
 
@@ -488,9 +496,11 @@ def patient_translation(text, language):
         else:
             lookup = EXACT_ROMANISED.get(language, {})
             if clean in lookup:
+                # Returns authentic native script instead of echoing English-letter input
+                native_script = ROMANISED_NATIVE_MAP.get(language, {}).get(clean, text)
                 return Translation(
                     text=lookup[clean],
-                    native=text,
+                    native=native_script,
                     status='needs_review',
                     source='prepared_phrase',
                     warning=PREPARED
