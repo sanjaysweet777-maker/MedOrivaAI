@@ -13,7 +13,7 @@ import requests
 logger = logging.getLogger("medoriva.translation_engine")
 
 REVIEW = 'Machine translation · Confirm meaning with speaker.'
-PREPARED = 'Verified Clinical Lexicon · Confirmed.'
+PREPARED = 'Prepared phrase — confirm meaning with the speaker.'
 
 LANGUAGES = {
     'ta': 'Tamil',
@@ -56,36 +56,61 @@ def unavailable(error_code=''):
 def normalise(text):
     if not text:
         return ''
-    # Strip punctuation (category starts with 'P') while strictly preserving 
-    # letters (L), combining marks (M), numbers (N), and whitespace (Z)
     chars = [c for c in unicodedata.normalize('NFC', str(text)) if not unicodedata.category(c).startswith('P')]
     return ' '.join(''.join(chars).split())
 
-SCRIPT_PATTERNS = {
-    'ta': re.compile(r'[\u0B80-\u0BFF]'),
-    'hi': re.compile(r'[\u0900-\u097F]'),
-    'ml': re.compile(r'[\u0D00-\u0D7F]'),
-    'bn': re.compile(r'[\u0980-\u09FF]'),
-    'ar': re.compile(r'[\u0600-\u06FF\u0750-\u077F]'),
-    'ur': re.compile(r'[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]'),
-    'pl': re.compile(r'[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ]'),
-    'ro': re.compile(r'[a-zA-ZăâîșțĂÂÎȘȚ]'),
-    'so': re.compile(r'[a-zA-Z]'),
-    'en': re.compile(r'[a-zA-Z]'),
+# Strict Script Ranges for Non-Latin Verification
+NATIVE_RANGES = {
+    'ta': (0x0B80, 0x0BFF),
+    'hi': (0x0900, 0x097F),
+    'ml': (0x0D00, 0x0D7F),
+    'bn': (0x0980, 0x09FF),
+    'ar': [(0x0600, 0x06FF), (0x0750, 0x077F), (0xFB50, 0xFDFF), (0xFE70, 0xFEFF)],
+    'ur': [(0x0600, 0x06FF), (0x0750, 0x077F), (0xFB50, 0xFDFF), (0xFE70, 0xFEFF)],
 }
+
+ALL_INDIC_RANGES = [
+    (0x0900, 0x097F),  # Devanagari
+    (0x0980, 0x09FF),  # Bengali
+    (0x0A00, 0x0A7F),  # Gurmukhi
+    (0x0A80, 0x0AFF),  # Gujarati
+    (0x0B00, 0x0B7F),  # Oriya
+    (0x0B80, 0x0BFF),  # Tamil
+    (0x0C00, 0x0C7F),  # Telugu
+    (0x0C80, 0x0CFF),  # Kannada
+    (0x0D00, 0x0D7F),  # Malayalam
+]
+
+def in_range(code_point, rng):
+    if isinstance(rng, list):
+        return any(start <= code_point <= end for start, end in rng)
+    return rng[0] <= code_point <= rng[1]
 
 def script_matches(text, language):
     if not text:
         return False
-    pattern = SCRIPT_PATTERNS.get(language)
-    if not pattern:
-        return True
 
     if language in NON_LATIN_LANGUAGES:
-        return bool(pattern.search(text))
-    else:
-        has_non_latin = any(ord(c) > 0x0590 for c in text if c.isalpha())
-        return bool(pattern.search(text)) and not has_non_latin
+        target_range = NATIVE_RANGES[language]
+        has_target_script = False
+
+        for c in text:
+            cp = ord(c)
+            # Check for illegal cross-Indic or non-native script contamination
+            for r_start, r_end in ALL_INDIC_RANGES:
+                if r_start <= cp <= r_end:
+                    if not in_range(cp, target_range):
+                        return False  # Foreign script mixing detected
+
+            if in_range(cp, target_range):
+                has_target_script = True
+
+        return has_target_script
+
+    # Latin languages (pl, ro, so)
+    has_non_latin = any(ord(c) > 0x0590 for c in text if c.isalpha())
+    has_latin = any(('a' <= c.lower() <= 'z') or unicodedata.category(c).startswith('L') for c in text)
+    return has_latin and not has_non_latin
 
 # ============================================================
 # NUMERIC & DOSAGE GUARDS
@@ -196,7 +221,11 @@ def online(text, source, target):
         if not translated:
             return unavailable('empty_translation')
 
-        # Script mismatch guard
+        # Priority 6: Reject unchanged cross-language outputs (e.g. English -> Polish 'Hello' -> 'Hello')
+        if source != target and translated.lower() == clean_input.lower() and not numeric_response(clean_input):
+            return unavailable('unchanged_echo')
+
+        # Script mismatch & cross-script contamination guard
         if not script_matches(translated, target):
             return unavailable('script_mismatch')
 
@@ -227,6 +256,7 @@ def online(text, source, target):
 
 # ============================================================
 # PREPARED CLINICAL STAFF LOOKUP (All 9 Languages)
+# Priority 3 Fix: Pure Malayalam characters (No Tamil mixing)
 # ============================================================
 STAFF_LOOKUP = {
     "Do you have an appointment?": {
@@ -287,7 +317,7 @@ STAFF_LOOKUP = {
     "Where is your pain?": {
         "ta": "உங்களுக்கு வலி எங்கே இருக்கிறது?",
         "hi": "आपको दर्द कहाँ है?",
-        "ml": "നിങ്ങൾക്ക് எവിടെയാണ് വേദന?",
+        "ml": "നിങ്ങൾക്ക് എവിടെയാണ് വേദന?",  # Fixed: pure Malayalam 'എ', replaced Tamil 'எ'
         "pl": "Gdzie odczuwa Pan/Pani ból?",
         "ar": "أين تشعر بالألم؟",
         "ur": "آپ کو درد کہاں ہو رہا ہے؟",
@@ -298,7 +328,7 @@ STAFF_LOOKUP = {
     "Do you have chest pain?": {
         "ta": "உங்களுக்கு நெஞ்சு வலி உள்ளதா?",
         "hi": "क्या आपको सीने में दर्द है?",
-        "ml": "നിങ്ങൾക്ക് நெഞ്ചുവേദന ഉണ്ടോ?",
+        "ml": "നിങ്ങൾക്ക് നെഞ്ചുവേദന ഉണ്ടോ?",  # Fixed: pure Malayalam 'നെ', replaced Tamil 'நெ'
         "pl": "Czy ma Pan/Pani ból w klatce piersiowej?",
         "ar": "هل تشعر بألم في الصدر؟",
         "ur": "کیا آپ کے سینے میں درد ہے؟",
@@ -309,7 +339,7 @@ STAFF_LOOKUP = {
     "Do you have a fever?": {
         "ta": "உங்களுக்கு காய்ச்சல் உள்ளதா?",
         "hi": "क्या आपको बुखार है?",
-        "ml": "നിങ്ങൾക്ക് പനിയുണ്ടோ?",
+        "ml": "നിങ്ങൾക്ക് പനിയുണ്ടോ?",
         "pl": "Czy ma Pan/Pani gorączkę?",
         "ar": "هل تعاني من الحمى؟",
         "ur": "کیا آپ کو بخار ہے؟",
