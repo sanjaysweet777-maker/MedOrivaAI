@@ -143,7 +143,7 @@ async function checkTranslationConnection() {
 }
 
 // ============================================================
-// 4. STAFF & PATIENT CHAT LOGIC (Priority 1 Fix Applied)
+// 4. STAFF & PATIENT CHAT LOGIC (Priority 2 Review Warnings Visible)
 // ============================================================
 
 function renderPrompts(prompts) {
@@ -180,14 +180,16 @@ async function sendStaffPrompt(text) {
             return;
         }
 
-        // Priority 1 Fix: Explicitly handle unavailable state instead of echoing raw text
         const isUnavailable = (data.status === 'unavailable') || !data.translated;
-        const translatedDisplay = isUnavailable ? '[Translation unavailable — communicate via interpreter]' : data.translated;
+        const translatedDisplay = isUnavailable 
+            ? 'Translation unavailable — communicate via interpreter or rephrase.' 
+            : data.translated;
 
         appendMessage('staff', {
             original: data.original || text,
             translated: translatedDisplay,
             lang: data.lang || selectedLang || 'Patient',
+            warning: data.warning || null,
             unavailable: isUnavailable
         });
     } catch (e) {
@@ -252,7 +254,10 @@ async function translatePatient() {
         }
 
         const isUnavailable = (data.status === 'unavailable') || !data.translated;
-        const englishDisplay = isUnavailable ? '[Translation unavailable — confirm verbally]' : data.translated;
+        // Priority 2 Fix: Actionable guidance on unavailable output
+        const englishDisplay = isUnavailable 
+            ? 'Translation unavailable — rephrase, use supported native-script input, or seek interpreter support.' 
+            : data.translated;
 
         appendMessage('patient', {
             typedInput: text,
@@ -262,6 +267,7 @@ async function translatePatient() {
             alert: data.medical_alert,
             symptom: data.symptom_detected,
             isNegative: data.is_negative,
+            warning: data.warning || null,
             unavailable: isUnavailable
         });
 
@@ -297,6 +303,12 @@ function appendMessage(sender, msg) {
             ? 'background:#fef2f2;border:1px solid #fecdd3;border-right:4px solid #ef4444;' 
             : 'background:#f0fdf4;border:1px solid #bbf7d0;border-right:4px solid #0F6E56;';
 
+        const warningMarkup = msg.warning ? `
+            <div style="font-size:11px;color:#0F6E56;margin-top:6px;font-weight:600;display:flex;align-items:center;gap:4px;" dir="ltr">
+                <span>ℹ️</span> <span>${escapeHtml(msg.warning)}</span>
+            </div>
+        ` : '';
+
         row.innerHTML = `
             <div class="msg-bubble staff" style="max-width:72%;${bubbleStyle}border-radius:12px 12px 2px 12px;padding:14px 18px;text-align:left;box-shadow:0 2px 6px rgba(0,0,0,0.04);">
                 <div style="font-size:11px;font-weight:800;color:${msg.unavailable ? '#b91c1c' : '#0F6E56'};text-transform:uppercase;margin-bottom:4px;letter-spacing:0.5px;" dir="ltr">
@@ -308,10 +320,17 @@ function appendMessage(sender, msg) {
                 <div style="font-size:13px;color:#1e293b;background:#ffffff;border:1px solid ${msg.unavailable ? '#fecdd3' : '#dcfce7'};border-radius:6px;padding:8px 12px;" ${dirAttr}>
                     <span style="color:${msg.unavailable ? '#b91c1c' : '#0F6E56'};font-weight:700;">${escapeHtml(msg.lang)}:</span> ${escapeHtml(msg.translated)}
                 </div>
+                ${warningMarkup}
             </div>
         `;
     } else {
         const borderStyle = msg.unavailable ? 'border-left:4px solid #ef4444;' : 'border-left:4px solid #0284c7;';
+
+        const warningMarkup = msg.warning ? `
+            <div style="font-size:11px;color:#475569;margin-top:6px;font-weight:600;display:flex;align-items:center;gap:4px;" dir="ltr">
+                <span>ℹ️</span> <span>${escapeHtml(msg.warning)}</span>
+            </div>
+        ` : '';
 
         row.innerHTML = `
             <div class="msg-bubble patient" style="max-width:72%;background:#ffffff;border:1px solid #cbd5e1;${borderStyle}border-radius:12px 12px 12px 2px;padding:14px 18px;text-align:left;box-shadow:0 2px 6px rgba(0,0,0,0.04);">
@@ -325,6 +344,7 @@ function appendMessage(sender, msg) {
                     <div><strong style="color:#334155;">Patient Typed:</strong> <em>${escapeHtml(msg.typedInput || '')}</em></div>
                     <div ${dirAttr}><strong style="color:#334155;">Native-Script Mapping:</strong> ${escapeHtml(msg.nativeScript || '')}</div>
                 </div>
+                ${warningMarkup}
             </div>
         `;
     }
