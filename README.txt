@@ -90,7 +90,7 @@ connection. The result distinguishes missing configuration, invalid credentials,
 API disabled, billing, key restrictions/permissions, quota, timeouts and response
 validation failures. Raw provider messages, keys and project IDs are not exposed.
 The endpoint requires a signed-in user. Do not paste API keys into chat or GitHub.
-GOOGLE_CLOUD_TRANSLATION_API_KEY and GOOGLE_API_KEY are also accepted as deployment
+GOOGLE_TRANSLATE_API_KEY and GOOGLE_API_KEY are also accepted as deployment
 aliases; GOOGLE_TRANSLATE_API_KEY takes precedence. Surrounding whitespace is
 removed. The provider's permissions, service enablement, billing and account-level
 settings still need to be configured in Google Cloud.
