@@ -9,29 +9,25 @@ import re
 import unicodedata
 from dataclasses import dataclass
 import requests
-from deep_translator import GoogleTranslator, MyMemoryTranslator
-
-from clinical_lexicon import (
-    LANGUAGES,
-    NEGATION_DICTIONARY,
-    PATIENT_CLINICAL_DOMAINS,
-    STAFF_LEXICON,
-)
 
 logger = logging.getLogger("medoriva.translator")
 
 REVIEW = 'Machine translation · Confirm meaning with speaker.'
 PREPARED = 'Verified Clinical Lexicon · Confirmed.'
 
-def normalise(text):
-    if not text:
-        return ''
-    cleaned = re.sub(r'[^\w\s]', ' ', str(text).lower())
-    return ' '.join(unicodedata.normalize('NFC', cleaned).casefold().split())
+LANGUAGES = {
+    'ta': 'Tamil',
+    'hi': 'Hindi',
+    'ml': 'Malayalam',
+    'pl': 'Polish',
+    'ar': 'Arabic',
+    'ur': 'Urdu',
+    'bn': 'Bengali',
+    'so': 'Somali',
+    'ro': 'Romanian'
+}
 
-def is_native_script(text):
-    # Detects non-Latin scripts (Arabic, Tamil, Devanagari, Bengali, etc.)
-    return any(ord(char) > 0x0590 for char in text)
+NON_LATIN_LANGUAGES = {'ta', 'hi', 'ml', 'bn', 'ar', 'ur'}
 
 @dataclass(frozen=True)
 class Translation:
@@ -44,9 +40,74 @@ class Translation:
     symptom: str = ''
     is_negative: bool = False
 
+def unavailable(error_code=''):
+    return Translation(
+        text='',
+        native='',
+        status='unavailable',
+        source='none',
+        warning='Translation unavailable.',
+        error_code=error_code
+    )
+
 # ============================================================
-# MULTILINGUAL NEGATION PARSING (All 9 MVP Languages)
+# STRING & SCRIPT NORMALISATION
 # ============================================================
+def normalise(text):
+    if not text:
+        return ''
+    cleaned = re.sub(r'[^\w\s]', ' ', str(text), flags=re.UNICODE)
+    return ' '.join(unicodedata.normalize('NFC', cleaned).split())
+
+SCRIPT_PATTERNS = {
+    'ta': re.compile(r'[\u0B80-\u0BFF]'),
+    'hi': re.compile(r'[\u0900-\u097F]'),
+    'ml': re.compile(r'[\u0D00-\u0D7F]'),
+    'bn': re.compile(r'[\u0980-\u09FF]'),
+    'ar': re.compile(r'[\u0600-\u06FF\u0750-\u077F]'),
+    'ur': re.compile(r'[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]'),
+    'pl': re.compile(r'[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ]'),
+    'ro': re.compile(r'[a-zA-ZăâîșțĂÂÎȘȚ]'),
+    'so': re.compile(r'[a-zA-Z]'),
+    'en': re.compile(r'[a-zA-Z]'),
+}
+
+def script_matches(text, language):
+    if not text:
+        return False
+    pattern = SCRIPT_PATTERNS.get(language)
+    if not pattern:
+        return True
+
+    if language in NON_LATIN_LANGUAGES:
+        return bool(pattern.search(text))
+    else:
+        # Latin languages: must have Latin letters and NO non-Latin scripts
+        has_non_latin = any(ord(c) > 0x0590 for c in text if c.isalpha())
+        return bool(pattern.search(text)) and not has_non_latin
+
+# ============================================================
+# NUMERIC, DOSAGE & NEGATION GUARDS
+# ============================================================
+NUMERIC_ONLY_PATTERN = re.compile(
+    r'^[\d\u0660-\u0669\u06f0-\u06f9]+(?:[:./-][\d\u0660-\u0669\u06f0-\u06f9]+)*$'
+)
+
+def numeric_response(text):
+    if not text:
+        return False
+    cleaned = str(text).strip()
+    return bool(NUMERIC_ONLY_PATTERN.match(cleaned))
+
+def convert_arabic_digits(text):
+    arabic_digits = "٠١٢٣٤٥٦٧٨٩"
+    for i, c in enumerate(arabic_digits):
+        text = text.replace(c, str(i))
+    return text
+
+def extract_numbers(text):
+    return re.findall(r'\d+(?:\.\d+)?', convert_arabic_digits(str(text)))
+
 SUPPLEMENTAL_NEGATIONS = {
     "ta": ["illai", "illa", "kidayathu", "illamal", "vendam", "thevai illai", "இல்லை", "கிடையாது", "வேண்டாம்"],
     "hi": ["nahi", "nahin", "na", "mat", "नहीं", "ना", "मत"],
@@ -56,28 +117,20 @@ SUPPLEMENTAL_NEGATIONS = {
     "ur": ["nahi", "nahin", "na", "mat", "nhi", "نہیں", "نہ", "مت"],
     "bn": ["na", "nei", "noi", "noy", "না", "নেই", "নয়"],
     "so": ["maya", "ma", "malihi", "ha", "ma jiro"],
-    "ro": ["nu", "nici", "fara", "fără"],
-    "pa": ["nahi", "nhi", "na", "nahin", "ਨਹੀਂ", "ਨਾ"],
-    "gu": ["nathi", "na", "નથી", "ના"]
+    "ro": ["nu", "nici", "fara", "fără"]
 }
 
 def detect_negation(text, lang_code):
-    """
-    Strict whole-token negation parsing across all 9 community languages.
-    Ensures substrings (e.g. Polish 'mnie') never falsely trigger negation ('nie').
-    """
-    clean = normalise(text)
+    clean = normalise(text).lower()
     tokens = set(clean.split())
-    
-    lexicon_negs = NEGATION_DICTIONARY.get(lang_code, [])
     supp_negs = SUPPLEMENTAL_NEGATIONS.get(lang_code, [])
     universal_negs = ["no", "not", "without", "never", "none", "denies"]
 
-    all_neg_words = set(lexicon_negs + supp_negs + universal_negs)
+    all_neg_words = set(supp_negs + universal_negs)
     padded = f" {clean} "
 
     for word in all_neg_words:
-        clean_word = normalise(word)
+        clean_word = normalise(word).lower()
         if not clean_word:
             continue
         if " " in clean_word:
@@ -90,7 +143,7 @@ def detect_negation(text, lang_code):
     return False
 
 # ============================================================
-# MULTI-TIER ONLINE TRANSLATION ENGINE
+# API CREDENTIALS & ERROR SANITISATION
 # ============================================================
 def configured_key():
     for name in ('GOOGLE_TRANSLATE_API_KEY', 'GOOGLE_CLOUD_TRANSLATION_API_KEY', 'GOOGLE_API_KEY'):
@@ -99,200 +152,309 @@ def configured_key():
             return val
     return ''
 
-def is_error_payload(text):
-    """Rejects rate-limit HTML error pages."""
-    if not text:
-        return True
-    lowered = text.lower()
-    error_markers = [
-        "error 500", "server error", "that’s an error", "that's an error",
-        "wystąpił błąd", "błąd 500", "błąd serwera", "try again later"
-    ]
-    return any(marker in lowered for marker in error_markers)
-
-def online(text, source, target):
-    if not text:
-        return Translation()
-
-    clean_input = text.strip()
-    if source == target:
-        return Translation(clean_input, clean_input, 'needs_review', 'pass_through', REVIEW)
-
-    # Tier 1: Google Cloud Translation API (Official Endpoint)
-    key = configured_key()
-    if key:
-        try:
-            resp = requests.post(
-                'https://translation.googleapis.com/language/translate/v2',
-                headers={'X-Goog-Api-Key': key},
-                json={'q': clean_input, 'source': source, 'target': target, 'format': 'text'},
-                timeout=(2, 4)
-            )
-            if resp.status_code == 200:
-                translated = html.unescape(resp.json()['data']['translations'][0]['translatedText']).strip()
-                if translated and not is_error_payload(translated):
-                    return Translation(translated, translated, 'needs_review', 'google_cloud', REVIEW)
-        except Exception as e:
-            logger.debug("Tier 1 Cloud API unavailable: %s", e)
-
-    # Tier 2: Resilient Provider Fallback (Google)
+def provider_error(response):
+    status = getattr(response, 'status_code', 500)
+    reason = ''
     try:
-        translated = GoogleTranslator(source=source, target=target).translate(clean_input)
-        if translated and not is_error_payload(translated) and normalise(translated) != normalise(clean_input):
-            return Translation(translated, translated, 'needs_review', 'google_translator', REVIEW)
-    except Exception as e:
-        logger.debug("Tier 2 provider unavailable: %s", e)
+        data = response.json()
+        details = data.get('error', {}).get('details', [])
+        if details and isinstance(details, list):
+            reason = details[0].get('reason', '')
+    except Exception:
+        pass
 
-    # Tier 3: Resilient Provider Fallback (MyMemory)
-    try:
-        translated = MyMemoryTranslator(source=source, target=target).translate(clean_input)
-        if translated and not is_error_payload(translated) and normalise(translated) != normalise(clean_input):
-            return Translation(translated, translated, 'needs_review', 'mymemory', REVIEW)
-    except Exception as e:
-        logger.debug("Tier 3 provider unavailable: %s", e)
+    reason_map = {
+        'API_KEY_INVALID': 'invalid_key',
+        'SERVICE_DISABLED': 'api_disabled',
+        'BILLING_DISABLED': 'billing',
+        'API_KEY_HTTP_REFERRER_BLOCKED': 'access_denied'
+    }
 
-    # All automated translation providers failed: Return transparent status
+    if reason in reason_map:
+        error_code = reason_map[reason]
+    elif status == 429:
+        error_code = 'quota'
+    elif status == 400:
+        error_code = 'invalid_key'
+    elif status == 403:
+        error_code = 'access_denied'
+    else:
+        error_code = 'provider_error'
+
     return Translation(
-        text=f"[Untranslated] {clean_input}",
-        native=clean_input,
-        status='untranslated',
-        source='fallback_failed',
-        warning='Automated translation failed. Human interpreter required.'
+        text='',
+        native='',
+        status='unavailable',
+        source='google_cloud',
+        warning='Provider error occurred. Details withheld for safety.',
+        error_code=error_code
     )
 
 # ============================================================
-# EXACT STAFF PROMPT LOOKUP REGISTRY
+# CORE ONLINE TRANSLATION
 # ============================================================
-# Standardized prompts mapped to verified lexicon keys.
-# Free-text variations ("Your appointment is confirmed/cancelled")
-# do NOT match these and fall through directly to full dynamic translation.
-EXACT_STAFF_PROMPTS = {
-    # Reception & Arrival
-    "good morning how can i help you": "GOOD_MORNING",
-    "good morning": "GOOD_MORNING",
-    "how can i help you": "GOOD_MORNING",
-    "do you have an appointment": "APPOINTMENT",
-    "can i take your name and date of birth": "NAME_DOB",
-    "name and date of birth": "NAME_DOB",
-    "please take a seat the doctor will see you shortly": "TAKE_SEAT",
-    "please take a seat": "TAKE_SEAT",
-    "take a seat": "TAKE_SEAT",
-    "do you have your nhs number": "NHS_NUMBER",
-    "do you need an interpreter": "INTERPRETER",
-    "do you require an interpreter": "INTERPRETER",
+def online(text, source, target):
+    if not text:
+        return unavailable('empty_input')
 
-    # Appointment & Admin
-    "the doctor will see you now": "DOCTOR_NOW",
-    "doctor will see you now": "DOCTOR_NOW",
-    "please bring your medication list": "MEDICATION_QUERY",
-    "do you have your medication list": "MEDICATION_QUERY",
-    "please wait in the waiting area": "TAKE_SEAT",
+    clean_input = str(text).strip()
+    if not clean_input:
+        return unavailable('empty_input')
 
-    # Basic Symptoms & Routine Questions
-    "where is your pain": "WHERE_IS_PAIN",
-    "where does it hurt": "WHERE_IS_PAIN",
-    "how long have you had this": "HOW_LONG_PAIN",
-    "how long have you had pain": "HOW_LONG_PAIN",
-    "how long have you had chest pain": "HOW_LONG_CHEST_PAIN",
-    "do you have a fever": "DO_YOU_HAVE_FEVER",
-    "are you having difficulty breathing": "DO_YOU_HAVE_BREATHING",
-    "do you have chest pain": "DO_YOU_HAVE_CHEST_PAIN",
-    "are you in pain": "DO_YOU_HAVE_PAIN",
-    "do you have pain": "DO_YOU_HAVE_PAIN",
-    "do you have any allergies": "ALLERGIES_QUERY",
-    "on a scale of 1 to 10": "SEVERITY_SCALE"
+    if source == target:
+        return Translation(clean_input, clean_input, 'needs_review', 'pass_through', REVIEW)
+
+    key = configured_key()
+    if not key:
+        return unavailable('no_key')
+
+    try:
+        resp = requests.post(
+            'https://translation.googleapis.com/language/translate/v2',
+            headers={'X-Goog-Api-Key': key},
+            json={'q': clean_input, 'source': source, 'target': target, 'format': 'text'},
+            timeout=(3, 12)
+        )
+
+        if resp.status_code != 200:
+            resp.raise_for_status()
+
+        data = resp.json()
+        translations = data.get('data', {}).get('translations', [])
+        if not translations or not isinstance(translations, list):
+            return unavailable('malformed')
+
+        translated = html.unescape(translations[0].get('translatedText', '')).strip()
+
+        if not translated:
+            return unavailable('empty_translation')
+
+        # Script mismatch guard
+        if not script_matches(translated, target):
+            return unavailable('script_mismatch')
+
+        # Numeric / dose preservation guard
+        input_nums = extract_numbers(clean_input)
+        output_nums = extract_numbers(translated)
+        if input_nums != output_nums:
+            return unavailable('numeric_mismatch')
+
+        return Translation(
+            text=translated,
+            native=translated,
+            status='needs_review',
+            source='google_cloud',
+            warning=REVIEW
+        )
+
+    except requests.Timeout:
+        return unavailable('timeout')
+    except requests.ConnectionError:
+        return unavailable('connection')
+    except requests.HTTPError as e:
+        if hasattr(e, 'response') and e.response is not None:
+            return provider_error(e.response)
+        return unavailable('provider_error')
+    except Exception:
+        return unavailable('provider_error')
+
+# ============================================================
+# PREPARED CLINICAL STAFF LOOKUP (All 9 Languages)
+# ============================================================
+STAFF_LOOKUP = {
+    "Do you have an appointment?": {
+        "ta": "உங்களுக்கு அப்பாயிண்ட்மென்ட் உள்ளதா?",
+        "hi": "क्या आपका अपॉइंटमेंट है?",
+        "ml": "നിങ്ങൾക്ക് അപ്പോയിന്റ്മെന്റ് ഉണ്ടോ?",
+        "pl": "Czy ma Pan/Pani umówioną wizytę?",
+        "ar": "هل لديك موعد؟",
+        "ur": "کیا آپ کا وقت مقرر (اپائنٹمنٹ) ہے؟",
+        "bn": "আপনার কি কোনো অ্যাপয়েন্টমেন্ট আছে?",
+        "so": "Ballan ma leedahay?",
+        "ro": "Aveți o programare?"
+    },
+    "Do you have your appointment letter?": {
+        "ta": "உங்கள் அப்பாயிண்ட்மென்ட் கடிதம் உள்ளதா?",
+        "hi": "क्या आपके पास अपॉइंटमेंट पत्र है?",
+        "ml": "നിങ്ങളുടെ അപ്പോയിന്റ്മെന്റ് കത്ത് കൈവശമുണ്ടോ?",
+        "pl": "Czy ma Pan/Pani list z potwierdzeniem wizyty?",
+        "ar": "هل معك خطاب الموعد؟",
+        "ur": "کیا آپ کے پاس اپائنٹمنٹ کا خط ہے؟",
+        "bn": "আপনার কি অ্যাপয়েন্টমেন্টের চিঠি আছে?",
+        "so": "Warqaddii ballanta ma wadataa?",
+        "ro": "Aveți scrisoarea de programare?"
+    },
+    "Please take a seat.": {
+        "ta": "தயவுசெய்து அமரவும்.",
+        "hi": "कृपया बैठिए।",
+        "ml": "ദയവായി ഇരിക്കൂ.",
+        "pl": "Proszę usiąść.",
+        "ar": "تفضل بالجلوس من فضلك.",
+        "ur": "براہ کرم تشریف رکھیں۔",
+        "bn": "দয়া করে বসুন।",
+        "so": "Fadlan fariiso.",
+        "ro": "Vă rugăm să luați loc."
+    },
+    "Do you have your NHS number?": {
+        "ta": "உங்கள் NHS எண் உள்ளதா?",
+        "hi": "क्या आपके पास आपका NHS नंबर है?",
+        "ml": "നിങ്ങളുടെ NHS നമ്പർ ഉണ്ടോ?",
+        "pl": "Czy ma Pan/Pani swój numer NHS?",
+        "ar": "هل لديك رقم NHS الخاص بك؟",
+        "ur": "کیا آپ کے پاس آپ کا NHS نمبر ہے؟",
+        "bn": "আপনার কি NHS নম্বর আছে?",
+        "so": "Ma haysataa lambarkaaga NHS?",
+        "ro": "Aveți numărul dumneavoastră NHS?"
+    },
+    "Do you need an interpreter?": {
+        "ta": "உங்களுக்கு மொழிபெயர்ப்பாளர் தேவையா?",
+        "hi": "क्या आपको अनुवादक की आवश्यकता है?",
+        "ml": "നിങ്ങൾക്ക് ഒരു വിവർത്തകനെ ആവശ്യമുണ്ടോ?",
+        "pl": "Czy potrzebuje Pan/Pani tłumacza?",
+        "ar": "هل تحتاج إلى مترجم فوري؟",
+        "ur": "کیا آپ کو مترجم کی ضرورت ہے؟",
+        "bn": "আপনার কি একজন দোভাষীর প্রয়োজন?",
+        "so": "Ma u baahan tahay turjubaan?",
+        "ro": "Aveți nevoie de un interpret?"
+    },
+    "Where is your pain?": {
+        "ta": "உங்களுக்கு வலி எங்கே இருக்கிறது?",
+        "hi": "आपको दर्द कहाँ है?",
+        "ml": "നിങ്ങൾക്ക് എവിടെയാണ് വേദന?",
+        "pl": "Gdzie odczuwa Pan/Pani ból?",
+        "ar": "أين تشعر بالألم؟",
+        "ur": "آپ کو درد کہاں ہو رہا ہے؟",
+        "bn": "আপনার কোথায় ব্যথা হচ্ছে?",
+        "so": "Xaggee ku xanuunaysaa?",
+        "ro": "Unde vă doare?"
+    },
+    "Do you have chest pain?": {
+        "ta": "உங்களுக்கு நெஞ்சு வலி உள்ளதா?",
+        "hi": "क्या आपको सीने में दर्द है?",
+        "ml": "നിങ്ങൾക്ക് നെഞ്ചുവേദന ഉണ്ടോ?",
+        "pl": "Czy ma Pan/Pani ból w klatce piersiowej?",
+        "ar": "هل تشعر بألم في الصدر؟",
+        "ur": "کیا آپ کے سینے میں درد ہے؟",
+        "bn": "আপনার কি বুকে ব্যথা আছে?",
+        "so": "Xabad xanuun ma dareemaysaa?",
+        "ro": "Aveți dureri în piept?"
+    },
+    "Do you have a fever?": {
+        "ta": "உங்களுக்கு காய்ச்சல் உள்ளதா?",
+        "hi": "क्या आपको बुखार है?",
+        "ml": "നിങ്ങൾക്ക് പനിയുണ്ടോ?",
+        "pl": "Czy ma Pan/Pani gorączkę?",
+        "ar": "هل تعاني من الحمى؟",
+        "ur": "کیا آپ کو بخار ہے؟",
+        "bn": "আপনার কি জ্বর আছে?",
+        "so": "Qandho ma qabtaa?",
+        "ro": "Aveți febră?"
+    },
+    "Are you having difficulty breathing?": {
+        "ta": "உங்களுக்கு மூச்சுத்திணறல் உள்ளதா?",
+        "hi": "क्या आपको सांस लेने में कठिनाई हो रही है?",
+        "ml": "നിങ്ങൾക്ക് ശ്വാസമെടുക്കാൻ ബുദ്ധിമുട്ടുണ്ടോ?",
+        "pl": "Czy ma Pan/Pani trudności z oddychaniem?",
+        "ar": "هل تعاني من صعوبة في التنفس؟",
+        "ur": "کیا آپ کو سانس لینے میں دشواری ہو رہی ہے؟",
+        "bn": "আপনার কি শ্বাস নিতে কষ্ট হচ্ছে?",
+        "so": "Neefsashada ma dhibaysaa?",
+        "ro": "Aveți dificultăți de respirație?"
+    }
+}
+
+# Fast normalized lookup for prepared staff prompts
+STAFF_LOOKUP_NORM = {
+    normalise(orig).lower(): translations for orig, translations in STAFF_LOOKUP.items()
 }
 
 def staff_translation(text, language):
     if language not in LANGUAGES:
-        return Translation(warning='Unsupported language.')
+        return unavailable('unsupported_language')
 
-    clean = normalise(text)
+    clean = normalise(text).lower()
 
-    # 1. Exact prepared prompt match (0ms latency, verified lexicon)
-    lexicon_key = EXACT_STAFF_PROMPTS.get(clean)
-    if lexicon_key and lexicon_key in STAFF_LEXICON:
-        val = STAFF_LEXICON[lexicon_key].get(language)
+    # Exact prepared prompt check
+    if clean in STAFF_LOOKUP_NORM:
+        val = STAFF_LOOKUP_NORM[clean].get(language)
         if val:
-            return Translation(val, val, 'needs_review', 'clinical_lexicon', PREPARED)
+            return Translation(
+                text=val,
+                native=val,
+                status='needs_review',
+                source='prepared_phrase',
+                warning=PREPARED
+            )
 
-    # 2. Dynamic online translation for all custom or non-standard staff messages
-    # Prevents "Your appointment is confirmed/cancelled" from collapsing into the appointment question.
+    # Dynamic translation for all custom or compound staff questions
     return online(text, 'en', language)
 
 # ============================================================
-# PATIENT DISPATCHER
+# PATIENT DISPATCHER WITH STRICT ROMANISED GUARDS
 # ============================================================
-def patient_translation(text, language):
-    if language not in LANGUAGES:
-        return Translation(warning='Unsupported language.')
-
-    clean = normalise(text)
-    is_neg = detect_negation(text, language)
-
-    # 1. Canned Clinical Domain Check:
-    # ONLY triggers if the input matches the symptom phrase alone.
-    # If the patient provided extra words (chest, left arm, 3 days),
-    # canned substitution is skipped to prevent erasing clinical detail.
-    clean_tokens = set(clean.split())
-    for domain_name, data in PATIENT_CLINICAL_DOMAINS.items():
-        lang_tokens = data["tokens"].get(language, [])
-        for token in lang_tokens:
-            norm_token = normalise(token)
-            token_tokens = set(norm_token.split())
-            
-            # Exact match or token covers the vast majority of input
-            if clean == norm_token or (clean_tokens == token_tokens):
-                target_pair = data["negative"][language] if is_neg else data["affirmative"][language]
-                return Translation(
-                    text=target_pair[0],
-                    native=target_pair[1],
-                    status='needs_review',
-                    source='clinical_lexicon',
-                    warning=PREPARED,
-                    symptom=domain_name if data.get("urgent", False) else "",
-                    is_negative=is_neg
-                )
-
-    # 2. Isolated Single-Word Pain Check:
-    # ONLY triggers if the patient ONLY said "pain" or "no pain".
-    # Complex sentences ("nenji vali 3 naala", "boli od wczoraj") fall through to dynamic translation.
-    pain_tokens = {
-        "vali", "dard", "vedana", "vedhana", "bol", "boli", "klucie", "kłucie", "pieczenie",
-        "alam", "xanuun", "durere", "ব্যথা", "வலி", "درد"
+EXACT_ROMANISED = {
+    'ta': {
+        'enaku nenji vali irukku': 'I have chest pain.',
+        'enaku nenji vali illa': 'I do not have chest pain.'
     }
-    if clean in pain_tokens or clean_tokens == pain_tokens & clean_tokens:
-        affirmative_text = "I have pain."
-        negative_text = "I do not have pain."
+}
+
+def patient_translation(text, language):
+    if not text or language not in LANGUAGES:
+        return unavailable('unsupported_language')
+
+    # 1. Standalone numeric preservation
+    if numeric_response(text):
         return Translation(
-            text=negative_text if is_neg else affirmative_text,
-            native=text,
+            text=str(text).strip(),
+            native=str(text).strip(),
             status='needs_review',
-            source='clinical_lexicon',
-            warning=PREPARED,
-            symptom="",
-            is_negative=is_neg
+            source='original_value',
+            warning='Original numeric value preserved.'
         )
 
-    # 3. Dynamic Online Translation for Multi-word / Descriptive Responses
-    src_lang = language if language != 'en' else 'auto'
-    res = online(text, src_lang, 'en')
-    eng_text = res.text
+    clean = normalise(text).lower()
 
-    if is_error_payload(eng_text):
-        eng_text = text
+    # 2. Non-Latin languages: separate native script from Romanised/phonetic input
+    if language in NON_LATIN_LANGUAGES:
+        if script_matches(text, language):
+            res = online(text, language, 'en')
+            return Translation(
+                text=res.text,
+                native=text,
+                status=res.status,
+                source=res.source,
+                warning=res.warning,
+                error_code=res.error_code,
+                symptom=res.symptom,
+                is_negative=res.is_negative
+            )
+        else:
+            # Romanised input: only exact verified phrases are permitted
+            lookup = EXACT_ROMANISED.get(language, {})
+            if clean in lookup:
+                eng = lookup[clean]
+                is_neg = detect_negation(clean, language)
+                return Translation(
+                    text=eng,
+                    native=text,
+                    status='needs_review',
+                    source='prepared_phrase',
+                    warning=PREPARED,
+                    is_negative=is_neg
+                )
+            # Unmapped Romanised text cannot be safely parsed by machine translation
+            return unavailable('unsupported_romanised')
 
-    eng_lower = eng_text.lower()
-    is_neg_eng = any(w in eng_lower.split() for w in ['no', 'not', 'none', 'denies', 'without'])
-    urgent_flags = ['chest pain', 'breathing difficulty', 'bleeding', 'unconscious']
-    detected_sym = next((u for u in urgent_flags if u in eng_lower), '')
-
+    # 3. Latin languages (Polish, Somali, Romanian): direct online translation
+    res = online(text, language, 'en')
     return Translation(
-        text=eng_text,
+        text=res.text,
         native=text,
         status=res.status,
         source=res.source,
         warning=res.warning,
-        symptom=detected_sym,
-        is_negative=is_neg_eng or is_neg
+        error_code=res.error_code,
+        symptom=res.symptom,
+        is_negative=res.is_negative
     )
