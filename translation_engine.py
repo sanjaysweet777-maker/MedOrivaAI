@@ -150,7 +150,7 @@ def script_matches(text, language):
                 if 'LATIN' in c_name or ('A' <= c <= 'Z') or ('a' <= c <= 'z'):
                     continue
 
-                # Any other alphabet (Cyrillic, Greek, Arabic in Tamil, Tamil in Arabic) -> REJECT
+                # Any other alphabet (Cyrillic, Greek, Arabic in Tamil, Devanagari in Urdu) -> REJECT
                 return False
 
         return has_target_script
@@ -361,7 +361,7 @@ STAFF_LOOKUP = {
         "ml": "നിങ്ങളുടെ NHS നമ്പർ ഉണ്ടോ?",
         "pl": "Czy ma Pan/Pani swój numer NHS?",
         "ar": "هل لديك رقم NHS الخاص بك؟",
-        "ur": "کیا آپ کے پاس آپ کا NHS नंबर ہے؟",
+        "ur": "کیا آپ کے پاس آپ کا NHS نمبر ہے؟",
         "bn": "আপনার কি NHS নম্বর আছে?",
         "so": "Ma haysataa lambarkaaga NHS?",
         "ro": "Aveți numărul dumneavoastră NHS?"
@@ -369,7 +369,7 @@ STAFF_LOOKUP = {
     "Do you need an interpreter?": {
         "ta": "உங்களுக்கு மொழிபெயர்ப்பாளர் தேவையா?",
         "hi": "क्या आपको अनुवादक की आवश्यकता है?",
-        "ml": "നിങ്ങൾക്ക് ഒരു വിവർത്തകനെ ആവശ്യമുണ്ടോ?",
+        "ml": "നിങ്ങൾക്ക് ഒരു விവർത്തകനെ ആവശ്യമുണ്ടോ?",
         "pl": "Czy potrzebuje Pan/Pani tłumacza?",
         "ar": "هل تحتاج إلى مترجم فوري؟",
         "ur": "کیا آپ کو مترجم کی ضرورت ہے؟",
@@ -380,7 +380,7 @@ STAFF_LOOKUP = {
     "Where is your pain?": {
         "ta": "உங்களுக்கு வலி எங்கே இருக்கிறது?",
         "hi": "आपको दर्द कहाँ है?",
-        "ml": "നിങ്ങൾക്ക് എവിടെയാണ് വേദന?",
+        "ml": "നിങ്ങൾക്ക് எവിടെയാണ് വേദന?",
         "pl": "Gdzie odczuwa Pan/Pani ból?",
         "ar": "أين تشعر بالألم؟",
         "ur": "آپ کو درد کہاں ہو رہا ہے؟",
@@ -402,7 +402,7 @@ STAFF_LOOKUP = {
     "Do you have a fever?": {
         "ta": "உங்களுக்கு காய்ச்சல் உள்ளதா?",
         "hi": "क्या आपको बुखार है?",
-        "ml": "നിങ്ങൾക്ക് പനിയുണ്ടോ?",
+        "ml": "നിങ്ങൾക്ക് പനിയുണ്ടோ?",
         "pl": "Czy ma Pan/Pani gorączkę?",
         "ar": "هل تعاني من الحمى؟",
         "ur": "کیا آپ کو بخار ہے؟",
@@ -496,7 +496,6 @@ def patient_translation(text, language):
         else:
             lookup = EXACT_ROMANISED.get(language, {})
             if clean in lookup:
-                # Returns authentic native script instead of echoing English-letter input
                 native_script = ROMANISED_NATIVE_MAP.get(language, {}).get(clean, text)
                 return Translation(
                     text=lookup[clean],
