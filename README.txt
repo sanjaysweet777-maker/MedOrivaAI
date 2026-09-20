@@ -21,11 +21,12 @@ support stable multi-worker sessions. There is no production account-management,
 rate-limiting or clinical deployment assurance in this prototype.
 
 TRANSLATION BEHAVIOUR
-- 12 exact staff phrases x 9 languages are prepared demo entries. Eight concern
-  basic symptom communication and four concern reception/appointments. These
-  entries need independent bilingual review; code tests do not validate wording.
-- Four exact romanised Tamil utterances cover two chest-pain meanings, positive
-  and negative. Extra clauses, durations and third-person wording are not inferred.
+- 9 exact staff phrases x 9 languages are prepared demo entries, comprising five
+  reception/administrative and four symptom-related prompts. These entries need
+  independent bilingual review; code tests do not validate wording.
+- Two exact romanised Tamil utterances in the engine cover positive and negative
+  chest-pain statements ('enaku nenji vali irukku' and 'enaku nenji vali illa');
+  the broader 666-entry dictionary covers tested phrases across languages separately.
 - Native-script input is preserved alongside the English translation. Polish,
   Somali and Romanian correctly use their normal Latin-script input.
 - Other full messages use the official Google Cloud Translation Basic v2 API.
@@ -90,7 +91,7 @@ connection. The result distinguishes missing configuration, invalid credentials,
 API disabled, billing, key restrictions/permissions, quota, timeouts and response
 validation failures. Raw provider messages, keys and project IDs are not exposed.
 The endpoint requires a signed-in user. Do not paste API keys into chat or GitHub.
-GOOGLE_TRANSLATE_API_KEY and GOOGLE_API_KEY are also accepted as deployment
+GOOGLE_CLOUD_TRANSLATION_API_KEY and GOOGLE_API_KEY are also accepted as deployment
 aliases; GOOGLE_TRANSLATE_API_KEY takes precedence. Surrounding whitespace is
 removed. The provider's permissions, service enablement, billing and account-level
 settings still need to be configured in Google Cloud.
