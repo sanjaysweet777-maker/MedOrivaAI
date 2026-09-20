@@ -264,9 +264,9 @@
         .bubble-sender { font-size: 10px; text-transform: uppercase; font-weight: 700; color: #64748b; margin-bottom: 4px; }
         .staff-bubble { background: #0e172a; color: #f1f5f9; border-left: 3px solid #3b82f6; }
         .bubble-sub { font-size: 10.5px; color: #94a3b8; margin-top: 4px; }
-        .patient-feedback-bubble { background: #141f36; color: #f1f5f9; border-left: 3px solid #f59e0b; }
-        .bubble-text.highlighted { color: #fef08a; font-weight: 700; }
-        .bubble-cue { margin-top: 8px; padding: 6px 10px; background: rgba(245, 158, 11, 0.14); border-radius: 6px; font-size: 11px; color: #fbbf24; display: flex; align-items: center; gap: 6px; }
+        .patient-feedback-bubble { background: #141f36; color: #f1f5f9; border-left: 3px solid #0284c7; }
+        .bubble-text.highlighted { color: #ffffff; font-weight: 700; }
+        .bubble-cue { margin-top: 8px; padding: 6px 10px; background: rgba(14, 116, 144, 0.14); border-radius: 6px; font-size: 11px; color: #38bdf8; display: flex; align-items: center; gap: 6px; }
 
         .patient-translated-bubble { background: #0b1a2d; color: #f1f5f9; border-left: 3px solid #10b981; }
         .native-text { font-size: 14.5px; font-weight: 600; color: #6ee7b7; }
@@ -757,7 +757,6 @@
     <nav>
         <div class="nav-container">
             <a href="/" class="nav-brand">
-                <!-- Exact Geometric Logo Mark -->
                 <svg class="brand-logo-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M14 10 L48 38 L48 50 L14 22 Z" fill="#007A5E"/>
                     <path d="M14 30 L48 58 L48 66 Q26 66 14 86 Z" fill="#007A5E"/>
@@ -793,7 +792,7 @@
         </div>
         <h1>Structured Healthcare Intake &amp; Routine Multilingual Communication</h1>
         <p>
-            Census 2021 recorded 5.1 million residents in England and Wales whose main language was not English, including over 1.04 million who speak English not well or not at all<sup>[1]</sup>. MedOriva AI equips receptionists and primary care teams with structured, context-locked communication across <strong>9 core community languages</strong>. It supports routine multilingual communication while preserving escalation to qualified interpreters where communication is uncertain, sensitive or clinically significant.
+            Census 2021 recorded 5.1 million residents in England and Wales whose main language was not English, including over 1.04 million who speak English not well or not at all<sup>[1]</sup>. MedOriva AI equips receptionists and primary care teams with context-guided communication with structured prompts across <strong>9 core community languages</strong>. It supports routine multilingual communication while preserving escalation to qualified interpreters where communication is uncertain, sensitive or clinically significant.
         </p>
         
         <div class="hero-actions">
@@ -824,7 +823,7 @@
                 </div>
                 <div class="mockup-title">MedOriva AI — Primary Care Terminal #01 (Reception &amp; Arrival)</div>
                 <div class="mockup-status">
-                    <span class="status-indicator"></span> Session-Based Data Minimisation
+                    <span class="status-indicator"></span> Application-Level Non-Persistence
                 </div>
             </div>
 
@@ -840,21 +839,21 @@
                         <div class="chat-bubble staff-bubble">
                             <div class="bubble-sender">GP Receptionist</div>
                             <div class="bubble-text">"Welcome. Do you have a booked appointment with us today?"</div>
-                            <div class="bubble-sub">Guided Prompt · Standard Check-in</div>
+                            <div class="bubble-sub">Structured Guided Prompt · Reception Check-in</div>
                         </div>
 
                         <div class="chat-bubble patient-feedback-bubble">
                             <div class="bubble-sender">Patient Response (English back-translation for staff review)</div>
-                            <div class="bubble-text highlighted">"I have chest pain."</div>
+                            <div class="bubble-text highlighted">"I have an appointment."</div>
                             <div class="bubble-cue">
-                                <span class="cue-icon">⚠️</span>
-                                <span>Recognised phrase: <strong>chest pain</strong> (Communication cue for staff review. Does not determine urgency or clinical risk.)</span>
+                                <span class="cue-icon">ℹ️</span>
+                                <span>Prepared phrase acknowledged. Does not determine clinical triage or urgency.</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="mockup-input-bar">
-                        <div class="fake-input">Where are you feeling discomfort today?</div>
+                        <div class="fake-input">Do you have your appointment letter?</div>
                         <button class="fake-btn" type="button">Send</button>
                     </div>
                 </div>
@@ -875,8 +874,8 @@
 
                         <div class="chat-bubble patient-input-bubble">
                             <div class="bubble-sender">Patient Typed / Romanised Input</div>
-                            <div class="bubble-text roman-text">"enaku nenji vali irukku"</div>
-                            <div class="bubble-native-converted">Reconstructed: எனக்கு நெஞ்சு வலி இருக்கிறது</div>
+                            <div class="bubble-text roman-text">"appointment irukku"</div>
+                            <div class="bubble-native-converted">Mapped: எனக்கு அப்பாயிண்ட்மென்ட் உள்ளது.</div>
                         </div>
                     </div>
 
@@ -884,7 +883,7 @@
                         <div class="check-icon">✓</div>
                         <div>
                             <div class="check-title">Understanding Check Loop Complete</div>
-                            <div class="check-desc">The Understanding Check remains available within the active session. MedOriva is designed not to persist the conversational transcript in its application database after the session ends.</div>
+                            <div class="check-desc">Displays prepared multilingual confirmation prompts and records confirmation or correction. Conversation records are not stored persistently in the database.</div>
                         </div>
                     </div>
                 </div>
@@ -893,7 +892,7 @@
 
         <!-- Trust Strip -->
         <div class="trust-strip">
-            <div class="trust-item">🔒 Data-Minimisation Design · UK GDPR Principles</div>
+            <div class="trust-item">🔒 Application-Level Non-Storage Design</div>
             <div class="trust-item">🛡️ Ephemeral Session Processing</div>
             <div class="trust-item">🩺 Non-Clinical Communication Support</div>
             <div class="trust-item">📋 DCB0129 Clinical-Safety Roadmap</div>
@@ -977,19 +976,19 @@
                 <ul class="compare-list">
                     <li class="compare-item">
                         <span class="compare-tag-good">Fast Local Handling:</span>
-                        <span>Structured, context-locked reception intake prompts presented promptly in the patient's native script.</span>
+                        <span>Context-guided communication with structured prompts presented promptly in the patient's native script.</span>
                     </li>
                     <li class="compare-item">
                         <span class="compare-tag-good">Dignity &amp; Privacy:</span>
                         <span>Direct patient-to-staff communication without placing family members in inappropriate informal interpreting roles.</span>
                     </li>
                     <li class="compare-item">
-                        <span class="compare-tag-good">Staff Cues:</span>
-                        <span>Recognises selected prepared positive and negative phrase patterns and displays communication cues for staff review. It does not determine urgency or clinical risk.</span>
+                        <span class="compare-tag-good">Staff Verification:</span>
+                        <span>Displays clear confirmation prompts and records confirmation or correction without autonomous clinical decision-making.</span>
                     </li>
                     <li class="compare-item">
                         <span class="compare-tag-good">Transparent Model:</span>
-                        <span>Practice-level SaaS pricing with session-based data minimisation designed to respect patient privacy.</span>
+                        <span>Practice-level SaaS pricing with application-level data minimisation designed to respect patient privacy.</span>
                     </li>
                 </ul>
             </div>
@@ -1001,8 +1000,8 @@
         <div class="pipeline-step">
             <div class="step-num">01</div>
             <div class="step-content">
-                <h4>Context-Locked Intake</h4>
-                <p>Staff select defined administrative contexts to reduce scope for conversational drift.</p>
+                <h4>Context-Guided Intake</h4>
+                <p>Staff select defined administrative contexts to structure intake while keeping free text available.</p>
             </div>
         </div>
         <div class="pipeline-arrow">➔</div>
@@ -1010,7 +1009,7 @@
             <div class="step-num">02</div>
             <div class="step-content">
                 <h4>Negation-Aware Pattern Check</h4>
-                <p>Recognises selected prepared positive and negative phrase patterns and presents non-clinical cues for staff verification.</p>
+                <p>Recognises selected prepared positive and negative phrase patterns for staff verification.</p>
             </div>
         </div>
         <div class="pipeline-arrow">➔</div>
@@ -1018,7 +1017,7 @@
             <div class="step-num">03</div>
             <div class="step-content">
                 <h4>Understanding Check Loop</h4>
-                <p>Provides an English back-translation for staff review, encouraging verbal confirmation before proceeding.</p>
+                <p>Displays prepared multilingual confirmation prompts and records patient confirmation or correction.</p>
             </div>
         </div>
     </div>
@@ -1026,8 +1025,8 @@
     <!-- The 3 Context Workflows -->
     <section class="section" id="workflows">
         <div class="section-header">
-            <h2>Three Context-Locked Healthcare Workflows</h2>
-            <p>Designed for high-frequency administrative touchpoints to reduce scope for conversational drift.</p>
+            <h2>Three Context-Guided Healthcare Workflows</h2>
+            <p>Designed for high-frequency administrative touchpoints to provide structured guidance during patient intake.</p>
         </div>
         <div class="grid-3">
             <div class="card">
@@ -1065,13 +1064,13 @@
                     <div class="card-icon">🩺</div>
                     <h3>3. Basic Symptom Communication — Staff Review Only</h3>
                     <p>
-                        Displays communication cues for staff review only. It does not determine diagnosis, severity, urgency, risk level or treatment.
+                        Supports routine administrative communication of patient statements. It does not diagnose, determine urgency or risk level, perform clinical triage, or recommend treatment.
                     </p>
                 </div>
                 <div class="mini-ui">
-                    <span class="mini-ui-badge" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3);">Communication Cue</span>
-                    <div style="color: #fef08a; font-weight: 700;">⚠️ Recognised phrase: chest_pain</div>
-                    <div style="color: #64748b; margin-top: 4px;">Communication cue for staff review only</div>
+                    <span class="mini-ui-badge" style="background: rgba(14, 116, 144, 0.2); color: #38bdf8; border: 1px solid rgba(14, 116, 144, 0.3);">Administrative Guidance</span>
+                    <div style="color: #ffffff; font-weight: 700;">Communication guidance for staff review only</div>
+                    <div style="color: #64748b; margin-top: 4px;">Follow standard practice protocol</div>
                 </div>
             </div>
         </div>
@@ -1120,7 +1119,7 @@
                     <tr>
                         <td class="comp-feature">Structured Intake Prompts</td>
                         <td class="comp-free">Freeform text entry with no workflow boundaries or clinical context control.</td>
-                        <td class="comp-medoriva">Context-locked guided prompts designed to reduce scope for conversational drift.</td>
+                        <td class="comp-medoriva">Context-guided communication with structured prompts to guide routine interactions.</td>
                     </tr>
                     <tr>
                         <td class="comp-feature">Romanised Dialects (Thanglish/Hinglish)</td>
@@ -1135,17 +1134,17 @@
                     <tr>
                         <td class="comp-feature">Symptom Statement Recognition</td>
                         <td class="comp-free">Translates text only; provides no staff notification or workflow integration.</td>
-                        <td class="comp-medoriva">Detects recognised positive symptom phrases and presents a communication cue for staff review under local protocol.</td>
+                        <td class="comp-medoriva">Facilitates patient statements for staff review under local protocol without determining clinical risk.</td>
                     </tr>
                     <tr>
                         <td class="comp-feature">Staff Verification Loop</td>
                         <td class="comp-free">No built-in verification mechanism to check patient comprehension.</td>
-                        <td class="comp-medoriva">Understanding Check Loop: patient response back-translated to English for staff review.</td>
+                        <td class="comp-medoriva">Understanding Check Loop: displays prepared multilingual confirmation prompts and records confirmation or correction.</td>
                     </tr>
                     <tr>
                         <td class="comp-feature">Data Protection &amp; Governance</td>
                         <td class="comp-free">Data handling, retention and account controls vary by provider and configuration.</td>
-                        <td class="comp-medoriva">Session-based data minimisation: conversational payloads are not stored to persistent application databases.</td>
+                        <td class="comp-medoriva">Application-level data minimisation: conversational transcripts are not persisted to application databases. Third-party provider processing and hosting infrastructure are governed under separate operational agreements.</td>
                     </tr>
                 </tbody>
             </table>
@@ -1194,10 +1193,10 @@
                     <div class="pricing-price">£49 <span>/ month</span></div>
                     <div class="pricing-annual">£588 billed annually</div>
                     <ul class="pricing-features">
-                        <li>All 3 Context-Locked Workflows</li>
+                        <li>All 3 Context-Guided Workflows</li>
                         <li>9 Current MVP Languages — validation ongoing</li>
                         <li>Guided Prompt Library Access</li>
-                        <li>Session-Based Data Minimisation</li>
+                        <li>Application-Level Data Minimisation</li>
                         <li>Practice-Level Support</li>
                     </ul>
                 </div>
@@ -1214,8 +1213,8 @@
                     <ul class="pricing-features">
                         <li>Everything in Small Tier</li>
                         <li>Reception Multi-Terminal Support</li>
-                        <li>Communication Cues for Recognised Prepared Phrases</li>
-                        <li>Understanding Check Back-Translation</li>
+                        <li>Prepared Phrase Recognition</li>
+                        <li>Understanding Check Confirmation Loop</li>
                         <li>Priority Front-Desk Onboarding</li>
                     </ul>
                 </div>
@@ -1274,7 +1273,7 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-number">RAM</div>
-                    <div class="stat-label">Session Data Minimisation</div>
+                    <div class="stat-label">Application-Level Non-Persistence</div>
                 </div>
             </div>
         </div>
@@ -1334,14 +1333,14 @@
         </div>
         <div style="max-width: 820px; margin: 0 auto; color: var(--text-muted); font-size: 14.5px; line-height: 1.8;">
             <p style="margin-bottom: 18px;">
-    Founded in the United Kingdom, <strong>MedOriva AI Ltd</strong> was established by <strong>Sanjay Saravanaperumal</strong> (Founder &amp; CEO) to address routine communication challenges encountered by non-English speaking patients at healthcare reception desks.
-</p>
+                Founded in the United Kingdom, <strong>MedOriva AI Ltd</strong> was established by <strong>Sanjay Saravanaperumal</strong> (Founder &amp; CEO) to address routine communication challenges encountered by non-English speaking patients at healthcare reception desks.
+            </p>
             <p style="margin-bottom: 18px;">
                 By combining structured prompts, plain-language simplification rules, and an understanding-check loop, MedOriva AI supports front-desk communication clarity without replacing clinical staff or professional interpreting services.
             </p>
             <div style="background: var(--bg-card); padding: 20px 24px; border-radius: 10px; border-left: 3px solid var(--accent-teal); margin-top: 24px;">
                 <p style="font-size: 13.5px; color: #cbd5e1; margin-bottom: 0;">
-                    <strong>Architecture Note:</strong> Built on session-based data minimisation principles to support patient privacy during administrative interactions.
+                    <strong>Architecture Note:</strong> Built on application-level data minimisation principles to support patient privacy during administrative interactions.
                 </p>
             </div>
         </div>
@@ -1382,7 +1381,7 @@
     <!-- Footer -->
     <footer>
         <div class="disclaimer-box">
-            <strong>INTENDED PURPOSE &amp; REGULATORY NOTICE:</strong> MedOriva AI is currently intended to support administrative and staff-directed routine multilingual communication between healthcare staff and patients. It may assist staff in communicating selected prepared symptom-related expressions but does not diagnose, determine urgency or risk, perform clinical triage, recommend treatment or replace professional clinical judgement or qualified interpreting where required. Attending healthcare staff retain complete responsibility for applying clinical judgement and local practice protocols.
+            <strong>INTENDED PURPOSE &amp; REGULATORY NOTICE:</strong> MedOriva AI is currently intended to support administrative and staff-directed routine multilingual communication between healthcare staff and patients. It does not diagnose, determine urgency or risk, perform clinical triage, recommend treatment or replace professional clinical judgement or qualified interpreting where required. Attending healthcare staff retain complete responsibility for applying clinical judgement and local practice protocols.
         </div>
 
         <div class="footer-grid">
@@ -1419,7 +1418,7 @@
                 <h4>Standards Roadmap</h4>
                 <ul>
                     <li>UK GDPR &amp; DPA 2018 Principles</li>
-                    <li>Data-Minimisation Design</li>
+                    <li>Application-Level Non-Storage Design</li>
                     <li>DCB0129 Assurance Roadmap</li>
                     <li>DTAC Evidence Roadmap</li>
                     <li>PECR Compliance Roadmap</li>
@@ -1464,12 +1463,12 @@
             <button class="modal-close" onclick="closeModal('privacyModal')">&times;</button>
             <h3>Privacy Policy (UK GDPR Aligned)</h3>
             <p><strong>Effective Date:</strong> September 2026</p>
-            <h4>1. Session-Based Data Minimisation</h4>
-            <p>MedOriva AI processes patient dialogue exclusively in volatile memory during active sessions. No patient names, NHS numbers, or identifiable clinical records are written to persistent application databases by default.</p>
+            <h4>1. Application-Level Non-Storage Design</h4>
+            <p>MedOriva AI does not persist conversational transcripts to application databases. Third-party translation provider processing and hosting infrastructure are governed separately under applicable operational agreements.</p>
             <h4>2. Data Minimisation Principle</h4>
             <p>In accordance with Article 5(1)(c) of the UK GDPR, data processing is strictly limited to real-time communication payloads required during an ongoing reception exchange.</p>
             <h4>3. Staff Account Administration</h4>
-            <p>Authorized staff credentials and encrypted session authentication cookies are processed under legitimate operational governance.</p>
+            <p>Authorized staff credentials and signed session authentication cookies are processed under legitimate operational governance.</p>
         </div>
     </div>
 
@@ -1494,7 +1493,7 @@
             <p><strong>Compliance:</strong> UK PECR &amp; Data Protection Act 2018</p>
             <h4>1. Strictly Necessary Cookies Only</h4>
             <ul>
-                <li><code>session</code>: Encrypted cryptographic cookie to authenticate active staff sessions.</li>
+                <li><code>session</code>: Signed cryptographic session cookie to authenticate active staff sessions.</li>
                 <li><code>medoriva_cookie_consent</code>: Local record verifying cookie notice acknowledgement.</li>
             </ul>
             <h4>2. Third-Party Trackers</h4>
@@ -1506,11 +1505,11 @@
         <div class="modal-content">
             <button class="modal-close" onclick="closeModal('dcbModal')">&times;</button>
             <h3>Clinical Safety &amp; Assurance Statement</h3>
-            <p>DCB0129 clinical risk management principles guide our technical development roadmap:</p>
+            <p>DCB0129 clinical risk management principles guide our technical development roadmap for pre-deployment assurance.</p>
             <ul>
-                <li><strong>Non-Clinical Staff Communication Cues:</strong> Automated phrase recognition triggers neutral visual cues for staff awareness under local practice protocols.</li>
-                <li><strong>Negation Handling:</strong> Recognises negative qualifiers ("no chest pain", "nenji vali illai") to help prevent communication misunderstandings.</li>
-                <li><strong>Understanding Check:</strong> Displays English back-translations for staff review to verify message clarity.</li>
+                <li><strong>Non-Clinical Staff Communication Guidance:</strong> Standardised intake prompts provide structured operational facilitation under local practice protocols.</li>
+                <li><strong>Negation Handling:</strong> Recognises negative qualifiers ("no appointment", "nenji vali illai") to help prevent communication misunderstandings.</li>
+                <li><strong>Understanding Check:</strong> Displays prepared multilingual confirmation prompts and records confirmation or correction.</li>
             </ul>
         </div>
     </div>
@@ -1559,18 +1558,10 @@
             .then(res => res.json())
             .then(data => {
                 msg.style.display = "block";
-                if (data.status === "ok") {
-                    msg.style.background = "rgba(16, 185, 129, 0.15)";
-                    msg.style.color = "#6ee7b7";
-                    msg.style.border = "1px solid rgba(16, 185, 129, 0.4)";
-                    msg.innerText = data.message;
-                    document.getElementById("contactForm").reset();
-                } else {
-                    msg.style.background = "rgba(239, 68, 68, 0.15)";
-                    msg.style.color = "#fca5a5";
-                    msg.style.border = "1px solid rgba(239, 68, 68, 0.4)";
-                    msg.innerText = data.message || "Submission failed. Please email us directly.";
-                }
+                msg.style.background = "rgba(239, 68, 68, 0.15)";
+                msg.style.color = "#fca5a5";
+                msg.style.border = "1px solid rgba(239, 68, 68, 0.4)";
+                msg.innerText = data.message || "Automated delivery disabled. Please contact sanjaythillai@gmail.com directly.";
                 btn.disabled = false;
                 btn.innerText = "Submit Evaluation Inquiry";
             })
