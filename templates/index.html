@@ -1,752 +1,164 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>MedOriva AI — Clinical Communication Workspace</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
-<style>
-  /* ── Structural Layout Fix for Viewport & Scrolling ── */
-  body {
-    display: flex !important;
-    flex-direction: column !important;
-    height: 100vh !important;
-    overflow: hidden !important;
-    margin: 0;
-    padding: 0;
-  }
-
-  .portal-header-bar {
-    background: #092e26;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    color: #ffffff;
-    padding: 8px 24px;
-    font-size: 12.5px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex: 0 0 auto !important;
-    z-index: 100;
-  }
-
-  .portal-header-bar .compliance-pill {
-    background: rgba(20, 184, 166, 0.15);
-    border: 1px solid rgba(20, 184, 166, 0.35);
-    color: #5eead4;
-    padding: 3px 10px;
-    border-radius: 9999px;
-    font-weight: 600;
-    font-size: 11px;
-    letter-spacing: 0.3px;
-  }
-
-  /* ── Setup Screen: Aligned to top to prevent vertical cropping ── */
-  #setupScreen {
-    display: none;
-    flex: 1 1 auto !important;
-    min-height: 0 !important;
-    height: auto !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    background: linear-gradient(160deg, #e6f2f7 0%, #f2f6f8 50%, #dbeaf0 100%);
-    padding: 24px 0 60px 0 !important;
-  }
-
-  #setupScreen.active {
-    display: flex !important;
-  }
-
-  #mainScreen {
-    display: none;
-    flex: 1 1 auto !important;
-    min-height: 0 !important;
-    height: auto !important;
-    overflow: hidden !important;
-  }
-
-  #mainScreen.active {
-    display: flex !important;
-  }
-
-  .setup-container {
-    max-width: 900px !important;
-    margin: 0 auto !important;
-    width: 100% !important;
-    padding: 0 20px !important;
-    box-sizing: border-box;
-  }
-
-  .setup-title-box {
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 12px;
-    padding: 24px;
-    margin-bottom: 24px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-  }
-
-  .setup-title-box .brand-heading {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-
-  .setup-title-box h1 {
-    font-size: 20px;
-    font-weight: 800;
-    color: #0f172a;
-    letter-spacing: -0.3px;
-  }
-
-  .setup-title-box p {
-    font-size: 13px;
-    color: #64748b;
-    margin-top: 2px;
-  }
-
-  .step-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 14px;
-    font-weight: 700;
-    color: #0f172a;
-    margin-bottom: 6px;
-  }
-
-  .step-label .num {
-    background: #0F6E56;
-    color: #fff;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 800;
-  }
-  
-  /* Context Selection Tiles */
-  .ctx-grid-enhanced {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-    margin-top: 10px;
-  }
-
-  .ctx-card {
-    background: #ffffff;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 16px;
-    cursor: pointer;
-    text-align: left;
-    transition: all 0.15s ease-in-out;
-  }
-
-  .ctx-card:hover {
-    border-color: #0F6E56;
-    background: #f0fdf4;
-  }
-
-  .ctx-card.active {
-    border-color: #0F6E56;
-    background: #f0fdf4;
-    box-shadow: 0 0 0 2px rgba(15, 110, 86, 0.2);
-  }
-
-  .ctx-card .icon {
-    font-size: 22px;
-    margin-bottom: 8px;
-    display: block;
-  }
-
-  .ctx-card .title {
-    font-size: 14px;
-    font-weight: 700;
-    color: #0f172a;
-    display: block;
-  }
-
-  .ctx-card .desc {
-    font-size: 11.5px;
-    color: #64748b;
-    margin-top: 4px;
-    line-height: 1.4;
-    display: block;
-  }
-
-  /* Language Selection Grid */
-  .lang-grid-enhanced {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-top: 10px;
-  }
-
-  .lang-card {
-    background: #ffffff;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 12px 14px;
-    cursor: pointer;
-    text-align: left;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: all 0.15s ease-in-out;
-  }
-
-  .lang-card:hover {
-    border-color: #0284c7;
-    background: #f0f9ff;
-  }
-
-  .lang-card.active {
-    border-color: #0284c7;
-    background: #f0f9ff;
-    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
-  }
-
-  .lang-card .eng-name {
-    font-size: 13.5px;
-    font-weight: 700;
-    color: #0f172a;
-    display: block;
-  }
-
-  .lang-card .meta {
-    font-size: 11px;
-    color: #64748b;
-  }
-
-  .lang-card .native-name {
-    font-size: 15px;
-    font-weight: 600;
-    color: #0369a1;
-  }
-  
-  .inset-info-callout {
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
-    border-left: 4px solid #3b82f6;
-    padding: 12px 16px;
-    border-radius: 6px;
-    font-size: 12.5px;
-    color: #1e40af;
-    line-height: 1.5;
-    margin-top: 16px;
-  }
-
-  .launch-action-bar {
-    margin-top: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .start-btn-primary {
-    background: #0F6E56;
-    color: #ffffff;
-    border: none;
-    border-radius: 8px;
-    padding: 14px 24px;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    width: 100%;
-    transition: background 0.15s, opacity 0.15s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
-
-  .start-btn-primary:hover { background: #0a5240; }
-  .start-btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
-</style>
-</head>
-<body>
-
-<!-- ═══ TOP OPERATIONAL PILOT BANNER ═════════════════════════════════════ -->
-<div class="portal-header-bar">
-  <div style="display: flex; align-items: center; gap: 10px;">
-    <strong>MedOriva AI (UK Practice Workspace)</strong>
-    <span style="opacity: 0.5;">|</span>
-    <span>Demonstration Environment · Use Fictional Data Only</span>
-  </div>
-  <div style="display: flex; align-items: center; gap: 12px;">
-    <span class="compliance-pill">● Data-Minimised Demo · Clinical-Safety Development · DCB0129 & DTAC Roadmap</span>
-    <a href="/logout" style="color: #cbd5e1; text-decoration: none; font-size: 12px; margin-left: 6px;">Sign out</a>
-  </div>
-</div>
-
-<!-- ═══ SETUP SCREEN ═══════════════════════════════════════════════════════ -->
-<div id="setupScreen" class="screen active">
-  <div class="setup-container">
-    
-    <!-- Header Block -->
-    <div class="setup-title-box">
-      <div class="brand-heading">
-        <div class="logo-icon">
-          <svg width="28" height="28" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="36" height="36" rx="8" fill="#0F6E56"/>
-            <path d="M8 22 Q13 12 18 18 Q23 24 28 14" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-            <circle cx="18" cy="10" r="3.5" fill="#14b8a6"/>
-          </svg>
-        </div>
-        <div>
-          <h1>Multilingual Communication Intake</h1>
-          <p>Configure session context and target language to initialise bidirectional communication.</p>
-        </div>
-      </div>
-      <div style="text-align: right; font-size: 12px; color: #64748b;">
-        <div>Status: <strong>Working MVP · Demonstration Environment</strong></div>
-        <div>Engine: <strong>Prepared Phrases &amp; Rules + Machine-Translation Fallback</strong></div>
-      </div>
-    </div>
-
-    <!-- Step 1: Context Selection -->
-    <div class="setup-card" style="margin-bottom: 20px;">
-      <div class="step-label">
-        <span class="num">1</span>
-        <span>Select Communication Intake Context</span>
-      </div>
-      <p class="card-hint">Context locks standardized prompts and guidance for the duration of the patient exchange.</p>
-      
-      <div class="ctx-grid-enhanced">
-        <div class="ctx-card" data-ctx="Reception" onclick="selectCtx(this)">
-          <span class="icon">🏥</span>
-          <span class="title">Reception &amp; Arrival</span>
-          <span class="desc">Identification, appointment check-in, interpreter requests, and waiting lounge routing.</span>
-        </div>
-        <div class="ctx-card" data-ctx="Appointment" onclick="selectCtx(this)">
-          <span class="icon">📋</span>
-          <span class="title">Appointment &amp; Admin</span>
-          <span class="desc">Confirming visit reasons, consultation room call-forwarding, and medication list reviews.</span>
-        </div>
-        <div class="ctx-card" data-ctx="Basic Symptoms" onclick="selectCtx(this)">
-          <span class="icon">🩺</span>
-          <span class="title">Basic Symptoms &amp; Communication</span>
-          <span class="desc">Structured basic-symptom communication prompts with staff-facing communication cues for recognised phrases.</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Step 2: Patient Language Selection -->
-    <div class="setup-card" style="margin-bottom: 20px;">
-      <div class="step-label">
-        <span class="num">2</span>
-        <span>Select Patient Language (9 Community Languages)</span>
-      </div>
-      <p class="card-hint">Displays native script beside English meaning for staff-led understanding checks.</p>
-      
-      <div class="lang-grid-enhanced">
-        <!-- Tamil -->
-        <div class="lang-card" data-lang="Tamil" data-code="ta" onclick="selectLang(this)">
-          <div>
-            <span class="eng-name">Tamil</span>
-            <span class="meta">LTR · Script &amp; Phonetic</span>
-          </div>
-          <span class="native-name">தமிழ்</span>
-        </div>
-
-        <!-- Hindi -->
-        <div class="lang-card" data-lang="Hindi" data-code="hi" onclick="selectLang(this)">
-          <div>
-            <span class="eng-name">Hindi</span>
-            <span class="meta">LTR · Devanagari</span>
-          </div>
-          <span class="native-name">हिन्दी</span>
-        </div>
-
-        <!-- Malayalam -->
-        <div class="lang-card" data-lang="Malayalam" data-code="ml" onclick="selectLang(this)">
-          <div>
-            <span class="eng-name">Malayalam</span>
-            <span class="meta">LTR · Malayalam Script</span>
-          </div>
-          <span class="native-name">മലയാളം</span>
-        </div>
-
-        <!-- Polish -->
-        <div class="lang-card" data-lang="Polish" data-code="pl" onclick="selectLang(this)">
-          <div>
-            <span class="eng-name">Polish</span>
-            <span class="meta">LTR · Latin Script</span>
-          </div>
-          <span class="native-name">Polski</span>
-        </div>
-
-        <!-- Arabic -->
-        <div class="lang-card" data-lang="Arabic" data-code="ar" onclick="selectLang(this)">
-          <div>
-            <span class="eng-name">Arabic</span>
-            <span class="meta">RTL · Arabic Script</span>
-          </div>
-          <span class="native-name">العربية</span>
-        </div>
-
-        <!-- Urdu -->
-        <div class="lang-card" data-lang="Urdu" data-code="ur" onclick="selectLang(this)">
-          <div>
-            <span class="eng-name">Urdu</span>
-            <span class="meta">RTL · Nastaliq</span>
-          </div>
-          <span class="native-name">اردو</span>
-        </div>
-
-        <!-- Bengali -->
-        <div class="lang-card" data-lang="Bengali" data-code="bn" onclick="selectLang(this)">
-          <div>
-            <span class="eng-name">Bengali</span>
-            <span class="meta">LTR · Bengali Script</span>
-          </div>
-          <span class="native-name">বাংলা</span>
-        </div>
-
-        <!-- Somali -->
-        <div class="lang-card" data-lang="Somali" data-code="so" onclick="selectLang(this)">
-          <div>
-            <span class="eng-name">Somali</span>
-            <span class="meta">LTR · Latin Script</span>
-          </div>
-          <span class="native-name">Soomaali</span>
-        </div>
-
-        <!-- Romanian -->
-        <div class="lang-card" data-lang="Romanian" data-code="ro" onclick="selectLang(this)">
-          <div>
-            <span class="eng-name">Romanian</span>
-            <span class="meta">LTR · Latin Script</span>
-          </div>
-          <span class="native-name">Română</span>
-        </div>
-      </div>
-
-      <div class="inset-info-callout">
-        <strong>Communication Support Notice:</strong> MedOriva AI is designed to support structured multilingual communication in defined primary-care workflows. It does not replace qualified professional interpreters for complex, sensitive or high-risk communication and does not provide diagnosis, clinical triage or treatment advice.
-      </div>
-    </div>
-
-    <!-- Start Action -->
-    <div class="launch-action-bar">
-      <button class="start-btn-primary" id="startBtn" onclick="startSession()" disabled>
-        <span>Open Communication Workspace</span>
-        <span>→</span>
-      </button>
-
-      <details class="connection-tools" style="background:#ffffff; border:1px solid #cbd5e1; border-radius:8px; padding:12px 16px;">
-        <summary style="font-weight: 600; cursor:pointer; color:#334155;">System Diagnostic · Translation Engine Health Check</summary>
-        <p style="font-size:12px; color:#64748b; margin:6px 0 10px;">Checks prepared phrase resources and provider translation endpoints before the demo communication session.</p>
-        <button type="button" id="checkConnectionBtn" onclick="checkTranslationConnection()" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:600; font-size:12px;">Run Diagnostic Check</button>
-        <p id="connectionResult" role="status" aria-live="polite" style="font-size:12px; margin-top:8px; font-weight:600;"></p>
-      </details>
-      
-      <div style="text-align: center; font-size: 11.5px; color: #64748b; line-height: 1.5; max-width: 820px; margin: 0 auto;">
-        <strong>Demo Data-Handling Notice:</strong> MedOriva does not persist conversation transcripts or NHS identifiers to its application database after the active demo session ends. Third-party provider, hosting and operational data handling are governed separately and must be assessed before live patient use.
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<!-- ═══ MAIN SESSION SCREEN (CONVERSATION WORKSPACE) ═══════════════════════ -->
-<div id="mainScreen" class="screen">
-  <div class="app-layout">
-
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="sidebar-logo">
-        <div class="logo-icon sm">
-          <svg width="22" height="22" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="36" height="36" rx="8" fill="#0F6E56"/>
-            <path d="M8 22 Q13 12 18 18 Q23 24 28 14" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-            <circle cx="18" cy="10" r="3.5" fill="#14b8a6"/>
-          </svg>
-        </div>
-        <span>MedOriva AI Portal</span>
-      </div>
-
-      <div class="session-info">
-        <div class="info-row">
-          <span class="info-label">Context</span>
-          <span class="tag teal" id="sideCtx">—</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Language</span>
-          <span class="tag blue" id="sideLang">—</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Session Ref</span>
-          <span class="info-val" id="sideId">—</span>
-        </div>
-      </div>
-
-      <div class="sidebar-section">
-        <div class="section-label">Guided Prompts</div>
-        <div id="promptsList" class="prompts-list"></div>
-      </div>
-
-      <div class="sidebar-bottom">
-        <div class="no-storage-note">
-          🔒 Demonstration Mode · Non-Persistent
-        </div>
-        <button class="end-btn" onclick="endSession()">Terminate Session</button>
-      </div>
-    </aside>
-
-    <!-- Main Chat + Input Area -->
-    <main class="main-area">
-      <div class="chat-header">
-        <div>
-          <span style="font-weight: 700; color: #0f172a;">Live Communication</span>
-          <span class="chat-subtitle" id="chatSubtitle" style="margin-left: 8px;">— Bidirectional Understanding Check</span>
-        </div>
-        <div style="font-size: 11.5px; color: #64748b;">
-          Staff: <strong>Right (Green)</strong> | Patient: <strong>Left (White)</strong>
-        </div>
-      </div>
-
-      <div class="chat-area" id="chatArea" role="log" aria-live="polite">
-        <div class="empty-chat" id="emptyChat">
-          <div class="empty-icon">💬</div>
-          <div class="empty-title">Ready for Patient Communication</div>
-          <div class="empty-hint">Select a routine question from the left sidebar or enter a message below.</div>
-        </div>
-      </div>
-
-      <!-- Alert Banner -->
-      <div class="alert-banner" id="alertBanner" style="display:none">
-        <span>ℹ️ Recognised symptom phrase identified — staff-facing communication cue. Follow practice protocol.</span>
-        <button onclick="dismissAlert()">✕</button>
-      </div>
-
-      <!-- Input Panel -->
-      <div class="input-panel">
-        <div class="tabs">
-          <button class="tab active" data-tab="free" onclick="switchTab(this)">Staff Question (English → Patient)</button>
-          <button class="tab" data-tab="patient" onclick="switchTab(this)">Patient Reply (Supported Language Input → English for Staff Review)</button>
-          <button class="tab" data-tab="confirm" onclick="switchTab(this)">Understanding Check</button>
-        </div>
-
-        <!-- Free text tab -->
-        <div class="tab-pane active" id="tab-free">
-          <div class="input-row">
-            <textarea id="freeInput" placeholder="Type a message or question for the patient in English..." rows="2"></textarea>
-            <button class="action-btn teal" onclick="sendFreeText()" id="freeBtn">
-              Translate &amp; Send
-            </button>
-          </div>
-          <div class="simplify-note" id="simplifyNote" style="display:none">
-            ✓ Plain-language simplification applied
-          </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
-            <button class="suggest-btn" onclick="suggestSimplification()">Suggest simpler wording</button>
-            <span class="input-hint">Translates directly into patient's native script.</span>
-          </div>
-        </div>
-
-        <!-- Patient response tab -->
-        <div class="tab-pane" id="tab-patient">
-          <div class="input-row">
-            <textarea id="patientInput" placeholder="Type or paste what the patient said (native script or phonetic/romanized)..." rows="2"></textarea>
-            <button class="action-btn blue" onclick="translatePatient()" id="patientBtn">
-              Translate to English
-            </button>
-          </div>
-          <div class="input-hint">Translates the patient's message back to English and displays the original/native-script text alongside it for staff review during the active session.</div>
-        </div>
-
-        <!-- ═══ UNDERSTANDING CHECK: ONE-CLICK VERIFICATION (NO CONFUSING TEXT BOX) ═══ -->
-        <div class="tab-pane" id="tab-confirm">
-          <!-- Hidden input kept to prevent legacy JS errors -->
-          <input type="hidden" id="confirmInput" value=""/>
-
-          <div style="background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 8px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; gap: 20px;">
-            <div>
-              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #d97706;"></span>
-                <strong style="font-size: 14px; color: #92400e;">Staff-Led Understanding Check</strong>
-              </div>
-              <p style="margin: 0; font-size: 12.5px; color: #78350f; line-height: 1.4;">
-                Sends a formal verification prompt back to the patient in their language to confirm that routine guidance or responses were understood accurately before staff proceed.
-              </p>
-            </div>
-            <button type="button" class="action-btn amber" onclick="runUnderstandingCheck()" id="confirmBtn" style="white-space: nowrap; padding: 12px 22px; font-weight: 700; cursor: pointer; border-radius: 6px;">
-              Verify Understanding →
-            </button>
-          </div>
-
-          <div class="input-hint" style="margin-top: 8px;">
-            Prompts closed-loop back-confirmation to verify patient comprehension under standard practice governance.
-          </div>
-        </div>
-      </div>
-    </main>
-
-  </div>
-</div>
-
-<script src="{{ url_for('static', filename='js/app.js') }}"></script>
-
-<!-- ═══ VERIFICATION LOOP OVERRIDE ═══════════════════════════════════════════ -->
-<script>
-// Multilingual Confirmation Dictionary
-// Multilingual Confirmation Dictionary for all 9 Portal Languages
-// Multilingual Confirmation Dictionary for all 9 Portal Languages
-// Multilingual Confirmation Dictionary for all 9 Portal Languages
-const VERIFY_PROMPTS = {
-  "Tamil": {
-    staff: "Please confirm that the information provided is understood and correct.",
-    native: "வழங்கப்பட்ட தகவல் புரிந்துகொள்ளப்பட்டு சரியானதா என்பதை உறுதிப்படுத்தவும்.",
-    ack_yes: "ஆம், தகவல் சரியானது.",
-    ack_yes_eng: "Yes, the information is correct and understood.",
-    ack_no: "இல்லை, மாற்ற வேண்டும்.",
-    ack_no_eng: "No, I need to correct this."
-  },
-  "Hindi": {
-    staff: "Please confirm that the information provided is understood and correct.",
-    native: "कृपया पुष्टि करें कि दी गई जानकारी सही है और समझ आ गई है।",
-    ack_yes: "हाँ, जानकारी सही है।",
-    ack_yes_eng: "Yes, the information is correct and understood.",
-    ack_no: "नहीं, सुधार चाहिए।",
-    ack_no_eng: "No, I need to correct this."
-  },
-  "Malayalam": {
-    staff: "Please confirm that the information provided is understood and correct.",
-    native: "നൽകിയ വിവരങ്ങൾ മനസ്സിലായെന്നും ശരിയാണെന്നും ദയവായി സ്ഥിരീകരിക്കുക.",
-    ack_yes: "അതെ, വിവരങ്ങൾ ശരിയാണ്.",
-    ack_yes_eng: "Yes, the information is correct and understood.",
-    ack_no: "അല്ല, എനിക്ക് ഇത് തിരുത്തണം.",
-    ack_no_eng: "No, I need to correct this."
-  },
-  "Urdu": {
-    staff: "Please confirm that the information provided is understood and correct.",
-    native: "براہ کرم تصدیق کریں کہ فراہم کردہ معلومات درست ہیں اور سمجھ آ گئی ہیں۔",
-    ack_yes: "ہاں، معلومات درست ہے۔",
-    ack_yes_eng: "Yes, the information is correct and understood.",
-    ack_no: "نہیں، تبدیلی درکار ہے۔",
-    ack_no_eng: "No, I need to correct this."
-  },
-  "Bengali": {
-    staff: "Please confirm that the information provided is understood and correct.",
-    native: "অনুগ্রহ করে নিশ্চিত করুন যে প্রদত্ত তথ্য সঠিক এবং বোঝা গেছে।",
-    ack_yes: "হ্যাঁ, তথ্য সঠিক।",
-    ack_yes_eng: "Yes, the information is correct and understood.",
-    ack_no: "না, সংশোধন প্রয়োজন।",
-    ack_no_eng: "No, I need to correct this."
-  },
-  "Polish": {
-    staff: "Please confirm that the information provided is understood and correct.",
-    native: "Proszę potwierdzić, czy podane informacje są zrozumiałe i poprawne.",
-    ack_yes: "Tak, informacje są poprawne.",
-    ack_yes_eng: "Yes, the information is correct and understood.",
-    ack_no: "Nie, muszę to poprawić.",
-    ack_no_eng: "No, I need to correct this."
-  },
-  "Romanian": {
-    staff: "Please confirm that the information provided is understood and correct.",
-    native: "Vă rugăm să confirmați că informațiile furnizate sunt corecte și înțelese.",
-    ack_yes: "Da, informațiile sunt corecte.",
-    ack_yes_eng: "Yes, the information is correct and understood.",
-    ack_no: "Nu, doresc să corectez.",
-    ack_no_eng: "No, I need to correct this."
-  },
-  "Somali": {
-    staff: "Please confirm that the information provided is understood and correct.",
-    native: "Fadlan xaqiiji in macluumaadka lagu siiyay aad fahantay oo uu sax yahay.",
-    ack_yes: "Haa, macluumaadku waa sax.",
-    ack_yes_eng: "Yes, the information is correct and understood.",
-    ack_no: "Maya, waxaan u baahanahay inaan saxo.",
-    ack_no_eng: "No, I need to correct this."
-  },
-  "Arabic": {
-    staff: "Please confirm that the information provided is understood and correct.",
-    native: "يرجى التأكيد على أن المعلومات المقدمة مفهومة وصحيحة.",
-    ack_yes: "نعم، المعلومات صحيحة.",
-    ack_yes_eng: "Yes, the information is correct and understood.",
-    ack_no: "لا، أحتاج إلى التصحيح.",
-    ack_no_eng: "No, I need to correct this."
-  }
-};
-function runUnderstandingCheck() {
-  const chatArea = document.getElementById("chatArea");
-  const emptyChat = document.getElementById("emptyChat");
-  if (emptyChat) emptyChat.style.display = "none";
-
-  const langTag = document.getElementById("sideLang");
-  const langName = langTag ? (langTag.textContent.trim() || "Tamil") : "Tamil";
-  const dict = VERIFY_PROMPTS[langName] || VERIFY_PROMPTS["Tamil"];
-
-  const checkCardId = "check-" + Date.now();
-  const checkHtml = `
-    <div class="message staff" style="margin: 12px 0; display: flex; flex-direction: column; align-items: flex-end;">
-      <div style="background: #092e26; color: #ffffff; border-radius: 10px 10px 0 10px; padding: 14px 18px; max-width: 80%; box-shadow: 0 2px 6px rgba(0,0,0,0.08);">
-        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #5eead4; margin-bottom: 4px; font-weight: 700;">
-          Staff Question (Understanding Check)
-        </div>
-        <div style="font-size: 14px; font-weight: 600; margin-bottom: 6px;">
-          ${dict.staff}
-        </div>
-        <div style="font-size: 15px; color: #e6f2f7; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 6px;">
-          ${dict.native}
-        </div>
-      </div>
-      <div id="${checkCardId}" style="margin-top: 8px; display: flex; gap: 8px;">
-        <button type="button" onclick="patientConfirmsCheck('${checkCardId}', true, '${langName}')" style="background: #0F6E56; color: #ffffff; border: none; border-radius: 6px; padding: 8px 14px; font-size: 12.5px; font-weight: 700; cursor: pointer;">
-          ✓ Patient Confirms (Yes, Correct)
-        </button>
-        <button type="button" onclick="patientConfirmsCheck('${checkCardId}', false, '${langName}')" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 14px; font-size: 12.5px; font-weight: 600; cursor: pointer;">
-          ✕ Needs Correction
-        </button>
-      </div>
-    </div>
-  `;
-
-  chatArea.insertAdjacentHTML("beforeend", checkHtml);
-  chatArea.scrollTop = chatArea.scrollHeight;
+{
+  "Tamil": [
+    { "intent": "APPOINTMENT_YES_HAVE", "input_matches": ["aam appointment irukku", "aama appointment irukku", "ஆம் எனக்கு அப்பாயிண்ட்மென்ட் உள்ளது"], "native_script": "ஆம், எனக்கு அப்பாயிண்ட்மென்ட் உள்ளது.", "english_review": "Yes, I have an appointment." },
+    { "intent": "APPOINTMENT_HAVE", "input_matches": ["appointment irukku", "enaku appointment irukku", "எனக்கு அப்பாயிண்ட்மென்ட் உள்ளது"], "native_script": "எனக்கு அப்பாயிண்ட்மென்ட் உள்ளது.", "english_review": "I have an appointment." },
+    { "intent": "APPOINTMENT_NO", "input_matches": ["appointment illai", "appointment illa", "அப்பாயிண்ட்மென்ட் இல்லை"], "native_script": "எனக்கு அப்பாயிண்ட்மென்ட் இல்லை.", "english_review": "I do not have an appointment." },
+    { "intent": "DOCUMENT_HAVE", "input_matches": ["kaditham irukku", "letter irukku", "nhs number irukku", "கடிதம் உள்ளது"], "native_script": "என்னிடம் கடிதம் / அடையாள ஆவணம் உள்ளது.", "english_review": "I have the letter or NHS document." },
+    { "intent": "PRESCRIPTION_NEED", "input_matches": ["marunthu thevai", "prescription thevai", "மருந்து தேவை"], "native_script": "எனக்கு மருந்து / பிரிஸ்கிரிப்ஷன் தேவை.", "english_review": "I am here for my prescription/medication." },
+    { "intent": "INTERPRETER_NEED", "input_matches": ["interpreter thevai", "interpreter vendum", "mozhipeyarppalar vendum", "மொழிபெயர்ப்பாளர் தேவை"], "native_script": "எனக்கு மொழிபெயர்ப்பாளர் தேவை.", "english_review": "I need an interpreter." },
+    { "intent": "INTERPRETER_NOT_NEED", "input_matches": ["interpreter vendam", "interpreter thevai illai", "மொழிபெயர்ப்பாளர் தேவையில்லை"], "native_script": "எனக்கு மொழிபெயர்ப்பாளர் தேவையில்லை.", "english_review": "Interpreter is not needed." },
+    { "intent": "RELATIVE_PRESENT", "input_matches": ["enathu uravinar ullaar", "uravinar ullaar", "family irukku", "உறவினர் உள்ளார்"], "native_script": "எனது உறவினர் என்னுடன் உள்ளார்.", "english_review": "My relative or family member is with me." },
+    { "intent": "TOILET_WHERE", "input_matches": ["toilet enge", "bathroom enga irukku", "கழிப்பறை எங்கே"], "native_script": "கழிப்பறை எங்கே உள்ளது?", "english_review": "Where is the toilet/washroom?" },
+    { "intent": "UNDERSTOOD_WAIT", "input_matches": ["purinthathu", "kaathirukiren", "sari purinthathu", "புரிந்தது"], "native_script": "சரி, எனக்குப் புரிந்தது. நான் காத்திருக்கிறேன்.", "english_review": "Understood. I will take a seat and wait." },
+    { "intent": "SYMPTOM_PAIN_GENERAL", "input_matches": ["vali irukku", "enaku vali irukku", "வலி இருக்கிறது"], "native_script": "எனக்கு வலி இருக்கிறது.", "english_review": "I am experiencing pain." },
+    { "intent": "SYMPTOM_FEVER", "input_matches": ["kaichal irukku", "fever irukku", "ஜுரம்"], "native_script": "எனக்கு காய்ச்சல் உள்ளது.", "english_review": "I have a fever/temperature." },
+    { "intent": "SYMPTOM_NO_PAIN", "input_matches": ["vali illai", "vali illa", "வலி இல்லை"], "native_script": "எனக்கு வலி இல்லை.", "english_review": "I do not have pain." },
+    { "intent": "AFFIRM_HAVE_GENERAL", "input_matches": ["aam irukku", "aama irukku", "ஆம் என்னிடம் உள்ளது"], "native_script": "ஆம், என்னிடம் உள்ளது.", "english_review": "Yes, I have it." },
+    { "intent": "AFFIRM_YES", "input_matches": ["aam", "aama", "ama", "ஆம்"], "native_script": "ஆம்.", "english_review": "Yes." },
+    { "intent": "NEGATE_NO", "input_matches": ["illai", "illa", "இல்லை"], "native_script": "இல்லை.", "english_review": "No." }
+  ],
+  "Hindi": [
+    { "intent": "APPOINTMENT_YES_HAVE", "input_matches": ["haan appointment hai", "haan mera appointment hai", "हाँ मेरा अपॉइंटमेंट है"], "native_script": "हाँ, मेरा अपॉइंटमेंट है।", "english_review": "Yes, I have an appointment." },
+    { "intent": "APPOINTMENT_HAVE", "input_matches": ["appointment hai", "mera appointment hai", "अपॉइंटमेंट है"], "native_script": "मेरा अपॉइंटमेंट है।", "english_review": "I have an appointment." },
+    { "intent": "APPOINTMENT_NO", "input_matches": ["appointment nahi hai", "अपॉइंटमेंट नहीं है"], "native_script": "मेरा अपॉइंटमेंट नहीं है।", "english_review": "I do not have an appointment." },
+    { "intent": "DOCUMENT_HAVE", "input_matches": ["letter hai", "parcha hai", "kaghaz hai", "पत्र है"], "native_script": "मेरे पास पत्र / दस्तावेज़ है।", "english_review": "I have the letter or NHS document." },
+    { "intent": "PRESCRIPTION_NEED", "input_matches": ["dawai chahiye", "prescription chahiye", "दवा चाहिए"], "native_script": "मुझे अपनी दवा / प्रिस्क्रिप्शन चाहिए।", "english_review": "I am here for my prescription/medication." },
+    { "intent": "INTERPRETER_NEED", "input_matches": ["interpreter chahiye", "anuvadak chahiye", "अनुवादक चाहिए"], "native_script": "मुझे अनुवादक चाहिए।", "english_review": "I need an interpreter." },
+    { "intent": "INTERPRETER_NOT_NEED", "input_matches": ["interpreter nahi chahiye", "anuvadak nahi chahiye", "अनुवादक नहीं चाहिए"], "native_script": "अनुवादक की आवश्यकता नहीं है।", "english_review": "Interpreter is not needed." },
+    { "intent": "RELATIVE_PRESENT", "input_matches": ["parivar saath hai", "family saath hai", "rishtedar saath hai", "परिवार साथ है"], "native_script": "मेरे परिवार के सदस्य मेरे साथ हैं।", "english_review": "My relative or family member is with me." },
+    { "intent": "TOILET_WHERE", "input_matches": ["toilet kahan hai", "bathroom kahan hai", "शौचालय कहाँ है"], "native_script": "शौचालय कहाँ है?", "english_review": "Where is the toilet/washroom?" },
+    { "intent": "UNDERSTOOD_WAIT", "input_matches": ["samajh gaya", "samajh gayi", "intezar karunga", "समझ गया"], "native_script": "समझ गया। मैं प्रतीक्षा करूँगा।", "english_review": "Understood. I will take a seat and wait." },
+    { "intent": "SYMPTOM_PAIN_GENERAL", "input_matches": ["dard hai", "mujhe dard hai", "दर्द है"], "native_script": "मुझे दर्द है।", "english_review": "I am experiencing pain." },
+    { "intent": "SYMPTOM_FEVER", "input_matches": ["bukhar hai", "mujhe bukhar hai", "बुखार है"], "native_script": "मुझे बुखार है।", "english_review": "I have a fever/temperature." },
+    { "intent": "SYMPTOM_NO_PAIN", "input_matches": ["dard nahi hai", "koi dard nahi", "दर्द नहीं है"], "native_script": "मुझे कोई दर्द नहीं है।", "english_review": "I do not have pain." },
+    { "intent": "AFFIRM_HAVE_GENERAL", "input_matches": ["haan hai", "haan mere paas hai", "हाँ है"], "native_script": "हाँ, मेरे पास है।", "english_review": "Yes, I have it." },
+    { "intent": "AFFIRM_YES", "input_matches": ["haan", "ji haan", "ha", "हाँ"], "native_script": "हाँ।", "english_review": "Yes." },
+    { "intent": "NEGATE_NO", "input_matches": ["nahi", "nahin", "ji nahi", "नहीं"], "native_script": "नहीं।", "english_review": "No." }
+  ],
+  "Malayalam": [
+    { "intent": "APPOINTMENT_YES_HAVE", "input_matches": ["athe appointment undu", "athe enikku appointment undu", "അതെ അപ്പോയിന്റ്മെന്റ് ഉണ്ട്"], "native_script": "അതെ, എനിക്ക് അപ്പോയിന്റ്മെന്റ് ഉണ്ട്.", "english_review": "Yes, I have an appointment." },
+    { "intent": "APPOINTMENT_HAVE", "input_matches": ["appointment undu", "enikku appointment undu", "അപ്പോയിന്റ്മെന്റ് ഉണ്ട്"], "native_script": "എനിക്ക് അപ്പോയിന്റ്മെന്റ് ഉണ്ട്.", "english_review": "I have an appointment." },
+    { "intent": "APPOINTMENT_NO", "input_matches": ["appointment illa", "അപ്പോയിന്റ്മെന്റ് ഇല്ല"], "native_script": "എനിക്ക് അപ്പോയിന്റ്മെന്റ് ഇല്ല.", "english_review": "I do not have an appointment." },
+    { "intent": "DOCUMENT_HAVE", "input_matches": ["letter undu", "kathu undu", "രേഖയുണ്ട്"], "native_script": "എന്റെ പക്കൽ കത്തുണ്ട്.", "english_review": "I have the letter or NHS document." },
+    { "intent": "PRESCRIPTION_NEED", "input_matches": ["marunnu venam", "prescription venam", "മരുന്ന് വേണം"], "native_script": "എനിക്ക് മരുന്ന് / കുറിപ്പടി വേണം.", "english_review": "I am here for my prescription/medication." },
+    { "intent": "INTERPRETER_NEED", "input_matches": ["interpreter venam", "vivarthakan venam", "വിവർത്തകൻ വേണം"], "native_script": "എനിക്ക് ഒരു വിവർത്തകനെ വേണം.", "english_review": "I need an interpreter." },
+    { "intent": "INTERPRETER_NOT_NEED", "input_matches": ["interpreter venda", "vivarthakan venda", "വിവർത്തകൻ വേണ്ട"], "native_script": "വിവർത്തകന്റെ ആവശ്യമില്ല.", "english_review": "Interpreter is not needed." },
+    { "intent": "RELATIVE_PRESENT", "input_matches": ["kudumbam koodeyundu", "relative koode undu", "കുടുംബാംഗം കൂടെയുണ്ട്"], "native_script": "എന്റെ ബന്ധു എന്റെ കൂടെയുണ്ട്.", "english_review": "My relative or family member is with me." },
+    { "intent": "TOILET_WHERE", "input_matches": ["toilet evide", "bathroom evideya", "ടോയ്‌ലറ്റ് എവിടെയാണ്"], "native_script": "ടോയ്‌ലറ്റ് എവിടെയാണ്?", "english_review": "Where is the toilet/washroom?" },
+    { "intent": "UNDERSTOOD_WAIT", "input_matches": ["manasilayi", "kaathirikkam", "ശരി മനസ്സിലായി"], "native_script": "ശരി, മനസ്സിലായി. ഞാൻ കാത്തിരിക്കാം.", "english_review": "Understood. I will take a seat and wait." },
+    { "intent": "SYMPTOM_PAIN_GENERAL", "input_matches": ["vedhana undu", "enikku vedhana undu", "വേദനയുണ്ട്"], "native_script": "എനിക്ക് വേദനയുണ്ട്.", "english_review": "I am experiencing pain." },
+    { "intent": "SYMPTOM_FEVER", "input_matches": ["pani undu", "enikku paniyanu", "പനിയുണ്ട്"], "native_script": "എനിക്ക് പനിയുണ്ട്.", "english_review": "I have a fever/temperature." },
+    { "intent": "SYMPTOM_NO_PAIN", "input_matches": ["vedhana illa", "വേദനയില്ല"], "native_script": "വേദനയില്ല.", "english_review": "I do not have pain." },
+    { "intent": "AFFIRM_HAVE_GENERAL", "input_matches": ["athe undu", "kayyil undu", "അതെ ഉണ്ട്"], "native_script": "അതെ, എന്റെ പക്കലുണ്ട്.", "english_review": "Yes, I have it." },
+    { "intent": "AFFIRM_YES", "input_matches": ["athe", "aanu", "അതെ"], "native_script": "അതെ.", "english_review": "Yes." },
+    { "intent": "NEGATE_NO", "input_matches": ["illa", "alla", "ഇല്ല"], "native_script": "ഇല്ല.", "english_review": "No." }
+  ],
+  "Polish": [
+    { "intent": "APPOINTMENT_YES_HAVE", "input_matches": ["tak mam wizyte", "tak mam wizytę", "tak, mam wizyte"], "native_script": "Tak, mam umówioną wizytę.", "english_review": "Yes, I have an appointment." },
+    { "intent": "APPOINTMENT_HAVE", "input_matches": ["mam wizyte", "mam wizytę", "mam spotkanie"], "native_script": "Mam umówioną wizytę.", "english_review": "I have an appointment." },
+    { "intent": "APPOINTMENT_NO", "input_matches": ["nie mam wizyty", "brak wizyty"], "native_script": "Nie mam umówionej wizyty.", "english_review": "I do not have an appointment." },
+    { "intent": "DOCUMENT_HAVE", "input_matches": ["mam list", "mam dokument", "mam pismo"], "native_script": "Mam list lub dokument.", "english_review": "I have the letter or NHS document." },
+    { "intent": "PRESCRIPTION_NEED", "input_matches": ["potrzebuje recepte", "po leki", "recepte"], "native_script": "Przyszedłem po receptę lub leki.", "english_review": "I am here for my prescription/medication." },
+    { "intent": "INTERPRETER_NEED", "input_matches": ["potrzebuje tlumacza", "potrzebuję tłumacza", "tlumacz potrzebny"], "native_script": "Potrzebuję tłumacza.", "english_review": "I need an interpreter." },
+    { "intent": "INTERPRETER_NOT_NEED", "input_matches": ["nie potrzebuje tlumacza", "bez tlumacza"], "native_script": "Nie potrzebuję tłumacza.", "english_review": "Interpreter is not needed." },
+    { "intent": "RELATIVE_PRESENT", "input_matches": ["jestem z rodzina", "jestem z rodziną", "rodzina jest ze mna"], "native_script": "Jest ze mną członek rodziny.", "english_review": "My relative or family member is with me." },
+    { "intent": "TOILET_WHERE", "input_matches": ["gdzie toaleta", "gdzie lazienka"], "native_script": "Gdzie znajduje się toaleta?", "english_review": "Where is the toilet/washroom?" },
+    { "intent": "UNDERSTOOD_WAIT", "input_matches": ["rozumiem poczekam", "rozumiem", "poczekam w poczekalni"], "native_script": "Rozumiem. Usiądę i poczekam.", "english_review": "Understood. I will take a seat and wait." },
+    { "intent": "SYMPTOM_PAIN_GENERAL", "input_matches": ["boli mnie", "mam bol", "mam ból", "odczuwam bol"], "native_script": "Odczuwam ból.", "english_review": "I am experiencing pain." },
+    { "intent": "SYMPTOM_FEVER", "input_matches": ["mam goraczke", "goraczka"], "native_script": "Mam gorączkę.", "english_review": "I have a fever/temperature." },
+    { "intent": "SYMPTOM_NO_PAIN", "input_matches": ["nie boli", "brak bolu", "nie mam bolu"], "native_script": "Nie mam bólu.", "english_review": "I do not have pain." },
+    { "intent": "AFFIRM_HAVE_GENERAL", "input_matches": ["tak mam", "tak mam to"], "native_script": "Tak, mam to przy sobie.", "english_review": "Yes, I have it." },
+    { "intent": "AFFIRM_YES", "input_matches": ["tak", "dokladnie"], "native_script": "Tak.", "english_review": "Yes." },
+    { "intent": "NEGATE_NO", "input_matches": ["nie"], "native_script": "Nie.", "english_review": "No." }
+  ],
+  "Arabic": [
+    { "intent": "APPOINTMENT_YES_HAVE", "input_matches": ["naam indi mawead", "aywa indi mawead", "نعم عندي موعد"], "native_script": "نعم، لدي موعد محجوز.", "english_review": "Yes, I have an appointment." },
+    { "intent": "APPOINTMENT_HAVE", "input_matches": ["indi mawead", "ladayya mawead", "عندي موعد", "لدي موعد"], "native_script": "لدي موعد محجوز.", "english_review": "I have an appointment." },
+    { "intent": "APPOINTMENT_NO", "input_matches": ["laysa ladi mawead", "ma indi mawead", "ليس لدي موعد"], "native_script": "ليس لدي موعد.", "english_review": "I do not have an appointment." },
+    { "intent": "DOCUMENT_HAVE", "input_matches": ["maee risala", "indi khetab", "معي رسالة", "عندي خطاب"], "native_script": "معي الرسالة أو الوثيقة.", "english_review": "I have the letter or NHS document." },
+    { "intent": "PRESCRIPTION_NEED", "input_matches": ["uridu wasfa", "ahtaj wasfa tibbiya", "أحتاج وصفة طبية"], "native_script": "أنا هنا للحصول على وصفتي الطبية / الأدوية.", "english_review": "I am here for my prescription/medication." },
+    { "intent": "INTERPRETER_NEED", "input_matches": ["ahtaj mutarjim", "uridu mutarjim", "أحتاج مترجم"], "native_script": "أحتاج إلى مترجم فوري.", "english_review": "I need an interpreter." },
+    { "intent": "INTERPRETER_NOT_NEED", "input_matches": ["la ahtaj mutarjim", "la uridu mutarjim", "لا أحتاج مترجم"], "native_script": "لا أحتاج إلى مترجم.", "english_review": "Interpreter is not needed." },
+    { "intent": "RELATIVE_PRESENT", "input_matches": ["aaeilati maee", "qareebi maee", "عائلتي معي", "قريبي معي"], "native_script": "قريبي أو أحد أفراد عائلتي معي.", "english_review": "My relative or family member is with me." },
+    { "intent": "TOILET_WHERE", "input_matches": ["ayna al hammam", "al hammam wayn", "أين الحمام"], "native_script": "أين يقع الحمام؟", "english_review": "Where is the toilet/washroom?" },
+    { "intent": "UNDERSTOOD_WAIT", "input_matches": ["fahamtu saantazir", "fahamtu", "fahimt", "فهمت سأنتظر"], "native_script": "فهمت ذلك. سأجلس وأنتظر.", "english_review": "Understood. I will take a seat and wait." },
+    { "intent": "SYMPTOM_PAIN_GENERAL", "input_matches": ["andi alam", "ashur bialam", "عندي ألم", "أشعر بألم"], "native_script": "أشعر بألم.", "english_review": "I am experiencing pain." },
+    { "intent": "SYMPTOM_FEVER", "input_matches": ["indi humma", "hararati murtafia", "عندي حمى"], "native_script": "أعاني من الحمى / ارتفاع الحرارة.", "english_review": "I have a fever/temperature." },
+    { "intent": "SYMPTOM_NO_PAIN", "input_matches": ["la yujad alam", "la ashuru bialam", "لا يوجد ألم"], "native_script": "لا أشعر بأي ألم.", "english_review": "I do not have pain." },
+    { "intent": "AFFIRM_HAVE_GENERAL", "input_matches": ["naam mawjood", "naam huwwa maee", "نعم هو معي"], "native_script": "نعم، هو معي.", "english_review": "Yes, I have it." },
+    { "intent": "AFFIRM_YES", "input_matches": ["naam", "aywa", "نعم"], "native_script": "نعم.", "english_review": "Yes." },
+    { "intent": "NEGATE_NO", "input_matches": ["la", "kalla", "لا"], "native_script": "لا.", "english_review": "No." }
+  ],
+  "Urdu": [
+    { "intent": "APPOINTMENT_YES_HAVE", "input_matches": ["haan appointment hai", "haan mera appointment hai", "ہاں میرا اپائنٹمنٹ ہے"], "native_script": "جی ہاں، میرا وقت مقرر ہے۔", "english_review": "Yes, I have an appointment." },
+    { "intent": "APPOINTMENT_HAVE", "input_matches": ["appointment hai", "mera appointment hai", "میرا وقت مقرر ہے"], "native_script": "میرا وقت مقرر ہے۔", "english_review": "I have an appointment." },
+    { "intent": "APPOINTMENT_NO", "input_matches": ["appointment nahi hai", "اپائنٹمنٹ نہیں ہے"], "native_script": "میرا وقت مقرر نہیں ہے۔", "english_review": "I do not have an appointment." },
+    { "intent": "DOCUMENT_HAVE", "input_matches": ["letter hai", "khat hai", "parcha hai", "خط ہے"], "native_script": "میرے پاس خط یا دستاویز ہے۔", "english_review": "I have the letter or NHS document." },
+    { "intent": "PRESCRIPTION_NEED", "input_matches": ["dawai chahiye", "nuskha chahiye", "دوائی چاہیے"], "native_script": "مجھے اپنی دوائی / نسخہ چاہیے۔", "english_review": "I am here for my prescription/medication." },
+    { "intent": "INTERPRETER_NEED", "input_matches": ["mutarjim chahiye", "tarjuma karne wala chahiye", "مترجم چاہیے"], "native_script": "مجھے مترجم کی ضرورت ہے۔", "english_review": "I need an interpreter." },
+    { "intent": "INTERPRETER_NOT_NEED", "input_matches": ["mutarjim nahi chahiye", "مترجم نہیں چاہیے"], "native_script": "مترجم کی ضرورت نہیں ہے۔", "english_review": "Interpreter is not needed." },
+    { "intent": "RELATIVE_PRESENT", "input_matches": ["khandan saath hai", "family saath hai", "rishtedar saath hai", "خاندان ساتھ ہے"], "native_script": "میرے عزیز یا فیملی ممبر میرے ساتھ ہیں۔", "english_review": "My relative or family member is with me." },
+    { "intent": "TOILET_WHERE", "input_matches": ["toilet kahan hai", "bathroom kahan hai", "باتھ روم کہاں ہے"], "native_script": "باتھ روم کہاں ہے؟", "english_review": "Where is the toilet/washroom?" },
+    { "intent": "UNDERSTOOD_WAIT", "input_matches": ["samajh gaya", "samajh gayi", "intezar karunga", "سمجھ گیا"], "native_script": "سمجھ گیا۔ میں انتظار کروں گا۔", "english_review": "Understood. I will take a seat and wait." },
+    { "intent": "SYMPTOM_PAIN_GENERAL", "input_matches": ["dard hai", "mujhe dard hai", "مجھے درد ہے"], "native_script": "مجھے درد ہو رہا ہے۔", "english_review": "I am experiencing pain." },
+    { "intent": "SYMPTOM_FEVER", "input_matches": ["bukhar hai", "mujhe bukhar hai", "مجھے بخار ہے"], "native_script": "مجھے بخار ہے۔", "english_review": "I have a fever/temperature." },
+    { "intent": "SYMPTOM_NO_PAIN", "input_matches": ["dard nahi hai", "dard nahi", "درد نہیں ہے"], "native_script": "مجھے کوئی درد نہیں ہے۔", "english_review": "I do not have pain." },
+    { "intent": "AFFIRM_HAVE_GENERAL", "input_matches": ["haan mere paas hai", "haan hai", "ہاں میرے پاس ہے"], "native_script": "جی ہاں، میرے پاس ہے۔", "english_review": "Yes, I have it." },
+    { "intent": "AFFIRM_YES", "input_matches": ["haan", "ji haan", "ہاں", "جی ہاں"], "native_script": "جی ہاں۔", "english_review": "Yes." },
+    { "intent": "NEGATE_NO", "input_matches": ["nahi", "nahin", "ji nahi", "نہیں"], "native_script": "نہیں ہے۔", "english_review": "No." }
+  ],
+  "Bengali": [
+    { "intent": "APPOINTMENT_YES_HAVE", "input_matches": ["ha appointment ache", "hye appointment ache", "হ্যাঁ অ্যাপয়েন্টমেন্ট আছে"], "native_script": "হ্যাঁ, আমার অ্যাপয়েন্টমেন্ট আছে।", "english_review": "Yes, I have an appointment." },
+    { "intent": "APPOINTMENT_HAVE", "input_matches": ["appointment ache", "amar appointment ache", "অ্যাপয়েন্টমেন্ট আছে"], "native_script": "আমার অ্যাপয়েন্টমেন্ট আছে।", "english_review": "I have an appointment." },
+    { "intent": "APPOINTMENT_NO", "input_matches": ["appointment nei", "অ্যাপয়েন্টমেন্ট নেই"], "native_script": "আমার কোনো অ্যাপয়েন্টমেন্ট নেই।", "english_review": "I do not have an appointment." },
+    { "intent": "DOCUMENT_HAVE", "input_matches": ["chithi ache", "letter ache", "kagoj ache", "চিঠি আছে"], "native_script": "আমার কাছে চিঠি বা নথি আছে।", "english_review": "I have the letter or NHS document." },
+    { "intent": "PRESCRIPTION_NEED", "input_matches": ["oshudh dorkar", "prescription chai", "ওষুধ দরকার"], "native_script": "আমার ওষুধ বা প্রেসক্রিপশন দরকার।", "english_review": "I am here for my prescription/medication." },
+    { "intent": "INTERPRETER_NEED", "input_matches": ["dobhashi dorkar", "interpreter dorkar", "দোভাষী দরকার"], "native_script": "আমার একজন দোভাষী প্রয়োজন।", "english_review": "I need an interpreter." },
+    { "intent": "INTERPRETER_NOT_NEED", "input_matches": ["dobhashi dorkar nei", "interpreter dorkar nei", "দোভাষী দরকার নেই"], "native_script": "দোভাষীর প্রয়োজন নেই।", "english_review": "Interpreter is not needed." },
+    { "intent": "RELATIVE_PRESENT", "input_matches": ["poribar sathe ache", "relative sathe ache", "পরিবার সাথে আছে"], "native_script": "আমার পরিবারের সদস্য সাথে আছেন।", "english_review": "My relative or family member is with me." },
+    { "intent": "TOILET_WHERE", "input_matches": ["toilet kothay", "bathroom kothay", "টয়লেট কোথায়"], "native_script": "টয়লেট বা ওয়াশরুম কোথায়?", "english_review": "Where is the toilet/washroom?" },
+    { "intent": "UNDERSTOOD_WAIT", "input_matches": ["bujhechi", "opekkha korbo", "bujhte perechi", "বুঝেছি"], "native_script": "বুঝেছি। আমি অপেক্ষা করব।", "english_review": "Understood. I will take a seat and wait." },
+    { "intent": "SYMPTOM_PAIN_GENERAL", "input_matches": ["batha ache", "amar batha korche", "ব্যথা আছে"], "native_script": "আমার ব্যথা হচ্ছে।", "english_review": "I am experiencing pain." },
+    { "intent": "SYMPTOM_FEVER", "input_matches": ["jor ache", "amar jor", "জ্বর আছে"], "native_script": "আমার জ্বর আছে।", "english_review": "I have a fever/temperature." },
+    { "intent": "SYMPTOM_NO_PAIN", "input_matches": ["batha nei", "kono batha nei", "ব্যথা নেই"], "native_script": "কোনো ব্যথা নেই।", "english_review": "I do not have pain." },
+    { "intent": "AFFIRM_HAVE_GENERAL", "input_matches": ["ha ache", "amar kache ache", "হ্যাঁ আছে"], "native_script": "হ্যাঁ, আমার কাছে আছে।", "english_review": "Yes, I have it." },
+    { "intent": "AFFIRM_YES", "input_matches": ["ha", "hye", "হ্যাঁ"], "native_script": "হ্যাঁ।", "english_review": "Yes." },
+    { "intent": "NEGATE_NO", "input_matches": ["na", "না"], "native_script": "না।", "english_review": "No." }
+  ],
+  "Somali": [
+    { "intent": "APPOINTMENT_YES_HAVE", "input_matches": ["haa ballan baan leeyahay", "haa ballan ayaan leeyahay"], "native_script": "Haa, ballan baan leeyahay.", "english_review": "Yes, I have an appointment." },
+    { "intent": "APPOINTMENT_HAVE", "input_matches": ["ballan baan leeyahay", "ballan ayaan leeyahay", "ballan"], "native_script": "Ballan baan leeyahay.", "english_review": "I have an appointment." },
+    { "intent": "APPOINTMENT_NO", "input_matches": ["ballan ma lhi", "ballan malihi"], "native_script": "Ballan ma lihi.", "english_review": "I do not have an appointment." },
+    { "intent": "DOCUMENT_HAVE", "input_matches": ["waraaq baan wataa", "warqad baan wataa", "waraaq"], "native_script": "Warqaddii waan wataa.", "english_review": "I have the letter or NHS document." },
+    { "intent": "PRESCRIPTION_NEED", "input_matches": ["daawo baan rabaa", "warqada daawada"], "native_script": "Waxaan u imid warqada daawada / daawo.", "english_review": "I am here for my prescription/medication." },
+    { "intent": "INTERPRETER_NEED", "input_matches": ["turjubaan baan u baahanahay", "turjubaan"], "native_script": "Waxaan u baahanahay turjubaan.", "english_review": "I need an interpreter." },
+    { "intent": "INTERPRETER_NOT_NEED", "input_matches": ["turjubaan uma baahni", "turjubaan ma rabo"], "native_script": "Uma baahni turjubaan.", "english_review": "Interpreter is not needed." },
+    { "intent": "RELATIVE_PRESENT", "input_matches": ["qoyskayga ayaa ila socda", "qof ehel ah ayaa ila socda"], "native_script": "Qof ehelkayga ah ayaa ila socda.", "english_review": "My relative or family member is with me." },
+    { "intent": "TOILET_WHERE", "input_matches": ["musqusha aaway", "suuliga meeh"], "native_script": "Musqusha/Suuliga xagee ku yaal?", "english_review": "Where is the toilet/washroom?" },
+    { "intent": "UNDERSTOOD_WAIT", "input_matches": ["waan fahmay waan sugi", "waan fahmay"], "native_script": "Waan fahmay. Waan fariisanayaa oo sugi doonaa.", "english_review": "Understood. I will take a seat and wait." },
+    { "intent": "SYMPTOM_PAIN_GENERAL", "input_matches": ["xanuun baan dareemayaa", "xanuun ayaa i haya"], "native_script": "Xanuun baan dareemayaa.", "english_review": "I am experiencing pain." },
+    { "intent": "SYMPTOM_FEVER", "input_matches": ["xumad baan qabaa", "qandho"], "native_script": "Qandho/Xumad baan qabaa.", "english_review": "I have a fever/temperature." },
+    { "intent": "SYMPTOM_NO_PAIN", "input_matches": ["xanuun ma jiro", "xanuun ma dareemayo"], "native_script": "Wax xanuun ah ma dareemayo.", "english_review": "I do not have pain." },
+    { "intent": "AFFIRM_HAVE_GENERAL", "input_matches": ["haa waan wataa", "haa waan hayaa"], "native_script": "Haa, waan hayaa.", "english_review": "Yes, I have it." },
+    { "intent": "AFFIRM_YES", "input_matches": ["haa", "waa sax"], "native_script": "Haa.", "english_review": "Yes." },
+    { "intent": "NEGATE_NO", "input_matches": ["maya", "ma aha"], "native_script": "Maya.", "english_review": "No." }
+  ],
+  "Romanian": [
+    { "intent": "APPOINTMENT_YES_HAVE", "input_matches": ["da am programare", "da, am programare"], "native_script": "Da, am o programare.", "english_review": "Yes, I have an appointment." },
+    { "intent": "APPOINTMENT_HAVE", "input_matches": ["am programare", "programare"], "native_script": "Am o programare.", "english_review": "I have an appointment." },
+    { "intent": "APPOINTMENT_NO", "input_matches": ["nu am programare"], "native_script": "Nu am o programare.", "english_review": "I do not have an appointment." },
+    { "intent": "DOCUMENT_HAVE", "input_matches": ["am scrisoarea", "am documentul", "am scrisoarea medicala"], "native_script": "Am scrisoarea sau documentul.", "english_review": "I have the letter or NHS document." },
+    { "intent": "PRESCRIPTION_NEED", "input_matches": ["am nevoie de reteta", "pentru reteta"], "native_script": "Sunt aici pentru rețetă / medicamente.", "english_review": "I am here for my prescription/medication." },
+    { "intent": "INTERPRETER_NEED", "input_matches": ["am nevoie de traducator", "am nevoie de interpret"], "native_script": "Am nevoie de un interpret.", "english_review": "I need an interpreter." },
+    { "intent": "INTERPRETER_NOT_NEED", "input_matches": ["nu am nevoie de traducator", "fara traducator"], "native_script": "Nu am nevoie de un interpret.", "english_review": "Interpreter is not needed." },
+    { "intent": "RELATIVE_PRESENT", "input_matches": ["familia este cu mine", "am o ruda cu mine"], "native_script": "O rudă sau un membru al familiei este cu mine.", "english_review": "My relative or family member is with me." },
+    { "intent": "TOILET_WHERE", "input_matches": ["unde este toaleta", "unde e baia"], "native_script": "Unde este toaleta?", "english_review": "Where is the toilet/washroom?" },
+    { "intent": "UNDERSTOOD_WAIT", "input_matches": ["am inteles voi astepta", "am inteles"], "native_script": "Am înțeles. Mă voi așeza și voi aștepta.", "english_review": "Understood. I will take a seat and wait." },
+    { "intent": "SYMPTOM_PAIN_GENERAL", "input_matches": ["am dureri", "ma doare", "simt durere"], "native_script": "Simt o durere.", "english_review": "I am experiencing pain." },
+    { "intent": "SYMPTOM_FEVER", "input_matches": ["am febra", "febra"], "native_script": "Am febră / temperatură.", "english_review": "I have a fever/temperature." },
+    { "intent": "SYMPTOM_NO_PAIN", "input_matches": ["nu ma doare", "nu am dureri"], "native_script": "Nu am dureri.", "english_review": "I do not have pain." },
+    { "intent": "AFFIRM_HAVE_GENERAL", "input_matches": ["da il am", "da o am"], "native_script": "Da, îl am la mine.", "english_review": "Yes, I have it." },
+    { "intent": "AFFIRM_YES", "input_matches": ["da"], "native_script": "Da.", "english_review": "Yes." },
+    { "intent": "NEGATE_NO", "input_matches": ["nu"], "native_script": "Nu.", "english_review": "No." }
+  ]
 }
-
-function patientConfirmsCheck(cardId, isYes, langName) {
-  const card = document.getElementById(cardId);
-  if (card) {
-    card.innerHTML = `<span style="font-size: 12px; color: #0F6E56; font-weight: 700;">✓ Understanding Check Completed</span>`;
-  }
-
-  const dict = VERIFY_PROMPTS[langName] || VERIFY_PROMPTS["Tamil"];
-  const chatArea = document.getElementById("chatArea");
-
-  const replyHtml = `
-    <div class="message patient" style="margin: 12px 0; display: flex; flex-direction: column; align-items: flex-start;">
-      <div style="background: #ffffff; border: 1.5px solid ${isYes ? '#86efac' : '#fca5a5'}; border-radius: 10px 10px 10px 0; padding: 14px 18px; max-width: 80%; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
-        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: ${isYes ? '#15803d' : '#b91c1c'}; margin-bottom: 4px; font-weight: 700;">
-          Patient Response (Verified)
-        </div>
-        <div style="font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">
-          ${isYes ? dict.ack_yes : dict.ack_no}
-        </div>
-        <div style="font-size: 13.5px; color: #475569; border-top: 1px solid #e2e8f0; padding-top: 6px;">
-          <strong>English for Staff Review:</strong> ${isYes ? dict.ack_yes_eng : dict.ack_no_eng}
-        </div>
-      </div>
-    </div>
-  `;
-
-  chatArea.insertAdjacentHTML("beforeend", replyHtml);
-  chatArea.scrollTop = chatArea.scrollHeight;
-}
-
-// Override legacy function name if referenced anywhere
-window.checkUnderstanding = runUnderstandingCheck;
-</script>
-</body>
-</html>
