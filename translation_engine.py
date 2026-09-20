@@ -30,6 +30,15 @@ LANGUAGES = {
 NON_LATIN_LANGUAGES = {'ta', 'hi', 'ml', 'bn', 'ar', 'ur'}
 LATIN_LANGUAGES = {'en', 'pl', 'ro', 'so'}
 
+SCRIPT_NAME_MAP = {
+    'ta': 'TAMIL',
+    'hi': 'DEVANAGARI',
+    'ml': 'MALAYALAM',
+    'bn': 'BENGALI',
+    'ar': 'ARABIC',
+    'ur': 'ARABIC',
+}
+
 @dataclass(frozen=True)
 class Translation:
     text: str = ''
@@ -60,7 +69,7 @@ def normalise(text):
     chars = [c for c in unicodedata.normalize('NFC', str(text)) if not unicodedata.category(c).startswith('P')]
     return ' '.join(''.join(chars).split())
 
-# Strict Script Ranges for Non-Latin Verification
+# Script Ranges for Non-Latin Verification
 NATIVE_RANGES = {
     'ta': (0x0B80, 0x0BFF),
     'hi': (0x0900, 0x097F),
@@ -69,18 +78,6 @@ NATIVE_RANGES = {
     'ar': [(0x0600, 0x06FF), (0x0750, 0x077F), (0xFB50, 0xFDFF), (0xFE70, 0xFEFF)],
     'ur': [(0x0600, 0x06FF), (0x0750, 0x077F), (0xFB50, 0xFDFF), (0xFE70, 0xFEFF)],
 }
-
-ALL_INDIC_RANGES = [
-    (0x0900, 0x097F),  # Devanagari
-    (0x0980, 0x09FF),  # Bengali
-    (0x0A00, 0x0A7F),  # Gurmukhi
-    (0x0A80, 0x0AFF),  # Gujarati
-    (0x0B00, 0x0B7F),  # Oriya
-    (0x0B80, 0x0BFF),  # Tamil
-    (0x0C00, 0x0C7F),  # Telugu
-    (0x0C80, 0x0CFF),  # Kannada
-    (0x0D00, 0x0D7F),  # Malayalam
-]
 
 SHARED_INDIC_PUNCTUATION = {0x0964, 0x0965}  # Devanagari Danda & Double Danda shared across Indic scripts
 
@@ -91,59 +88,89 @@ def in_range(code_point, rng):
 
 def script_matches(text, language):
     """
-    Validates script membership.
-    Rejects Cyrillic ('Привет'), Greek, and cross-script contamination in Latin & Indic outputs.
+    Validates script membership strictly:
+    - Latin languages ('en', 'pl', 'ro', 'so'): Letters must be Latin.
+      Cyrillic, Greek, Arabic, Indic rejected.
+    - Non-Latin languages ('ta', 'hi', 'ml', 'bn', 'ar', 'ur'):
+      Letters must belong to the target script, or be permitted Latin abbreviations (e.g. 'NHS').
+      Letters from foreign non-Latin scripts (e.g. Cyrillic, Arabic in Tamil, Tamil in Arabic) are rejected.
+      Whitespace, numbers, punctuation, and shared Indic dandas are permitted.
+      Must contain at least one character of the target script.
     """
     if not text:
         return False
 
     if language in NON_LATIN_LANGUAGES:
+        target_script = SCRIPT_NAME_MAP.get(language)
         target_range = NATIVE_RANGES.get(language)
-        if not target_range:
+        if not target_script or not target_range:
             return False
+
         has_target_script = False
 
         for c in text:
             cp = ord(c)
 
-            # Allow common whitespace, digits, ASCII, punctuation, and shared Indic dandas
-            if cp in SHARED_INDIC_PUNCTUATION or cp < 0x0080 or unicodedata.category(c).startswith(('P', 'Z', 'N')):
+            # 1. Allow shared Indic punctuation (Dandas)
+            if cp in SHARED_INDIC_PUNCTUATION:
                 continue
 
-            # Check for illegal cross-Indic or foreign script mixing
-            for r_start, r_end in ALL_INDIC_RANGES:
-                if r_start <= cp <= r_end:
-                    if not in_range(cp, target_range):
-                        return False
+            # 2. Allow whitespace, punctuation, numbers, symbols
+            cat = unicodedata.category(c)
+            if cat.startswith(('P', 'Z', 'N', 'S')) or c in '\r\n\t ':
+                continue
 
-            if in_range(cp, target_range):
-                has_target_script = True
+            # 3. Combining marks
+            if cat.startswith('M'):
+                try:
+                    c_name = unicodedata.name(c, '')
+                except ValueError:
+                    return False
+                # Reject foreign combining marks
+                for other_code, other_script in SCRIPT_NAME_MAP.items():
+                    if other_script != target_script and other_script in c_name:
+                        return False
+                if target_script in c_name or in_range(cp, target_range):
+                    has_target_script = True
+                continue
+
+            # 4. Letters
+            if c.isalpha():
+                try:
+                    c_name = unicodedata.name(c, '')
+                except ValueError:
+                    return False
+
+                # Target script letter -> valid
+                if target_script in c_name or in_range(cp, target_range):
+                    has_target_script = True
+                    continue
+
+                # Explicitly permit Latin letters for abbreviations like 'NHS'
+                if 'LATIN' in c_name or ('A' <= c <= 'Z') or ('a' <= c <= 'z'):
+                    continue
+
+                # Any other alphabet (Cyrillic, Greek, Arabic in Tamil, Tamil in Arabic) -> REJECT
+                return False
 
         return has_target_script
 
     if language in LATIN_LANGUAGES:
         has_latin_letter = False
         for c in text:
-            # Skip punctuation, whitespace, numbers, symbols
-            if unicodedata.category(c).startswith(('P', 'Z', 'N', 'S')) or c in '\r\n\t ':
+            cat = unicodedata.category(c)
+            if cat.startswith(('P', 'Z', 'N', 'S')) or c in '\r\n\t ':
                 continue
-            
-            # Character must be a letter
             if not c.isalpha():
                 continue
-
             try:
-                name = unicodedata.name(c, '')
+                c_name = unicodedata.name(c, '')
             except ValueError:
                 return False
-
-            # Strict Unicode script check: must be a LATIN character
-            if 'LATIN' in name:
+            if 'LATIN' in c_name:
                 has_latin_letter = True
             else:
-                # Disallow CYRILLIC, GREEK, ARABIC, DEVANAGARI, etc.
                 return False
-
         return has_latin_letter
 
     return True
@@ -257,7 +284,7 @@ def online(text, source, target):
         if not translated:
             return unavailable('empty_translation')
 
-        # Reject unchanged cross-language outputs (e.g. English -> Polish 'Hello' -> 'Hello')
+        # Reject unchanged cross-language outputs
         if source != target and translated.lower() == clean_input.lower() and not numeric_response(clean_input):
             return unavailable('unchanged_echo')
 
@@ -276,7 +303,7 @@ def online(text, source, target):
             native=translated,
             status='needs_review',
             source='google_cloud',
-            warning=REVIEW  # <-- REVIEW is defined at the top as 'Machine translation · Confirm meaning with speaker.'
+            warning=REVIEW
         )
 
     except requests.Timeout:
@@ -291,7 +318,8 @@ def online(text, source, target):
         return unavailable('provider_error')
 
 # ============================================================
-# PREPARED CLINICAL STAFF LOOKUP (All 9 Languages)
+# PREPARED CLINICAL STAFF LOOKUP (9 Exact Phrases across 9 Languages)
+# 5 Reception/Administrative Prompts, 4 Symptom Prompts
 # ============================================================
 STAFF_LOOKUP = {
     "Do you have an appointment?": {
@@ -420,6 +448,7 @@ def staff_translation(text, language):
 
 # ============================================================
 # PATIENT DISPATCHER WITH STRICT ROMANISED GUARDS
+# Contains the two exact verified Romanised Tamil chest pain entries
 # ============================================================
 EXACT_ROMANISED = {
     'ta': {
