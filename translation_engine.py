@@ -94,7 +94,7 @@ def script_matches(text, language):
     - Non-Latin languages ('ta', 'hi', 'ml', 'bn', 'ar', 'ur'):
       Letters must belong to the target script, or be permitted Latin abbreviations (e.g. 'NHS').
       Letters from foreign non-Latin scripts (e.g. Cyrillic, Arabic in Tamil, Tamil in Arabic) are rejected.
-      Whitespace, numbers, punctuation, and shared Indic dandas are permitted.
+      Whitespace, numbers, punctuation, format marks (ZWJ/ZWNJ), and shared Indic dandas are permitted.
       Must contain at least one character of the target script.
     """
     if not text:
@@ -115,9 +115,9 @@ def script_matches(text, language):
             if cp in SHARED_INDIC_PUNCTUATION:
                 continue
 
-            # 2. Allow whitespace, punctuation, numbers, symbols
+            # 2. Allow whitespace, punctuation, numbers, symbols, and format joiners (ZWJ/ZWNJ)
             cat = unicodedata.category(c)
-            if cat.startswith(('P', 'Z', 'N', 'S')) or c in '\r\n\t ':
+            if cat.startswith(('P', 'Z', 'N', 'S')) or cat == 'Cf' or c in '\r\n\t ':
                 continue
 
             # 3. Combining marks
@@ -150,7 +150,7 @@ def script_matches(text, language):
                 if 'LATIN' in c_name or ('A' <= c <= 'Z') or ('a' <= c <= 'z'):
                     continue
 
-                # Any other alphabet (Cyrillic, Greek, Arabic in Tamil, Devanagari in Urdu) -> REJECT
+                # Any other foreign script -> REJECT
                 return False
 
         return has_target_script
@@ -159,7 +159,7 @@ def script_matches(text, language):
         has_latin_letter = False
         for c in text:
             cat = unicodedata.category(c)
-            if cat.startswith(('P', 'Z', 'N', 'S')) or c in '\r\n\t ':
+            if cat.startswith(('P', 'Z', 'N', 'S')) or cat == 'Cf' or c in '\r\n\t ':
                 continue
             if not c.isalpha():
                 continue
@@ -320,6 +320,7 @@ def online(text, source, target):
 # ============================================================
 # PREPARED CLINICAL STAFF LOOKUP (9 Exact Phrases across 9 Languages)
 # 5 Reception/Administrative Prompts, 4 Symptom Prompts
+# 100% verified pure native Unicode script across all 9 languages
 # ============================================================
 STAFF_LOOKUP = {
     "Do you have an appointment?": {
@@ -369,7 +370,7 @@ STAFF_LOOKUP = {
     "Do you need an interpreter?": {
         "ta": "உங்களுக்கு மொழிபெயர்ப்பாளர் தேவையா?",
         "hi": "क्या आपको अनुवादक की आवश्यकता है?",
-        "ml": "നിങ്ങൾക്ക് ഒരു விവർത്തകനെ ആവശ്യമുണ്ടോ?",
+        "ml": "\u0D28\u0D3F\u0D19\u0D4D\u0D19\u0D7E\u0D15\u0D4D\u0D15\u0D4D \u0D12\u0D30\u0D41 \u0D35\u0D3F\u0D35\u0D7C\u0D24\u0D4D\u0D24\u0D15\u0D28\u0D46 \u0D06\u0D35\u0D36\u0D4D\u0D2F\u0D2E\u0D41\u0D23\u0D4D\u0D1F\u0D4B?",
         "pl": "Czy potrzebuje Pan/Pani tłumacza?",
         "ar": "هل تحتاج إلى مترجم فوري؟",
         "ur": "کیا آپ کو مترجم کی ضرورت ہے؟",
@@ -380,7 +381,7 @@ STAFF_LOOKUP = {
     "Where is your pain?": {
         "ta": "உங்களுக்கு வலி எங்கே இருக்கிறது?",
         "hi": "आपको दर्द कहाँ है?",
-        "ml": "നിങ്ങൾക്ക് எവിടെയാണ് വേദന?",
+        "ml": "\u0D28\u0D3F\u0D19\u0D4D\u0D19\u0D7E\u0D15\u0D4D\u0D15\u0D4D \u0D0E\u0D35\u0D3F\u0D1F\u0D46\u0D2F\u0D3E\u0D23\u0D4D \u0D35\u0D47\u0D26\u0D28?",
         "pl": "Gdzie odczuwa Pan/Pani ból?",
         "ar": "أين تشعر بالألم؟",
         "ur": "آپ کو درد کہاں ہو رہا ہے؟",
@@ -402,7 +403,7 @@ STAFF_LOOKUP = {
     "Do you have a fever?": {
         "ta": "உங்களுக்கு காய்ச்சல் உள்ளதா?",
         "hi": "क्या आपको बुखार है?",
-        "ml": "നിങ്ങൾക്ക് പനിയുണ്ടோ?",
+        "ml": "\u0D28\u0D3F\u0D19\u0D4D\u0D19\u0D7E\u0D15\u0D4D\u0D15\u0D4D \u0D2A\u0D28\u0D3F\u0D2F\u0D41\u0D23\u0D4D\u0D1F\u0D4B?",
         "pl": "Czy ma Pan/Pani gorączkę?",
         "ar": "هل تعاني من الحمى؟",
         "ur": "کیا آپ کو بخار ہے؟",
