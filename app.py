@@ -8,8 +8,7 @@ from urllib.parse import urlparse
 from flask import Flask, flash, jsonify, redirect, render_template, request, session, url_for
 from flask_login import LoginManager, UserMixin, current_user, login_required, login_user, logout_user
 
-# Import engine functions from translator.py
-from translator import (
+from translation_engine import (
     LANGUAGES,
     Translation,
     configured_key,
@@ -22,9 +21,13 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 template_dir = os.path.join(BASE_DIR, 'templates')
 
 app = Flask(__name__, template_folder=template_dir)
+
+# Configurable environment signing secret
 app.secret_key = os.environ.get("SECRET_KEY", "medoriva-clinical-mvp-2026-v4")
 
-# Ephemeral session security configuration
+# Implemented COOKIE_SECURE setting from documentation
+cookie_secure = os.environ.get("COOKIE_SECURE", "false").lower() in ("true", "1", "yes")
+app.config["SESSION_COOKIE_SECURE"] = cookie_secure
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
@@ -32,7 +35,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("medoriva.app")
 
 # ============================================================
-# CANONICAL LANGUAGE MAPPING (All Languages in rules_dictionary)
+# CANONICAL LANGUAGE MAPPING (All 9 Approved MVP Languages)
 # ============================================================
 CANONICAL_LANGUAGES = {
     "ta": ("Tamil", "ta"), "tamil": ("Tamil", "ta"),
@@ -44,8 +47,6 @@ CANONICAL_LANGUAGES = {
     "bn": ("Bengali", "bn"), "bengali": ("Bengali", "bn"),
     "so": ("Somali", "so"), "somali": ("Somali", "so"),
     "ro": ("Romanian", "ro"), "romanian": ("Romanian", "ro"),
-    "pa": ("Punjabi", "pa"), "punjabi": ("Punjabi", "pa"),
-    "gu": ("Gujarati", "gu"), "gujarati": ("Gujarati", "gu"),
 }
 
 def get_canonical(raw_lang, raw_code=None):
@@ -55,31 +56,63 @@ def get_canonical(raw_lang, raw_code=None):
         token = re.split(r'[\s\(\-_/]', str(raw_lang).strip())[0].lower()
         if token in CANONICAL_LANGUAGES:
             return CANONICAL_LANGUAGES[token]
-        # Never fall back to Tamil silently: keep actual identifier
         return (str(raw_lang).strip(), str(raw_code or raw_lang).strip())
     return ("Tamil", "ta")
 
+# Priority 5 Fix: Preserve Unicode combining marks in normalisation
 def normalize_phrase(text):
     if not text:
         return ""
-    cleaned = re.sub(r'[^\w\s]', ' ', str(text), flags=re.UNICODE)
-    return " ".join(unicodedata.normalize('NFC', cleaned).lower().split())
+    chars = [c for c in unicodedata.normalize('NFC', str(text)) if not unicodedata.category(c).startswith('P')]
+    return " ".join("".join(chars).lower().split())
 
 # ============================================================
-# MULTILINGUAL NEGATION TOKENS (All 9+ Languages)
+# MULTILINGUAL NEGATION TOKENS
 # ============================================================
 NEGATION_TOKENS_BY_LANG = {
-    "ta": {"illai", "illa", "kidayathu", "illamal", "vendam", "thevai illai", "இல்லை", "கிடையாது", "வேண்டாம்"},
-    "hi": {"nahi", "nahin", "na", "mat", "नहीं", "ना", "मत"},
-    "ml": {"illa", "alla", "illaathe", "venda", "aavashyamilla", "ഇല്ല", "അല്ല", "വേണ്ട"},
-    "pl": {"nie", "brak", "bez", "ani"},
-    "ar": {"la", "kalla", "laysa", "ma", "mush", "lan", "lam", "لا", "كلا", "ليس", "ما", "مش"},
-    "ur": {"nahi", "nahin", "na", "mat", "nhi", "نہیں", "نہ", "مت"},
-    "bn": {"na", "nei", "noi", "noy", "না", "নেই", "নয়"},
-    "so": {"maya", "ma", "maha", "malihi", "ha", "ma jiro"},
-    "ro": {"nu", "nici", "fara", "fără"},
-    "pa": {"nahi", "nhi", "na", "nahin", "ਨਹੀਂ", "ਨਾ"},
-    "gu": {"nathi", "na", "નથી", "ના"}
+    "ta": {"illai", "illa", "kidayathu", "illamal", "vendam", "thevai illai", "இல்லை", "கிடையாது", "வேண்டாம்", "தெரியாது", "theriyathu", "therila"},
+    "hi": {"nahi", "nahin", "na", "mat", "नहीं", "ना", "मत", "pata nahi", "पता नहीं"},
+    "ml": {"illa", "alla", "illaathe", "venda", "aavashyamilla", "ഇല്ല", "അല്ല", "വേണ്ട", "അറിയില്ല", "ariyilla"},
+    "pl": {"nie", "brak", "bez", "ani", "nie znam", "nie pamietam"},
+    "ar": {"la", "kalla", "laysa", "ma", "mush", "lan", "lam", "لا", "كلا", "ليس", "ما", "مش", "لا أعرف"},
+    "ur": {"nahi", "nahin", "na", "mat", "nhi", "نہیں", "نہ", "مت", "معلوم نہیں", "maloom nahi"},
+    "bn": {"na", "nei", "noi", "noy", "না", "নেই", "নয়", "জানা নেই", "jani na"},
+    "so": {"maya", "ma", "maha", "malihi", "ha", "ma jiro", "ma garanayo", "ma aqaan"},
+    "ro": {"nu", "nici", "fara", "fără", "nu stiu"}
+}
+
+# Priority 2 Fix: Explicit Polarity Registry for All Dictionary Intents
+POLARITY_MAP = {
+    # Negative polarity (explicit denials, unpossessed, unknown values, refusals)
+    "APPOINTMENT_SPECIFIC_NO": "negative",
+    "NHS_UNKNOWN": "negative",
+    "INTERPRETER_SPECIFIC_NO": "negative",
+    "COMPANION_NO": "negative",
+    "SYMPTOM_NO_PAIN": "negative",
+    "NOT_NEEDED": "negative",
+    "GENERIC_NO": "negative",
+    "NEGATE_NO": "negative",
+
+    # Affirmative polarity
+    "APPOINTMENT_YES_HAVE": "affirmative",
+    "APPOINTMENT_HAVE": "affirmative",
+    "DOCUMENT_HAVE": "affirmative",
+    "NHS_OR_ID_PROVIDED": "affirmative",
+    "INTERPRETER_SPECIFIC_YES": "affirmative",
+    "COMPANION_YES": "affirmative",
+    "SYMPTOM_PAIN_GENERAL": "affirmative",
+    "SYMPTOM_FEVER": "affirmative",
+    "AFFIRM_HAVE_GENERAL": "affirmative",
+    "HAVE_GENERAL": "affirmative",
+    "NEEDED": "affirmative",
+    "GENERIC_YES": "affirmative",
+    "AFFIRM_YES": "affirmative",
+
+    # Neutral / inquiry intents
+    "PRESCRIPTION_NEED": "neutral",
+    "TOILET_WHERE": "neutral",
+    "UNDERSTOOD_WAIT": "neutral",
+    "GENERAL_ACKNOWLEDGE": "neutral"
 }
 
 # ============================================================
@@ -101,11 +134,18 @@ def load_rules_data(filepath):
                 continue
             name, code = get_canonical(lang_key)
             if isinstance(rules_list, list):
-                # Store under both code ('ta') and full name ('Tamil')
-                normalized[code] = rules_list
-                normalized[name] = rules_list
-                normalized[code.lower()] = rules_list
-                normalized[name.lower()] = rules_list
+                # Augment rules with explicit polarity
+                augmented_rules = []
+                for r in rules_list:
+                    r_copy = dict(r)
+                    intent = r_copy.get("intent", "")
+                    r_copy["polarity"] = POLARITY_MAP.get(intent, "neutral")
+                    augmented_rules.append(r_copy)
+
+                normalized[code] = augmented_rules
+                normalized[name] = augmented_rules
+                normalized[code.lower()] = augmented_rules
+                normalized[name.lower()] = augmented_rules
         logger.info("Loaded rules dictionary for languages: %s", list(normalized.keys()))
         return normalized
     except Exception as e:
@@ -188,14 +228,14 @@ def simplify_text(text):
     return simplified, changed
 
 # ============================================================
-# SECURITY & SESSION GUARDS
+# SECURITY & SESSION GUARDS (Configurable Credentials)
 # ============================================================
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-DEMO_EMAIL = "demo@medoriva.com"
-DEMO_PASSWORD = "medoriva2026"
+DEMO_EMAIL = os.environ.get("DEMO_EMAIL", "demo@medoriva.com").strip().lower()
+DEMO_PASSWORD = os.environ.get("DEMO_PASSWORD", "medoriva2026").strip()
 
 class User(UserMixin):
     def __init__(self, email):
@@ -207,7 +247,7 @@ class User(UserMixin):
 
 @login_manager.user_loader
 def load_user(user_id):
-    if user_id and str(user_id).strip().lower() == DEMO_EMAIL.lower():
+    if user_id and str(user_id).strip().lower() == DEMO_EMAIL:
         return User(user_id)
     return None
 
@@ -264,7 +304,7 @@ def login():
             email = str(request.form.get('email') or request.form.get('username') or '').strip().lower()
             password = str(request.form.get('password') or '').strip()
 
-        if email == DEMO_EMAIL.lower() and password == DEMO_PASSWORD:
+        if email == DEMO_EMAIL and password == DEMO_PASSWORD:
             user = User(email)
             login_user(user, remember=False)
 
@@ -292,20 +332,14 @@ def logout():
 
 # ============================================================
 # API ENDPOINTS
+# Priority 7 Fix: Do not claim delivery until actual transport is active
 # ============================================================
 @app.route("/api/contact", methods=["POST"])
 def submit_contact():
-    data = request.get_json(silent=True)
-    if not isinstance(data, dict):
-        return jsonify({"status": "error", "message": "Invalid payload."}), 400
-
-    if not os.environ.get("CONTACT_DELIVERY_ENABLED") and not os.environ.get("SMTP_HOST"):
-        return jsonify({
-            "status": "unavailable",
-            "message": "Contact delivery service unconfigured. Please email practice team directly."
-        }), 503
-
-    return jsonify({"status": "ok", "message": "Inquiry delivered."}), 200
+    return jsonify({
+        "status": "unavailable",
+        "message": "Automated message delivery is currently disabled. Please contact the team directly via email at sanjaythillai@gmail.com or telephone +447778095553."
+    }), 503
 
 @app.route("/api/ping", methods=["GET"])
 def ping():
@@ -392,7 +426,13 @@ def translate_staff():
     if not isinstance(raw_text, str) or not raw_text.strip() or len(raw_text) > 2000:
         return jsonify({"error": "Bad Request", "message": "Invalid text input."}), 400
 
-    lang_code = session.get("lang_code", "ta")
+    # Validate language against active session
+    session_lang = session.get("lang_code", "ta")
+    req_lang = data.get("lang_code")
+    if req_lang and req_lang != session_lang:
+        return jsonify({"error": "Bad Request", "message": "Language mismatch with active session."}), 400
+
+    lang_code = session_lang
     lang_name = session.get("lang", "Tamil")
 
     res = staff_translation(raw_text, lang_code)
@@ -406,9 +446,13 @@ def translate_staff():
         "warning": getattr(res, "warning", None)
     }), 200
 
+# Priority 4 Fix: Enforce active session & session language in translate_patient
 @app.route("/api/translate_patient", methods=["POST"])
 @login_required
 def translate_patient():
+    if not session.get("active"):
+        return jsonify({"error": "Conflict", "message": "No active session."}), 409
+
     data = request.get_json(silent=True)
     if not isinstance(data, dict):
         return jsonify({"error": "Bad Request"}), 400
@@ -417,15 +461,18 @@ def translate_patient():
     if not isinstance(raw_text, str) or not raw_text.strip() or len(raw_text) > 2000:
         return jsonify({"error": "Bad Request", "message": "Invalid text input."}), 400
 
-    # Resolve language: read from request first, then fall back to session
-    raw_lang = data.get("lang") or session.get("lang", "Tamil")
-    raw_code = data.get("lang_code") or session.get("lang_code", "ta")
-    lang_name, lang_code = get_canonical(raw_lang, raw_code)
+    # Validate language against active session
+    session_lang = session.get("lang_code", "ta")
+    req_lang = data.get("lang_code")
+    if req_lang and req_lang != session_lang:
+        return jsonify({"error": "Bad Request", "message": "Language mismatch with active session."}), 400
+
+    lang_code = session_lang
+    lang_name = session.get("lang", "Tamil")
 
     norm_input = normalize_phrase(raw_text)
     input_tokens = set(norm_input.split())
 
-    # Look up rules using both code and canonical name
     rules_for_lang = (
         RULES_DATA.get(lang_code)
         or RULES_DATA.get(lang_name)
@@ -437,13 +484,13 @@ def translate_patient():
     lang_negs = NEGATION_TOKENS_BY_LANG.get(lang_code, set())
     has_negation = bool(input_tokens & lang_negs)
 
+    # Priority 2 Fix: Match using explicit rule polarity
     matched_rule = None
     for rule in rules_for_lang:
-        intent = rule.get("intent", "").upper()
-        is_neg_intent = any(neg in intent for neg in ["_NO", "NOT_", "NEGATE_", "NO_PAIN", "GENERIC_NO"])
+        rule_polarity = rule.get("polarity", "neutral")
 
-        # Prevent affirmative rules from matching when patient input is negative
-        if has_negation and not is_neg_intent:
+        # Never match an affirmative rule if patient input contains negation tokens
+        if has_negation and rule_polarity == "affirmative":
             continue
 
         for candidate in rule.get("input_matches", []):
@@ -453,7 +500,6 @@ def translate_patient():
         if matched_rule:
             break
 
-    # If verified rule matched, return immediately with verified translation
     if matched_rule:
         return jsonify({
             "original": raw_text,
@@ -466,7 +512,6 @@ def translate_patient():
             "warning": None
         }), 200
 
-    # Fallback to translation engine for descriptive phrases and longer sentences
     res = patient_translation(raw_text, lang_code)
 
     return jsonify({
