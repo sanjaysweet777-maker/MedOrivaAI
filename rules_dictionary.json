@@ -4,40 +4,28 @@
   "rules_by_language": {
     "Tamil": [
       {
-        "intent": "APPOINTMENT_SPECIFIC_YES",
-        "input_matches": ["appointment irukku", "aam enaku appointment irukku", "letter irukku", "kadam irukku", "அப்பாயிண்ட்மென்ட் இருக்கிறது"],
-        "native_script": "ஆம், எனக்கு அப்பாயிண்ட்மென்ட் / கடிதம் உள்ளது.",
-        "english_review": "Yes, I have an appointment / letter."
+        "intent": "APPOINTMENT_YES_HAVE",
+        "input_matches": ["aam appointment irukku", "aama appointment irukku", "aam enaku appointment irukku", "ஆம் எனக்கு அப்பாயிண்ட்மென்ட் உள்ளது"],
+        "native_script": "ஆம், எனக்கு அப்பாயிண்ட்மென்ட் உள்ளது.",
+        "english_review": "Yes, I have an appointment."
+      },
+      {
+        "intent": "APPOINTMENT_HAVE",
+        "input_matches": ["appointment irukku", "enaku appointment irukku", "அப்பாயிண்ட்மென்ட் இருக்கிறது", "அப்பாயிண்ட்மென்ட் உள்ளது"],
+        "native_script": "எனக்கு அப்பாயிண்ட்மென்ட் உள்ளது.",
+        "english_review": "I have an appointment."
       },
       {
         "intent": "APPOINTMENT_SPECIFIC_NO",
-        "input_matches": ["appointment illai", "illai enaku appointment illai", "no appointment", "அப்பாயிண்ட்மென்ட் இல்லை"],
+        "input_matches": ["appointment illai", "illai enaku appointment illai", "no appointment", "appointment illa", "அப்பாயிண்ட்மென்ட் இல்லை"],
         "native_script": "இல்லை, எனக்கு அப்பாயிண்ட்மென்ட் இல்லை.",
         "english_review": "No, I do not have an appointment."
       },
       {
-        "intent": "COMPANION_YES",
-        "input_matches": ["aam enathu uravinar ullaar", "uravinar ullaar", "uravinar irukanga", "kooda aal irukanga", "relative ullaar", "உறவினர் உள்ளார்"],
-        "native_script": "ஆம், எனது குடும்பத்தினர் / உறவினர் என்னுடன் உள்ளார்.",
-        "english_review": "Yes, a family member is with me."
-      },
-      {
-        "intent": "COMPANION_NO",
-        "input_matches": ["thaniya vanthen", "yaarum illai", "thaniyaga", "naan mattum"],
-        "native_script": "இல்லை, நான் தனியாக வந்துள்ளேன்.",
-        "english_review": "No, I am attending alone."
-      },
-      {
-        "intent": "INTERPRETER_SPECIFIC_NO",
-        "input_matches": ["interpreter thevai illai", "interpreter vendam", "மொழிபெயர்ப்பாளர் தேவை இல்லை"],
-        "native_script": "இல்லை, மொழிபெயர்ப்பாளர் தேவை இல்லை.",
-        "english_review": "No, an interpreter is not needed."
-      },
-      {
-        "intent": "INTERPRETER_SPECIFIC_YES",
-        "input_matches": ["interpreter thevai", "tamil interpreter thevai", "interpreter vendum", "மொழிபெயர்ப்பாளர் தேவை"],
-        "native_script": "ஆம், எனக்கு மொழிபெயர்ப்பாளர் தேவை.",
-        "english_review": "Yes, I require an interpreter."
+        "intent": "DOCUMENT_HAVE",
+        "input_matches": ["letter irukku", "kaditham irukku", "kadam irukku", "கடிதம் உள்ளது"],
+        "native_script": "என்னிடம் அப்பாயிண்ட்மென்ட் கடிதம் உள்ளது.",
+        "english_review": "I have the appointment letter."
       },
       {
         "intent": "NHS_OR_ID_PROVIDED",
@@ -52,10 +40,76 @@
         "english_review": "No, I do not know my NHS number."
       },
       {
-        "intent": "NOT_NEEDED",
-        "input_matches": ["vendam", "thevai illai", "illai thevai illai", "தேவை இல்லை", "வேண்டாம்"],
-        "native_script": "தேவை இல்லை.",
-        "english_review": "Not needed."
+        "intent": "PRESCRIPTION_NEED",
+        "input_matches": ["marunthu thevai", "prescription thevai", "marunthu venum", "மருந்து தேவை"],
+        "native_script": "எனக்கு மருந்து / பிரிஸ்கிரிப்ஷன் தேவை.",
+        "english_review": "I am here for my prescription/medication."
+      },
+      {
+        "intent": "TOILET_WHERE",
+        "input_matches": ["toilet enge", "bathroom enga irukku", "bathroom enge", "கழிப்பறை எங்கே"],
+        "native_script": "கழிப்பறை எங்கே உள்ளது?",
+        "english_review": "Where is the toilet/washroom?"
+      },
+      {
+        "intent": "INTERPRETER_SPECIFIC_YES",
+        "input_matches": ["interpreter thevai", "tamil interpreter thevai", "interpreter vendum", "மொழிபெயர்ப்பாளர் தேவை"],
+        "native_script": "ஆம், எனக்கு மொழிபெயர்ப்பாளர் தேவை.",
+        "english_review": "Yes, I require an interpreter."
+      },
+      {
+        "intent": "INTERPRETER_SPECIFIC_NO",
+        "input_matches": ["interpreter thevai illai", "interpreter vendam", "மொழிபெயர்ப்பாளர் தேவை இல்லை", "மொழிபெயர்ப்பாளர் தேவையில்லை"],
+        "native_script": "இல்லை, மொழிபெயர்ப்பாளர் தேவை இல்லை.",
+        "english_review": "No, an interpreter is not needed."
+      },
+      {
+        "intent": "COMPANION_YES",
+        "input_matches": ["aam enathu uravinar ullaar", "uravinar ullaar", "uravinar irukanga", "kooda aal irukanga", "relative ullaar", "உறவினர் உள்ளார்"],
+        "native_script": "ஆம், எனது குடும்பத்தினர் / உறவினர் என்னுடன் உள்ளார்.",
+        "english_review": "Yes, a family member is with me."
+      },
+      {
+        "intent": "COMPANION_NO",
+        "input_matches": ["thaniya vanthen", "yaarum illai", "thaniyaga", "naan mattum"],
+        "native_script": "இல்லை, நான் தனியாக வந்துள்ளேன்.",
+        "english_review": "No, I am attending alone."
+      },
+      {
+        "intent": "SYMPTOM_PAIN_GENERAL",
+        "input_matches": ["vali irukku", "enaku vali irukku", "vali", "வலி இருக்கிறது"],
+        "native_script": "எனக்கு வலி இருக்கிறது.",
+        "english_review": "I am experiencing pain."
+      },
+      {
+        "intent": "SYMPTOM_FEVER",
+        "input_matches": ["kaichal irukku", "fever irukku", "juram", "காய்ச்சல் உள்ளது"],
+        "native_script": "எனக்கு காய்ச்சல் உள்ளது.",
+        "english_review": "I have a fever/temperature."
+      },
+      {
+        "intent": "SYMPTOM_NO_PAIN",
+        "input_matches": ["vali illai", "vali illa", "வலி இல்லை"],
+        "native_script": "எனக்கு வலி இல்லை.",
+        "english_review": "I do not have pain."
+      },
+      {
+        "intent": "UNDERSTOOD_WAIT",
+        "input_matches": ["purinthathu", "kaathirukiren", "sari purinthathu", "ukaarugiren", "wait panren", "புரிந்தது"],
+        "native_script": "சரி, எனக்குப் புரிந்தது. நான் காத்திருக்கிறேன்.",
+        "english_review": "Understood. I will take a seat and wait."
+      },
+      {
+        "intent": "AFFIRM_HAVE_GENERAL",
+        "input_matches": ["aam irukku", "aama irukku", "ஆம் என்னிடம் உள்ளது"],
+        "native_script": "ஆம், என்னிடம் உள்ளது.",
+        "english_review": "Yes, I have it."
+      },
+      {
+        "intent": "HAVE_GENERAL",
+        "input_matches": ["irukku", "ennidum irukku", "என்னிடம் உள்ளது"],
+        "native_script": "என்னிடம் உள்ளது.",
+        "english_review": "I have it."
       },
       {
         "intent": "NEEDED",
@@ -64,8 +118,14 @@
         "english_review": "Yes, required."
       },
       {
+        "intent": "NOT_NEEDED",
+        "input_matches": ["vendam", "thevai illai", "illai thevai illai", "தேவை இல்லை", "வேண்டாம்"],
+        "native_script": "தேவை இல்லை.",
+        "english_review": "Not needed."
+      },
+      {
         "intent": "GENERIC_YES",
-        "input_matches": ["aam", "aamaam", "sari", "ok", "ஆம்", "ஆமாம்"],
+        "input_matches": ["aam", "aamaam", "aama", "ama", "sari", "ok", "ஆம்", "ஆமாம்"],
         "native_script": "ஆம்.",
         "english_review": "Yes."
       },
@@ -77,17 +137,23 @@
       },
       {
         "intent": "GENERAL_ACKNOWLEDGE",
-        "input_matches": ["nandri", "sari nandri", "ukaarugiren", "wait panren", "நன்றி"],
-        "native_script": "சரி, நன்றி. நான் காத்திருக்கிறேன்.",
+        "input_matches": ["nandri", "sari nandri", "நன்றி"],
+        "native_script": "சரி, நன்றி.",
         "english_review": "Understood, thank you."
       }
     ],
     "Hindi": [
       {
-        "intent": "APPOINTMENT_SPECIFIC_YES",
-        "input_matches": ["appointment hai", "haan mera appointment hai", "letter hai", "अपॉइंटमेंट है"],
-        "native_script": "हाँ, मेरा अपॉइंटमेंट / पत्र मेरे पास है।",
-        "english_review": "Yes, I have an appointment / letter."
+        "intent": "APPOINTMENT_YES_HAVE",
+        "input_matches": ["haan appointment hai", "haan mera appointment hai", "हाँ मेरा अपॉइंटमेंट है"],
+        "native_script": "हाँ, मेरा अपॉइंटमेंट है।",
+        "english_review": "Yes, I have an appointment."
+      },
+      {
+        "intent": "APPOINTMENT_HAVE",
+        "input_matches": ["appointment hai", "mera appointment hai", "अपॉइंटमेंट है"],
+        "native_script": "मेरा अपॉइंटमेंट है।",
+        "english_review": "I have an appointment."
       },
       {
         "intent": "APPOINTMENT_SPECIFIC_NO",
@@ -96,28 +162,10 @@
         "english_review": "No, I do not have an appointment."
       },
       {
-        "intent": "COMPANION_YES",
-        "input_matches": ["parivar sath hai", "relative sath hai", "koi sath hai", "परिवार साथ है"],
-        "native_script": "हाँ, मेरे परिवार के सदस्य मेरे साथ हैं।",
-        "english_review": "Yes, a family member is with me."
-      },
-      {
-        "intent": "COMPANION_NO",
-        "input_matches": ["akela hoon", "koi nahi hai", "अकेला हूँ"],
-        "native_script": "नहीं, मैं अकेला आया हूँ।",
-        "english_review": "No, I am attending alone."
-      },
-      {
-        "intent": "INTERPRETER_SPECIFIC_NO",
-        "input_matches": ["interpreter nahi chahiye", "anuvadak nahi chahiye"],
-        "native_script": "नहीं, अनुवादक की ज़रूरत नहीं है।",
-        "english_review": "No, an interpreter is not needed."
-      },
-      {
-        "intent": "INTERPRETER_SPECIFIC_YES",
-        "input_matches": ["interpreter chahiye", "hindi interpreter chahiye", "anuvadak chahiye"],
-        "native_script": "हाँ, मुझे अनुवादक की ज़रूरत है।",
-        "english_review": "Yes, I require an interpreter."
+        "intent": "DOCUMENT_HAVE",
+        "input_matches": ["letter hai", "parcha hai", "kaghaz hai", "पत्र है"],
+        "native_script": "मेरे पास पत्र है।",
+        "english_review": "I have the appointment letter."
       },
       {
         "intent": "NHS_OR_ID_PROVIDED",
@@ -132,16 +180,88 @@
         "english_review": "No, I do not know my NHS number."
       },
       {
-        "intent": "NOT_NEEDED",
-        "input_matches": ["zaroorat nahi hai", "nahi chahiye", "ज़रूरत नहीं है"],
-        "native_script": "ज़रूरत नहीं है।",
-        "english_review": "Not needed."
+        "intent": "PRESCRIPTION_NEED",
+        "input_matches": ["dawai chahiye", "prescription chahiye", "दवा चाहिए"],
+        "native_script": "मुझे अपनी दवा / प्रिस्क्रिप्शन चाहिए।",
+        "english_review": "I am here for my prescription/medication."
+      },
+      {
+        "intent": "TOILET_WHERE",
+        "input_matches": ["toilet kahan hai", "bathroom kahan hai", "शौचालय कहाँ है"],
+        "native_script": "शौचालय कहाँ है?",
+        "english_review": "Where is the toilet/washroom?"
+      },
+      {
+        "intent": "INTERPRETER_SPECIFIC_YES",
+        "input_matches": ["interpreter chahiye", "hindi interpreter chahiye", "anuvadak chahiye", "अनुवादक चाहिए"],
+        "native_script": "हाँ, मुझे अनुवादक की ज़रूरत है।",
+        "english_review": "Yes, I require an interpreter."
+      },
+      {
+        "intent": "INTERPRETER_SPECIFIC_NO",
+        "input_matches": ["interpreter nahi chahiye", "anuvadak nahi chahiye", "अनुवादक नहीं चाहिए"],
+        "native_script": "नहीं, अनुवादक की ज़रूरत नहीं है।",
+        "english_review": "No, an interpreter is not needed."
+      },
+      {
+        "intent": "COMPANION_YES",
+        "input_matches": ["parivar sath hai", "relative sath hai", "koi sath hai", "परिवार साथ है"],
+        "native_script": "हाँ, मेरे परिवार के सदस्य मेरे साथ हैं।",
+        "english_review": "Yes, a family member is with me."
+      },
+      {
+        "intent": "COMPANION_NO",
+        "input_matches": ["akela hoon", "koi nahi hai", "अकेला हूँ"],
+        "native_script": "नहीं, मैं अकेला आया हूँ।",
+        "english_review": "No, I am attending alone."
+      },
+      {
+        "intent": "SYMPTOM_PAIN_GENERAL",
+        "input_matches": ["dard hai", "mujhe dard hai", "दर्द है"],
+        "native_script": "मुझे दर्द है।",
+        "english_review": "I am experiencing pain."
+      },
+      {
+        "intent": "SYMPTOM_FEVER",
+        "input_matches": ["bukhar hai", "mujhe bukhar hai", "बुखार है"],
+        "native_script": "मुझे बुखार है।",
+        "english_review": "I have a fever/temperature."
+      },
+      {
+        "intent": "SYMPTOM_NO_PAIN",
+        "input_matches": ["dard nahi hai", "koi dard nahi", "दर्द नहीं है"],
+        "native_script": "मुझे कोई दर्द नहीं है।",
+        "english_review": "I do not have pain."
+      },
+      {
+        "intent": "UNDERSTOOD_WAIT",
+        "input_matches": ["samajh gaya", "samajh gayi", "intezar karunga", "baithta hoon", "समझ गया"],
+        "native_script": "समझ गया। मैं प्रतीक्षा करूँगा।",
+        "english_review": "Understood. I will take a seat and wait."
+      },
+      {
+        "intent": "AFFIRM_HAVE_GENERAL",
+        "input_matches": ["haan hai", "haan mere paas hai", "हाँ है"],
+        "native_script": "हाँ, मेरे पास है।",
+        "english_review": "Yes, I have it."
+      },
+      {
+        "intent": "HAVE_GENERAL",
+        "input_matches": ["hai", "mere paas hai", "पास है"],
+        "native_script": "मेरे पास है।",
+        "english_review": "I have it."
       },
       {
         "intent": "NEEDED",
         "input_matches": ["zaroorat hai", "chahiye", "ज़रूरत है"],
         "native_script": "ज़रूरत है।",
         "english_review": "Yes, required."
+      },
+      {
+        "intent": "NOT_NEEDED",
+        "input_matches": ["zaroorat nahi hai", "nahi chahiye", "ज़रूरत नहीं है"],
+        "native_script": "ज़रूरत नहीं है।",
+        "english_review": "Not needed."
       },
       {
         "intent": "GENERIC_YES",
@@ -157,337 +277,163 @@
       },
       {
         "intent": "GENERAL_ACKNOWLEDGE",
-        "input_matches": ["dhanyawad", "shukriya", "baithta hoon", "धन्यवाद"],
+        "input_matches": ["dhanyawad", "shukriya", "धन्यवाद"],
         "native_script": "ठीक है, धन्यवाद।",
         "english_review": "Understood, thank you."
       }
     ],
-    "Urdu": [
+    "Malayalam": [
       {
-        "intent": "APPOINTMENT_SPECIFIC_YES",
-        "input_matches": ["appointment hai", "meri appointment hai", "khat hai", "اپائنٹمنٹ ہے"],
-        "native_script": "ہاں، میری اپائنٹمنٹ / خط میرے پاس ہے۔",
-        "english_review": "Yes, I have an appointment / letter."
+        "intent": "APPOINTMENT_YES_HAVE",
+        "input_matches": ["athe appointment undu", "athe enikku appointment undu", "അതെ അപ്പോയിന്റ്മെന്റ് ഉണ്ട്"],
+        "native_script": "അതെ, എനിക്ക് അപ്പോയിന്റ്മെന്റ് ഉണ്ട്.",
+        "english_review": "Yes, I have an appointment."
+      },
+      {
+        "intent": "APPOINTMENT_HAVE",
+        "input_matches": ["appointment undu", "enikku appointment undu", "അപ്പോയിന്റ്മെന്റ് ഉണ്ട്"],
+        "native_script": "എനിക്ക് അപ്പോയിന്റ്മെന്റ് ഉണ്ട്.",
+        "english_review": "I have an appointment."
       },
       {
         "intent": "APPOINTMENT_SPECIFIC_NO",
-        "input_matches": ["appointment nahi hai", "meri appointment nahi hai", "اپائنٹمنٹ نہیں ہے"],
-        "native_script": "نہیں، میری اپائنٹمنٹ نہیں ہے۔",
+        "input_matches": ["appointment illa", "enikku appointment illa", "അപ്പോയിന്റ്മെന്റ് ഇല്ല"],
+        "native_script": "ഇല്ല, എനിക്ക് അപ്പോയിന്റ്മെന്റ് ഇല്ല.",
         "english_review": "No, I do not have an appointment."
       },
       {
-        "intent": "COMPANION_YES",
-        "input_matches": ["khandan sath hai", "relative sath hai", "koi sath hai", "ساتھ ہے"],
-        "native_script": "ہاں، میرے ساتھ کوئی موجود ہے۔",
-        "english_review": "Yes, a family member is with me."
-      },
-      {
-        "intent": "COMPANION_NO",
-        "input_matches": ["akela hoon", "tanha hoon", "koi nahi hai", "اکیلا ہوں"],
-        "native_script": "نہیں، میں اکیلا آیا ہوں۔",
-        "english_review": "No, I am attending alone."
-      },
-      {
-        "intent": "INTERPRETER_SPECIFIC_NO",
-        "input_matches": ["tarjuma nahi chahiye", "interpreter nahi chahiye"],
-        "native_script": "نہیں، مترجم کی ضرورت نہیں ہے۔",
-        "english_review": "No, an interpreter is not needed."
-      },
-      {
-        "intent": "INTERPRETER_SPECIFIC_YES",
-        "input_matches": ["tarjuma chahiye", "interpreter chahiye", "urdu interpreter chahiye"],
-        "native_script": "ہاں، مجھے مترجم کی ضرورت ہے۔",
-        "english_review": "Yes, I require an interpreter."
+        "intent": "DOCUMENT_HAVE",
+        "input_matches": ["letter undu", "kathu undu", "കത്തുണ്ട്"],
+        "native_script": "എന്റെ പക്കൽ കത്തുണ്ട്.",
+        "english_review": "I have the appointment letter."
       },
       {
         "intent": "NHS_OR_ID_PROVIDED",
-        "input_matches": ["nhs number hai", "id card hai", "ye lijiye id", "نمبر ہے"],
-        "native_script": "یہ رہا میرا NHS نمبر / شناختی کارڈ۔",
+        "input_matches": ["nhs number undu", "id card undu", "രേഖയുണ്ട്"],
+        "native_script": "ഇതാ എന്റെ NHS നമ്പർ / തിരിച്ചറിയൽ കാർഡ്.",
         "english_review": "Here is my NHS number / ID card."
       },
       {
         "intent": "NHS_UNKNOWN",
-        "input_matches": ["maloom nahi", "number nahi pata", "yaad nahi", "معلوم نہیں"],
-        "native_script": "نہیں، مجھے اپنا NHS نمبر معلوم نہیں ہے۔",
+        "input_matches": ["number ariyilla", "ormayilla", "അറിയില്ല"],
+        "native_script": "ഇല്ല, എനിക്ക് NHS നമ്പർ അറിയില്ല.",
         "english_review": "No, I do not know my NHS number."
       },
       {
-        "intent": "NOT_NEEDED",
-        "input_matches": ["zaroorat nahi hai", "nahi chahiye", "ضرورت نہیں ہے"],
-        "native_script": "ضرورت نہیں ہے۔",
-        "english_review": "Not needed."
+        "intent": "PRESCRIPTION_NEED",
+        "input_matches": ["marunnu venam", "prescription venam", "മരുന്ന് വേണം"],
+        "native_script": "എനിക്ക് മരുന്ന് / കുറിപ്പടി വേണം.",
+        "english_review": "I am here for my prescription/medication."
       },
       {
-        "intent": "NEEDED",
-        "input_matches": ["zaroorat hai", "chahiye", "ضرورت ہے"],
-        "native_script": "ضرورت ہے۔",
-        "english_review": "Yes, required."
+        "intent": "TOILET_WHERE",
+        "input_matches": ["toilet evide", "bathroom evideya", "ടോയ്‌ലറ്റ് എവിടെയാണ്"],
+        "native_script": "ടോയ്‌ലറ്റ് എവിടെയാണ്?",
+        "english_review": "Where is the toilet/washroom?"
       },
       {
-        "intent": "GENERIC_YES",
-        "input_matches": ["haan", "jee haan", "theek hai", "ہاں", "جی ہاں"],
-        "native_script": "ہاں۔",
-        "english_review": "Yes."
+        "intent": "INTERPRETER_SPECIFIC_YES",
+        "input_matches": ["interpreter venam", "vivarthakan venam", "വിവർത്തകൻ വേണം"],
+        "native_script": "അതെ, എനിക്ക് ഒരു വിവർത്തകനെ വേണം.",
+        "english_review": "Yes, I require an interpreter."
       },
       {
-        "intent": "GENERIC_NO",
-        "input_matches": ["nahi", "nahin", "نہیں"],
-        "native_script": "نہیں।",
-        "english_review": "No."
-      },
-      {
-        "intent": "GENERAL_ACKNOWLEDGE",
-        "input_matches": ["shukriya", "bohot shukriya", "intezar karta hoon", "شکریہ"],
-        "native_script": "ठीक है, شكریہ۔",
-        "english_review": "Understood, thank you."
-      }
-    ],
-    "Punjabi": [
-      {
-        "intent": "APPOINTMENT_SPECIFIC_YES",
-        "input_matches": ["appointment hai", "chitti hai", "meri appointment hai", "ਅਪਾਇੰਟਮੈਂਟ ਹੈ"],
-        "native_script": "ਹਾਂ, ਮੇਰੀ ਅਪਾਇੰਟਮੈਂਟ / ਚਿੱਠੀ ਮੇਰੇ ਕੋਲ ਹੈ।",
-        "english_review": "Yes, I have an appointment / letter."
-      },
-      {
-        "intent": "APPOINTMENT_SPECIFIC_NO",
-        "input_matches": ["appointment nahi hai", "meri appointment nahi", "ਅਪਾਇੰਟਮੈਂਟ ਨਹੀਂ ਹੈ"],
-        "native_script": "ਨਹੀਂ, ਮੇਰੀ ਕੋਈ ਅਪਾਇੰਟਮੈਂਟ ਨਹੀਂ ਹੈ।",
-        "english_review": "No, I do not have an appointment."
+        "intent": "INTERPRETER_SPECIFIC_NO",
+        "input_matches": ["interpreter venda", "vivarthakan venda", "വിവർത്തകൻ വേണ്ട"],
+        "native_script": "ഇല്ല, വിവർത്തകന്റെ ആവശ്യമില്ല.",
+        "english_review": "No, an interpreter is not needed."
       },
       {
         "intent": "COMPANION_YES",
-        "input_matches": ["parivar naal hai", "relative naal hai", "koi naal hai", "ਨਾਲ ਹੈ"],
-        "native_script": "ਹਾਂ, ਮੇਰੇ ਨਾਲ ਪਰਿਵਾਰ ਦਾ ਮੈਂਬਰ ਹੈ।",
+        "input_matches": ["kudumbam koodeyundu", "relative koode undu", "കുടുംബാംഗം കൂടെയുണ്ട്"],
+        "native_script": "അതെ, എന്റെ ബന്ധു എന്റെ കൂടെയുണ്ട്.",
         "english_review": "Yes, a family member is with me."
       },
       {
         "intent": "COMPANION_NO",
-        "input_matches": ["kalla haan", "ikalla", "koi nahi naal", "ਇਕੱਲਾ ਹਾਂ"],
-        "native_script": "ਨਹੀਂ, ਮੈਂ ਇਕੱਲਾ ਆਇਆ ਹਾਂ।",
+        "input_matches": ["thanichanu", "orukkalum koode illa", "തനിച്ചാണ്"],
+        "native_script": "ഇല്ല, ഞാൻ തനിച്ചാണ് വന്നത്.",
         "english_review": "No, I am attending alone."
       },
       {
-        "intent": "INTERPRETER_SPECIFIC_NO",
-        "input_matches": ["interpreter nahi lod", "anuvadak nahi lod"],
-        "native_script": "ਨਹੀਂ, ਅਨੁਵਾਦਕ ਦੀ ਲੋੜ ਨਹੀਂ ਹੈ।",
-        "english_review": "No, an interpreter is not needed."
+        "intent": "SYMPTOM_PAIN_GENERAL",
+        "input_matches": ["vedhana undu", "enikku vedhana undu", "വേദനയുണ്ട്"],
+        "native_script": "എനിക്ക് വേദനയുണ്ട്.",
+        "english_review": "I am experiencing pain."
       },
       {
-        "intent": "INTERPRETER_SPECIFIC_YES",
-        "input_matches": ["interpreter chahida", "punjabi interpreter chahida"],
-        "native_script": "ਹਾਂ, ਮੈਨੂੰ ਅਨੁਵਾਦਕ ਦੀ ਲੋੜ ਹੈ।",
-        "english_review": "Yes, I require an interpreter."
+        "intent": "SYMPTOM_FEVER",
+        "input_matches": ["pani undu", "enikku paniyanu", "പനിയുണ്ട്"],
+        "native_script": "എനിക്ക് പനിയുണ്ട്.",
+        "english_review": "I have a fever/temperature."
       },
       {
-        "intent": "NHS_OR_ID_PROVIDED",
-        "input_matches": ["nhs number hai", "id card kol hai", "aa lo id", "ਨੰਬਰ ਹੈ"],
-        "native_script": "ਇਹ ਰਿਹਾ ਮੇਰਾ NHS ਨੰਬਰ / ਸ਼ਨਾਖਤੀ ਕਾਰਡ।",
-        "english_review": "Here is my NHS number / ID card."
+        "intent": "SYMPTOM_NO_PAIN",
+        "input_matches": ["vedhana illa", "വേദനയില്ല"],
+        "native_script": "വേദനയില്ല.",
+        "english_review": "I do not have pain."
       },
       {
-        "intent": "NHS_UNKNOWN",
-        "input_matches": ["number nahi pata", "yaad nahi", "ਪਤਾ ਨਹੀਂ"],
-        "native_script": "ਨਹੀਂ, ਮੈਨੂੰ ਆਪਣਾ NHS ਨੰਬਰ ਨਹੀਂ ਪਤਾ।",
-        "english_review": "No, I do not know my NHS number."
+        "intent": "UNDERSTOOD_WAIT",
+        "input_matches": ["manasilayi", "kaathirikkam", "ശരി മനസ്സിലായി"],
+        "native_script": "ശരി, മനസ്സിലായി. ഞാൻ കാത്തിരിക്കാം.",
+        "english_review": "Understood. I will take a seat and wait."
       },
       {
-        "intent": "NOT_NEEDED",
-        "input_matches": ["lod nahi hai", "lod nahi", "ਨਹੀਂ ਲੋੜ"],
-        "native_script": "ਲੋੜ ਨਹੀਂ ਹੈ।",
-        "english_review": "Not needed."
+        "intent": "AFFIRM_HAVE_GENERAL",
+        "input_matches": ["athe undu", "kayyil undu", "അതെ ഉണ്ട്"],
+        "native_script": "അതെ, എന്റെ പക്കലുണ്ട്.",
+        "english_review": "Yes, I have it."
+      },
+      {
+        "intent": "HAVE_GENERAL",
+        "input_matches": ["undu", "kayyilundu", "ഉണ്ട്"],
+        "native_script": "എന്റെ പക്കലുണ്ട്.",
+        "english_review": "I have it."
       },
       {
         "intent": "NEEDED",
-        "input_matches": ["lod hai", "chahida", "ਲੋੜ ਹੈ"],
-        "native_script": "ਲੋੜ ਹੈ।",
+        "input_matches": ["venam", "aavashyamundu", "ആവശ്യമുണ്ട്"],
+        "native_script": "ആവശ്യമുണ്ട്.",
         "english_review": "Yes, required."
       },
       {
+        "intent": "NOT_NEEDED",
+        "input_matches": ["venda", "aavashyamilla", "ആവശ്യമില്ല"],
+        "native_script": "ആവശ്യമില്ല.",
+        "english_review": "Not needed."
+      },
+      {
         "intent": "GENERIC_YES",
-        "input_matches": ["haan", "haan ji", "ji haan", "theek hai", "ਹਾਂ", "ਹਾਂਜੀ"],
-        "native_script": "ਹਾਂ।",
+        "input_matches": ["athe", "aanu", "അതെ"],
+        "native_script": "അതെ.",
         "english_review": "Yes."
       },
       {
         "intent": "GENERIC_NO",
-        "input_matches": ["nahi", "nahi ji", "ਨਹੀਂ"],
-        "native_script": "ਨਹੀਂ।",
+        "input_matches": ["illa", "alla", "ഇല്ല"],
+        "native_script": "ഇല്ല.",
         "english_review": "No."
       },
       {
         "intent": "GENERAL_ACKNOWLEDGE",
-        "input_matches": ["dhanvaad", "sat sri akal", "baithda haan", "ਧੰਨਵਾਦ"],
-        "native_script": "ਠੀਕ ਹੈ, ਧੰਨਵਾਦ।",
-        "english_review": "Understood, thank you."
-      }
-    ],
-    "Bengali": [
-      {
-        "intent": "APPOINTMENT_SPECIFIC_YES",
-        "input_matches": ["appointment ache", "chithi ache", "amar appointment ache", "অ্যাপয়েন্টমেন্ট আছে"],
-        "native_script": "হ্যাঁ, আমার অ্যাপয়েন্টমেন্ট / চিঠি আছে।",
-        "english_review": "Yes, I have an appointment / letter."
-      },
-      {
-        "intent": "APPOINTMENT_SPECIFIC_NO",
-        "input_matches": ["appointment nei", "amar appointment nei", "অ্যাপয়েন্টমেন্ট নেই"],
-        "native_script": "না, আমার অ্যাপয়েন্টমেন্ট নেই।",
-        "english_review": "No, I do not have an appointment."
-      },
-      {
-        "intent": "COMPANION_YES",
-        "input_matches": ["poribar shonge", "relative shonge ache", "lok ache shonge", "সাথে আছে"],
-        "native_script": "হ্যাঁ, আমার সাথে পরিবারের সদস্য আছেন।",
-        "english_review": "Yes, a family member is with me."
-      },
-      {
-        "intent": "COMPANION_NO",
-        "input_matches": ["eka eshechi", "keu nei", "shonge keu nei", "একা"],
-        "native_script": "না, আমি একাই এসেছি।",
-        "english_review": "No, I am attending alone."
-      },
-      {
-        "intent": "INTERPRETER_SPECIFIC_NO",
-        "input_matches": ["interpreter lagbe na", "interpreter proyojon nei"],
-        "native_script": "না, দোভাষীর প্রয়োজন নেই।",
-        "english_review": "No, an interpreter is not needed."
-      },
-      {
-        "intent": "INTERPRETER_SPECIFIC_YES",
-        "input_matches": ["interpreter lagbe", "bengali interpreter lagbe"],
-        "native_script": "হ্যাঁ, আমার দোভাষীর প্রয়োজন আছে।",
-        "english_review": "Yes, I require an interpreter."
-      },
-      {
-        "intent": "NHS_OR_ID_PROVIDED",
-        "input_matches": ["nhs number ache", "id ache", "ei je card", "নম্বর আছে"],
-        "native_script": "এই যে আমার NHS নম্বর / পরিচয়পত্র।",
-        "english_review": "Here is my NHS number / ID card."
-      },
-      {
-        "intent": "NHS_UNKNOWN",
-        "input_matches": ["jana nei", "jani na", "mone nei", "জানা নেই"],
-        "native_script": "না, আমার NHS নম্বর জানা নেই।",
-        "english_review": "No, I do not know my NHS number."
-      },
-      {
-        "intent": "NOT_NEEDED",
-        "input_matches": ["proyojon nei", "lagbe na", "দরকার নেই"],
-        "native_script": "প্রয়োজন নেই।",
-        "english_review": "Not needed."
-      },
-      {
-        "intent": "NEEDED",
-        "input_matches": ["proyojon ache", "lagbe", "দরকার"],
-        "native_script": "প্রয়োজন আছে।",
-        "english_review": "Yes, required."
-      },
-      {
-        "intent": "GENERIC_YES",
-        "input_matches": ["hyan", "ji hyan", "thik ache", "হ্যাঁ"],
-        "native_script": "হ্যাঁ।",
-        "english_review": "Yes."
-      },
-      {
-        "intent": "GENERIC_NO",
-        "input_matches": ["na", "nei", "না"],
-        "native_script": "না।",
-        "english_review": "No."
-      },
-      {
-        "intent": "GENERAL_ACKNOWLEDGE",
-        "input_matches": ["dhonnobad", "boschi", "opekkha korchi", "ধন্যবাদ"],
-        "native_script": "ঠিক আছে, ধন্যবাদ।",
-        "english_review": "Understood, thank you."
-      }
-    ],
-    "Gujarati": [
-      {
-        "intent": "APPOINTMENT_SPECIFIC_YES",
-        "input_matches": ["appointment che", "letter che", "maro appointment che", "એપોઇન્ટમેન્ટ છે"],
-        "native_script": "હા, મારો એપોઇન્ટમેન્ટ / પત્ર મારી પાસે છે.",
-        "english_review": "Yes, I have an appointment / letter."
-      },
-      {
-        "intent": "APPOINTMENT_SPECIFIC_NO",
-        "input_matches": ["appointment nathi", "maro appointment nathi", "એપોઇન્ટમેન્ટ નથી"],
-        "native_script": "ના, મારો એપોઇન્ટમેન્ટ નથી.",
-        "english_review": "No, I do not have an appointment."
-      },
-      {
-        "intent": "COMPANION_YES",
-        "input_matches": ["parivar sathe che", "relative che", "sathe koi che", "સાથે છે"],
-        "native_script": "હા, મારી સાથે પરિવારના સભ્ય છે.",
-        "english_review": "Yes, a family member is with me."
-      },
-      {
-        "intent": "COMPANION_NO",
-        "input_matches": ["eklo chu", "ekli chu", "koi nathi", "એકલો છું"],
-        "native_script": "ના, હું એકલો આવ્યો છું.",
-        "english_review": "No, I am attending alone."
-      },
-      {
-        "intent": "INTERPRETER_SPECIFIC_NO",
-        "input_matches": ["interpreter jarur nathi", "dubhashiya nathi joitu"],
-        "native_script": "ના, દુભાષિયાની જરૂર નથી.",
-        "english_review": "No, an interpreter is not needed."
-      },
-      {
-        "intent": "INTERPRETER_SPECIFIC_YES",
-        "input_matches": ["interpreter joiyye", "gujarati interpreter joiyye"],
-        "native_script": "હા, મને દુભાષિયાની જરૂર છે.",
-        "english_review": "Yes, I require an interpreter."
-      },
-      {
-        "intent": "NHS_OR_ID_PROVIDED",
-        "input_matches": ["nhs number che", "id card che", "aa rahyo card", "નંબર છે"],
-        "native_script": "આ રહ્યો મારો NHS નંબર / ઓળખપત્ર.",
-        "english_review": "Here is my NHS number / ID card."
-      },
-      {
-        "intent": "NHS_UNKNOWN",
-        "input_matches": ["number nathi khabar", "yaad nathi", "ખબર નથી"],
-        "native_script": "ના, મને મારો NHS નંબર ખબર નથી.",
-        "english_review": "No, I do not know my NHS number."
-      },
-      {
-        "intent": "NOT_NEEDED",
-        "input_matches": ["jarur nathi", "nathi joitu", "જરૂર નથી"],
-        "native_script": "જરૂર નથી.",
-        "english_review": "Not needed."
-      },
-      {
-        "intent": "NEEDED",
-        "input_matches": ["jarur che", "joiyye", "જરૂર છે"],
-        "native_script": "જરૂર છે.",
-        "english_review": "Yes, required."
-      },
-      {
-        "intent": "GENERIC_YES",
-        "input_matches": ["ha", "haji", "saru", "હા", "હાજી"],
-        "native_script": "હા.",
-        "english_review": "Yes."
-      },
-      {
-        "intent": "GENERIC_NO",
-        "input_matches": ["na", "nathi", "ના"],
-        "native_script": "ના.",
-        "english_review": "No."
-      },
-      {
-        "intent": "GENERAL_ACKNOWLEDGE",
-        "input_matches": ["aabhar", "besu chu", "raah jou chu", "આભાર"],
-        "native_script": "સારું, આભાર.",
+        "input_matches": ["nanni", "danyavadam", "നന്ദി"],
+        "native_script": "ശരി, നന്ദി.",
         "english_review": "Understood, thank you."
       }
     ],
     "Polish": [
       {
-        "intent": "APPOINTMENT_SPECIFIC_YES",
-        "input_matches": ["mam wizyte", "mam list", "tak mam wizyte", "wizyta"],
-        "native_script": "Tak, mam umówioną wizytę / list.",
-        "english_review": "Yes, I have an appointment / letter."
+        "intent": "APPOINTMENT_YES_HAVE",
+        "input_matches": ["tak mam wizyte", "tak mam wizytę", "tak, mam wizyte"],
+        "native_script": "Tak, mam umówioną wizytę.",
+        "english_review": "Yes, I have an appointment."
+      },
+      {
+        "intent": "APPOINTMENT_HAVE",
+        "input_matches": ["mam wizyte", "mam wizytę", "mam spotkanie"],
+        "native_script": "Mam umówioną wizytę.",
+        "english_review": "I have an appointment."
       },
       {
         "intent": "APPOINTMENT_SPECIFIC_NO",
@@ -496,28 +442,10 @@
         "english_review": "No, I do not have an appointment."
       },
       {
-        "intent": "COMPANION_YES",
-        "input_matches": ["ktos ze mna jest", "z rodzina", "jest ze mna maz", "jest ze mna zona"],
-        "native_script": "Tak, jest ze mną osoba towarzysząca / rodzina.",
-        "english_review": "Yes, a family member is with me."
-      },
-      {
-        "intent": "COMPANION_NO",
-        "input_matches": ["jestem sam", "sama", "nikogo nie ma"],
-        "native_script": "Nie, przyszedłem / przyszłam sam(a).",
-        "english_review": "No, I am attending alone."
-      },
-      {
-        "intent": "INTERPRETER_SPECIFIC_NO",
-        "input_matches": ["tlumacz niepotrzebny", "bez tlumacza"],
-        "native_script": "Nie, tłumacz nie jest potrzebny.",
-        "english_review": "No, an interpreter is not needed."
-      },
-      {
-        "intent": "INTERPRETER_SPECIFIC_YES",
-        "input_matches": ["potrzebny tlumacz", "poprosze tlumacza", "potrzebuje tlumacza"],
-        "native_script": "Tak, potrzebuję tłumacza.",
-        "english_review": "Yes, I require an interpreter."
+        "intent": "DOCUMENT_HAVE",
+        "input_matches": ["mam list", "mam pismo"],
+        "native_script": "Mam list z wezwaniem.",
+        "english_review": "I have the appointment letter."
       },
       {
         "intent": "NHS_OR_ID_PROVIDED",
@@ -532,10 +460,76 @@
         "english_review": "No, I do not know my NHS number."
       },
       {
-        "intent": "NOT_NEEDED",
-        "input_matches": ["nie trzeba", "niepotrzebne", "zbedne"],
-        "native_script": "Nie trzeba.",
-        "english_review": "Not needed."
+        "intent": "PRESCRIPTION_NEED",
+        "input_matches": ["potrzebuje recepte", "po leki", "recepte"],
+        "native_script": "Przyszedłem po receptę lub leki.",
+        "english_review": "I am here for my prescription/medication."
+      },
+      {
+        "intent": "TOILET_WHERE",
+        "input_matches": ["gdzie toaleta", "gdzie lazienka"],
+        "native_script": "Gdzie znajduje się toaleta?",
+        "english_review": "Where is the toilet/washroom?"
+      },
+      {
+        "intent": "INTERPRETER_SPECIFIC_YES",
+        "input_matches": ["potrzebny tlumacz", "poprosze tlumacza", "potrzebuje tlumacza", "potrzebuję tłumacza"],
+        "native_script": "Tak, potrzebuję tłumacza.",
+        "english_review": "Yes, I require an interpreter."
+      },
+      {
+        "intent": "INTERPRETER_SPECIFIC_NO",
+        "input_matches": ["tlumacz niepotrzebny", "bez tlumacza", "nie potrzebuje tlumacza"],
+        "native_script": "Nie, tłumacz nie jest potrzebny.",
+        "english_review": "No, an interpreter is not needed."
+      },
+      {
+        "intent": "COMPANION_YES",
+        "input_matches": ["ktos ze mna jest", "z rodzina", "jest ze mna rodzina", "jestem z rodzina"],
+        "native_script": "Tak, jest ze mną osoba towarzysząca / rodzina.",
+        "english_review": "Yes, a family member is with me."
+      },
+      {
+        "intent": "COMPANION_NO",
+        "input_matches": ["jestem sam", "sama", "nikogo nie ma"],
+        "native_script": "Nie, przyszedłem / przyszłam sam(a).",
+        "english_review": "No, I am attending alone."
+      },
+      {
+        "intent": "SYMPTOM_PAIN_GENERAL",
+        "input_matches": ["boli mnie", "mam bol", "mam ból", "odczuwam bol"],
+        "native_script": "Odczuwam ból.",
+        "english_review": "I am experiencing pain."
+      },
+      {
+        "intent": "SYMPTOM_FEVER",
+        "input_matches": ["mam goraczke", "goraczka"],
+        "native_script": "Mam gorączkę.",
+        "english_review": "I have a fever/temperature."
+      },
+      {
+        "intent": "SYMPTOM_NO_PAIN",
+        "input_matches": ["nie boli", "brak bolu", "nie mam bolu"],
+        "native_script": "Nie mam bólu.",
+        "english_review": "I do not have pain."
+      },
+      {
+        "intent": "UNDERSTOOD_WAIT",
+        "input_matches": ["rozumiem poczekam", "rozumiem", "poczekam w poczekalni"],
+        "native_script": "Rozumiem. Usiądę i poczekam.",
+        "english_review": "Understood. I will take a seat and wait."
+      },
+      {
+        "intent": "AFFIRM_HAVE_GENERAL",
+        "input_matches": ["tak mam", "tak mam to"],
+        "native_script": "Tak, mam to przy sobie.",
+        "english_review": "Yes, I have it."
+      },
+      {
+        "intent": "HAVE_GENERAL",
+        "input_matches": ["mam", "posiadam"],
+        "native_script": "Mam to przy sobie.",
+        "english_review": "I have it."
       },
       {
         "intent": "NEEDED",
@@ -544,8 +538,14 @@
         "english_review": "Yes, required."
       },
       {
+        "intent": "NOT_NEEDED",
+        "input_matches": ["nie trzeba", "niepotrzebne", "zbedne"],
+        "native_script": "Nie trzeba.",
+        "english_review": "Not needed."
+      },
+      {
         "intent": "GENERIC_YES",
-        "input_matches": ["tak", "jasne", "dobrze"],
+        "input_matches": ["tak", "jasne", "dobrze", "dokladnie"],
         "native_script": "Tak.",
         "english_review": "Yes."
       },
@@ -562,12 +562,578 @@
         "english_review": "Understood, thank you."
       }
     ],
+    "Arabic": [
+      {
+        "intent": "APPOINTMENT_YES_HAVE",
+        "input_matches": ["naam indi mawead", "naam indi maweid", "aywa indi mawead", "نعم عندي موعد"],
+        "native_script": "نعم، لدي موعد محجوز.",
+        "english_review": "Yes, I have an appointment."
+      },
+      {
+        "intent": "APPOINTMENT_HAVE",
+        "input_matches": ["indi mawead", "indi maweid", "ladayya mawead", "3indi maw3id", "عندي موعد", "لدي موعد"],
+        "native_script": "لدي موعد محجوز.",
+        "english_review": "I have an appointment."
+      },
+      {
+        "intent": "APPOINTMENT_SPECIFIC_NO",
+        "input_matches": ["laysa ladaya maweid", "laysa ladi mawead", "ma indi mawead", "ليس لدي موعد"],
+        "native_script": "لا، ليس لدي موعد مسبق.",
+        "english_review": "No, I do not have an appointment."
+      },
+      {
+        "intent": "DOCUMENT_HAVE",
+        "input_matches": ["maee khetab", "indi khetab", "maee risala", "معي خطاب", "معي رسالة"],
+        "native_script": "معي خطاب الموعد.",
+        "english_review": "I have the appointment letter."
+      },
+      {
+        "intent": "NHS_OR_ID_PROVIDED",
+        "input_matches": ["hatha howiya", "raqam nhs", "indi raqam nhs", "بطاقة الهوية"],
+        "native_script": "تفضل، هذا رقم NHS / بطاقة هويتي.",
+        "english_review": "Here is my NHS number / ID card."
+      },
+      {
+        "intent": "NHS_UNKNOWN",
+        "input_matches": ["ma aarif alraqam", "la atathakar", "لا أعرف"],
+        "native_script": "لا، لا أعرف رقم NHS الخاص بي.",
+        "english_review": "No, I do not know my NHS number."
+      },
+      {
+        "intent": "PRESCRIPTION_NEED",
+        "input_matches": ["uridu wasfa", "ahtaj wasfa tibbiya", "أحتاج وصفة طبية"],
+        "native_script": "أنا هنا للحصول على وصفتي الطبية / الأدوية.",
+        "english_review": "I am here for my prescription/medication."
+      },
+      {
+        "intent": "TOILET_WHERE",
+        "input_matches": ["ayna al hammam", "al hammam wayn", "أين الحمام"],
+        "native_script": "أين يقع الحمام؟",
+        "english_review": "Where is the toilet/washroom?"
+      },
+      {
+        "intent": "INTERPRETER_SPECIFIC_YES",
+        "input_matches": ["ahtaj motarjim", "ahtaj mutarjim", "uridu mutarjim", "أحتاج مترجم"],
+        "native_script": "نعم، أحتاج إلى مترجم فوري.",
+        "english_review": "Yes, I require an interpreter."
+      },
+      {
+        "intent": "INTERPRETER_SPECIFIC_NO",
+        "input_matches": ["la ahtaj motarjim", "la ahtaj mutarjim", "mush lazim motarjim", "لا أحتاج مترجم"],
+        "native_script": "لا، لا داعي لمترجم.",
+        "english_review": "No, an interpreter is not needed."
+      },
+      {
+        "intent": "COMPANION_YES",
+        "input_matches": ["maee ahad", "maee aela", "maee zawjati", "aaeilati maee", "qareebi maee", "معي عائلتي"],
+        "native_script": "نعم، أحد أفراد عائلتي معي.",
+        "english_review": "Yes, a family member is with me."
+      },
+      {
+        "intent": "COMPANION_NO",
+        "input_matches": ["wahdi", "ana wahdi", "laysa maee ahad", "بمفردي"],
+        "native_script": "لا، أنا بمفردي.",
+        "english_review": "No, I am attending alone."
+      },
+      {
+        "intent": "SYMPTOM_PAIN_GENERAL",
+        "input_matches": ["andi alam", "ashur bialam", "عندي ألم", "أشعر بألم"],
+        "native_script": "أشعر بألم.",
+        "english_review": "I am experiencing pain."
+      },
+      {
+        "intent": "SYMPTOM_FEVER",
+        "input_matches": ["indi humma", "hararati murtafia", "عندي حمى"],
+        "native_script": "أعاني من الحمى / ارتفاع الحرارة.",
+        "english_review": "I have a fever/temperature."
+      },
+      {
+        "intent": "SYMPTOM_NO_PAIN",
+        "input_matches": ["la yujad alam", "la ashuru bialam", "لا يوجد ألم"],
+        "native_script": "لا أشعر بأي ألم.",
+        "english_review": "I do not have pain."
+      },
+      {
+        "intent": "UNDERSTOOD_WAIT",
+        "input_matches": ["fahamtu saantazir", "fahamtu", "fahimt", "sa ajles", "فهمت سأنتظر"],
+        "native_script": "فهمت ذلك. سأجلس وأنتظر.",
+        "english_review": "Understood. I will take a seat and wait."
+      },
+      {
+        "intent": "AFFIRM_HAVE_GENERAL",
+        "input_matches": ["naam mawjood", "naam huwwa maee", "نعم هو معي"],
+        "native_script": "نعم، هو معي.",
+        "english_review": "Yes, I have it."
+      },
+      {
+        "intent": "HAVE_GENERAL",
+        "input_matches": ["mawjood", "huwwa maee", "هو معي"],
+        "native_script": "هو معي.",
+        "english_review": "I have it."
+      },
+      {
+        "intent": "NEEDED",
+        "input_matches": ["ahtaj", "lazim", "أحتاج"],
+        "native_script": "أحتاج إلى ذلك.",
+        "english_review": "Yes, required."
+      },
+      {
+        "intent": "NOT_NEEDED",
+        "input_matches": ["la daee", "laysa lazim", "لا داعي"],
+        "native_script": "لا داعي لذلك.",
+        "english_review": "Not needed."
+      },
+      {
+        "intent": "GENERIC_YES",
+        "input_matches": ["naam", "aywa", "ajall", "hasanan", "نعم", "أجل"],
+        "native_script": "نعم.",
+        "english_review": "Yes."
+      },
+      {
+        "intent": "GENERIC_NO",
+        "input_matches": ["la", "kalla", "لا", "كلا"],
+        "native_script": "لا.",
+        "english_review": "No."
+      },
+      {
+        "intent": "GENERAL_ACKNOWLEDGE",
+        "input_matches": ["shukran", "tayyeb", "شكراً"],
+        "native_script": "حسناً، شكراً لك.",
+        "english_review": "Understood, thank you."
+      }
+    ],
+    "Urdu": [
+      {
+        "intent": "APPOINTMENT_YES_HAVE",
+        "input_matches": ["haan appointment hai", "haan meri appointment hai", "ہاں میرا اپائنٹمنٹ ہے"],
+        "native_script": "جی ہاں، میرا وقت مقرر ہے۔",
+        "english_review": "Yes, I have an appointment."
+      },
+      {
+        "intent": "APPOINTMENT_HAVE",
+        "input_matches": ["appointment hai", "meri appointment hai", "میرا وقت مقرر ہے", "اپائنٹمنٹ ہے"],
+        "native_script": "میرا وقت مقرر ہے۔",
+        "english_review": "I have an appointment."
+      },
+      {
+        "intent": "APPOINTMENT_SPECIFIC_NO",
+        "input_matches": ["appointment nahi hai", "meri appointment nahi hai", "اپائنٹمنٹ نہیں ہے"],
+        "native_script": "نہیں، میری اپائنٹمنٹ نہیں ہے۔",
+        "english_review": "No, I do not have an appointment."
+      },
+      {
+        "intent": "DOCUMENT_HAVE",
+        "input_matches": ["khat hai", "letter hai", "parcha hai", "خط ہے"],
+        "native_script": "میرے پاس اپائنٹمنٹ کا خط ہے۔",
+        "english_review": "I have the appointment letter."
+      },
+      {
+        "intent": "NHS_OR_ID_PROVIDED",
+        "input_matches": ["nhs number hai", "id card hai", "ye lijiye id", "نمبر ہے"],
+        "native_script": "یہ رہا میرا NHS نمبر / شناختی کارڈ۔",
+        "english_review": "Here is my NHS number / ID card."
+      },
+      {
+        "intent": "NHS_UNKNOWN",
+        "input_matches": ["maloom nahi", "number nahi pata", "yaad nahi", "معلوم نہیں"],
+        "native_script": "نہیں، مجھے اپنا NHS نمبر معلوم نہیں ہے۔",
+        "english_review": "No, I do not know my NHS number."
+      },
+      {
+        "intent": "PRESCRIPTION_NEED",
+        "input_matches": ["dawai chahiye", "nuskha chahiye", "دوائی چاہیے"],
+        "native_script": "مجھے اپنی دوائی / نسخہ چاہیے۔",
+        "english_review": "I am here for my prescription/medication."
+      },
+      {
+        "intent": "TOILET_WHERE",
+        "input_matches": ["toilet kahan hai", "bathroom kahan hai", "باتھ روم کہاں ہے"],
+        "native_script": "باتھ روم کہاں ہے؟",
+        "english_review": "Where is the toilet/washroom?"
+      },
+      {
+        "intent": "INTERPRETER_SPECIFIC_YES",
+        "input_matches": ["tarjuma chahiye", "interpreter chahiye", "urdu interpreter chahiye", "mutarjim chahiye", "مترجم چاہیے"],
+        "native_script": "ہاں، مجھے مترجم کی ضرورت ہے۔",
+        "english_review": "Yes, I require an interpreter."
+      },
+      {
+        "intent": "INTERPRETER_SPECIFIC_NO",
+        "input_matches": ["tarjuma nahi chahiye", "interpreter nahi chahiye", "mutarjim nahi chahiye", "مترجم نہیں چاہیے"],
+        "native_script": "نہیں، مترجم کی ضرورت نہیں ہے۔",
+        "english_review": "No, an interpreter is not needed."
+      },
+      {
+        "intent": "COMPANION_YES",
+        "input_matches": ["khandan sath hai", "relative sath hai", "koi sath hai", "ساتھ ہے"],
+        "native_script": "ہاں، میرے ساتھ کوئی موجود ہے۔",
+        "english_review": "Yes, a family member is with me."
+      },
+      {
+        "intent": "COMPANION_NO",
+        "input_matches": ["akela hoon", "tanha hoon", "koi nahi hai", "اکیلا ہوں"],
+        "native_script": "نہیں، میں اکیلا آیا ہوں۔",
+        "english_review": "No, I am attending alone."
+      },
+      {
+        "intent": "SYMPTOM_PAIN_GENERAL",
+        "input_matches": ["dard hai", "mujhe dard hai", "مجھے درد ہے"],
+        "native_script": "مجھے درد ہو رہا ہے۔",
+        "english_review": "I am experiencing pain."
+      },
+      {
+        "intent": "SYMPTOM_FEVER",
+        "input_matches": ["bukhar hai", "mujhe bukhar hai", "مجھے بخار ہے"],
+        "native_script": "مجھے بخار ہے۔",
+        "english_review": "I have a fever/temperature."
+      },
+      {
+        "intent": "SYMPTOM_NO_PAIN",
+        "input_matches": ["dard nahi hai", "dard nahi", "درد نہیں ہے"],
+        "native_script": "مجھے کوئی درد نہیں ہے۔",
+        "english_review": "I do not have pain."
+      },
+      {
+        "intent": "UNDERSTOOD_WAIT",
+        "input_matches": ["samajh gaya", "samajh gayi", "intezar karunga", "intezar karta hoon", "سمجھ گیا"],
+        "native_script": "سمجھ گیا۔ میں انتظار کروں گا۔",
+        "english_review": "Understood. I will take a seat and wait."
+      },
+      {
+        "intent": "AFFIRM_HAVE_GENERAL",
+        "input_matches": ["haan mere paas hai", "haan hai", "ہاں میرے پاس ہے"],
+        "native_script": "جی ہاں، میرے پاس ہے۔",
+        "english_review": "Yes, I have it."
+      },
+      {
+        "intent": "HAVE_GENERAL",
+        "input_matches": ["mere paas hai", "paas hai", "میرے پاس ہے"],
+        "native_script": "میرے پاس ہے۔",
+        "english_review": "I have it."
+      },
+      {
+        "intent": "NEEDED",
+        "input_matches": ["zaroorat hai", "chahiye", "ضرورت ہے"],
+        "native_script": "ضرورت ہے۔",
+        "english_review": "Yes, required."
+      },
+      {
+        "intent": "NOT_NEEDED",
+        "input_matches": ["zaroorat nahi hai", "nahi chahiye", "ضرورت نہیں ہے"],
+        "native_script": "ضرورت نہیں ہے۔",
+        "english_review": "Not needed."
+      },
+      {
+        "intent": "GENERIC_YES",
+        "input_matches": ["haan", "jee haan", "theek hai", "ہاں", "جی ہاں"],
+        "native_script": "ہاں۔",
+        "english_review": "Yes."
+      },
+      {
+        "intent": "GENERIC_NO",
+        "input_matches": ["nahi", "nahin", "نہیں"],
+        "native_script": "نہیں ہے۔",
+        "english_review": "No."
+      },
+      {
+        "intent": "GENERAL_ACKNOWLEDGE",
+        "input_matches": ["shukriya", "bohot shukriya", "شکریہ"],
+        "native_script": "ٹھیک ہے، شکریہ۔",
+        "english_review": "Understood, thank you."
+      }
+    ],
+    "Bengali": [
+      {
+        "intent": "APPOINTMENT_YES_HAVE",
+        "input_matches": ["ha appointment ache", "hye appointment ache", "হ্যাঁ অ্যাপয়েন্টমেন্ট আছে"],
+        "native_script": "হ্যাঁ, আমার অ্যাপয়েন্টমেন্ট আছে।",
+        "english_review": "Yes, I have an appointment."
+      },
+      {
+        "intent": "APPOINTMENT_HAVE",
+        "input_matches": ["appointment ache", "amar appointment ache", "অ্যাপয়েন্টমেন্ট আছে"],
+        "native_script": "আমার অ্যাপয়েন্টমেন্ট আছে।",
+        "english_review": "I have an appointment."
+      },
+      {
+        "intent": "APPOINTMENT_SPECIFIC_NO",
+        "input_matches": ["appointment nei", "amar appointment nei", "অ্যাপয়েন্টমেন্ট নেই"],
+        "native_script": "না, আমার অ্যাপয়েন্টমেন্ট নেই।",
+        "english_review": "No, I do not have an appointment."
+      },
+      {
+        "intent": "DOCUMENT_HAVE",
+        "input_matches": ["chithi ache", "letter ache", "চিঠি আছে"],
+        "native_script": "আমার কাছে চিঠি আছে।",
+        "english_review": "I have the appointment letter."
+      },
+      {
+        "intent": "NHS_OR_ID_PROVIDED",
+        "input_matches": ["nhs number ache", "id ache", "ei je card", "নম্বর আছে"],
+        "native_script": "এই যে আমার NHS নম্বর / পরিচয়পত্র।",
+        "english_review": "Here is my NHS number / ID card."
+      },
+      {
+        "intent": "NHS_UNKNOWN",
+        "input_matches": ["jana nei", "jani na", "mone nei", "জানা নেই"],
+        "native_script": "না, আমার NHS নম্বর জানা নেই।",
+        "english_review": "No, I do not know my NHS number."
+      },
+      {
+        "intent": "PRESCRIPTION_NEED",
+        "input_matches": ["oshudh dorkar", "prescription chai", "ওষুধ দরকার"],
+        "native_script": "আমার ওষুধ বা প্রেসক্রিপশন দরকার।",
+        "english_review": "I am here for my prescription/medication."
+      },
+      {
+        "intent": "TOILET_WHERE",
+        "input_matches": ["toilet kothay", "bathroom kothay", "টয়লেট কোথায়"],
+        "native_script": "টয়লেট বা ওয়াশরুম কোথায়?",
+        "english_review": "Where is the toilet/washroom?"
+      },
+      {
+        "intent": "INTERPRETER_SPECIFIC_YES",
+        "input_matches": ["interpreter lagbe", "bengali interpreter lagbe", "dobhashi dorkar", "দোভাষী দরকার"],
+        "native_script": "হ্যাঁ, আমার একজন দোভাষী প্রয়োজন।",
+        "english_review": "Yes, I require an interpreter."
+      },
+      {
+        "intent": "INTERPRETER_SPECIFIC_NO",
+        "input_matches": ["interpreter lagbe na", "interpreter proyojon nei", "dobhashi dorkar nei", "দোভাষী দরকার নেই"],
+        "native_script": "না, দোভাষীর প্রয়োজন নেই।",
+        "english_review": "No, an interpreter is not needed."
+      },
+      {
+        "intent": "COMPANION_YES",
+        "input_matches": ["poribar shonge", "relative shonge ache", "lok ache shonge", "সাথে আছে"],
+        "native_script": "হ্যাঁ, আমার সাথে পরিবারের সদস্য আছেন।",
+        "english_review": "Yes, a family member is with me."
+      },
+      {
+        "intent": "COMPANION_NO",
+        "input_matches": ["eka eshechi", "keu nei", "shonge keu nei", "একা"],
+        "native_script": "না, আমি একাই এসেছি।",
+        "english_review": "No, I am attending alone."
+      },
+      {
+        "intent": "SYMPTOM_PAIN_GENERAL",
+        "input_matches": ["batha ache", "amar batha korche", "ব্যথা আছে"],
+        "native_script": "আমার ব্যথা হচ্ছে।",
+        "english_review": "I am experiencing pain."
+      },
+      {
+        "intent": "SYMPTOM_FEVER",
+        "input_matches": ["jor ache", "amar jor", "জ্বর আছে"],
+        "native_script": "আমার জ্বর আছে।",
+        "english_review": "I have a fever/temperature."
+      },
+      {
+        "intent": "SYMPTOM_NO_PAIN",
+        "input_matches": ["batha nei", "kono batha nei", "ব্যথা নেই"],
+        "native_script": "কোনো ব্যথা নেই।",
+        "english_review": "I do not have pain."
+      },
+      {
+        "intent": "UNDERSTOOD_WAIT",
+        "input_matches": ["bujhechi", "opekkha korbo", "boschi", "বুঝেছি"],
+        "native_script": "বুঝেছি। আমি অপেক্ষা করব।",
+        "english_review": "Understood. I will take a seat and wait."
+      },
+      {
+        "intent": "AFFIRM_HAVE_GENERAL",
+        "input_matches": ["ha ache", "amar kache ache", "হ্যাঁ আছে"],
+        "native_script": "হ্যাঁ, আমার কাছে আছে।",
+        "english_review": "Yes, I have it."
+      },
+      {
+        "intent": "HAVE_GENERAL",
+        "input_matches": ["ache", "kache ache", "আছে"],
+        "native_script": "আমার কাছে আছে।",
+        "english_review": "I have it."
+      },
+      {
+        "intent": "NEEDED",
+        "input_matches": ["proyojon ache", "lagbe", "দরকার"],
+        "native_script": "প্রয়োজন আছে।",
+        "english_review": "Yes, required."
+      },
+      {
+        "intent": "NOT_NEEDED",
+        "input_matches": ["proyojon nei", "lagbe na", "দরকার নেই"],
+        "native_script": "প্রয়োজন নেই।",
+        "english_review": "Not needed."
+      },
+      {
+        "intent": "GENERIC_YES",
+        "input_matches": ["hyan", "ji hyan", "ha", "thik ache", "হ্যাঁ"],
+        "native_script": "হ্যাঁ।",
+        "english_review": "Yes."
+      },
+      {
+        "intent": "GENERIC_NO",
+        "input_matches": ["na", "nei", "না"],
+        "native_script": "না।",
+        "english_review": "No."
+      },
+      {
+        "intent": "GENERAL_ACKNOWLEDGE",
+        "input_matches": ["dhonnobad", "ধন্যবাদ"],
+        "native_script": "ঠিক আছে, ধন্যবাদ।",
+        "english_review": "Understood, thank you."
+      }
+    ],
+    "Somali": [
+      {
+        "intent": "APPOINTMENT_YES_HAVE",
+        "input_matches": ["haa ballan baan leeyahay", "haa ballan ayaan leeyahay"],
+        "native_script": "Haa, ballan baan leeyahay.",
+        "english_review": "Yes, I have an appointment."
+      },
+      {
+        "intent": "APPOINTMENT_HAVE",
+        "input_matches": ["ballan baan leeyahay", "ballan ayaan leeyahay", "ballan"],
+        "native_script": "Ballan baan leeyahay.",
+        "english_review": "I have an appointment."
+      },
+      {
+        "intent": "APPOINTMENT_SPECIFIC_NO",
+        "input_matches": ["ballan ma lhi", "ballan malihi", "ballan ma lihi"],
+        "native_script": "Maya, ballan ma lihi.",
+        "english_review": "No, I do not have an appointment."
+      },
+      {
+        "intent": "DOCUMENT_HAVE",
+        "input_matches": ["waraaq baan wataa", "warqad baan wataa"],
+        "native_script": "Warqaddii ballanta waan wataa.",
+        "english_review": "I have the appointment letter."
+      },
+      {
+        "intent": "NHS_OR_ID_PROVIDED",
+        "input_matches": ["lambarka nhs", "id baan wataa", "waraaqda nhs"],
+        "native_script": "Kani waa lambarkayga NHS / kaadhka aqoonsiga.",
+        "english_review": "Here is my NHS number / ID card."
+      },
+      {
+        "intent": "NHS_UNKNOWN",
+        "input_matches": ["ma garanayo lambarka", "ma aqaan"],
+        "native_script": "Maya, ma garanayo lambarkayga NHS.",
+        "english_review": "No, I do not know my NHS number."
+      },
+      {
+        "intent": "PRESCRIPTION_NEED",
+        "input_matches": ["daawo baan rabaa", "warqada daawada"],
+        "native_script": "Waxaan u imid warqada daawada / daawo.",
+        "english_review": "I am here for my prescription/medication."
+      },
+      {
+        "intent": "TOILET_WHERE",
+        "input_matches": ["musqusha aaway", "suuliga meeh"],
+        "native_script": "Musqusha/Suuliga xagee ku yaal?",
+        "english_review": "Where is the toilet/washroom?"
+      },
+      {
+        "intent": "INTERPRETER_SPECIFIC_YES",
+        "input_matches": ["turjubaan baan u baahanahay", "turjubaan"],
+        "native_script": "Haa, waxaan u baahanahay turjubaan.",
+        "english_review": "Yes, I require an interpreter."
+      },
+      {
+        "intent": "INTERPRETER_SPECIFIC_NO",
+        "input_matches": ["turjubaan uma baahni", "turjubaan ma rabo"],
+        "native_script": "Maya, uma baahni turjubaan.",
+        "english_review": "No, an interpreter is not needed."
+      },
+      {
+        "intent": "COMPANION_YES",
+        "input_matches": ["qoyskayga ayaa ila socda", "qof ehel ah ayaa ila socda"],
+        "native_script": "Haa, qof ehelkayga ah ayaa ila socda.",
+        "english_review": "Yes, a family member is with me."
+      },
+      {
+        "intent": "COMPANION_NO",
+        "input_matches": ["keligay baan ahay", "kali baan imid"],
+        "native_script": "Maya, kaligay baan imid.",
+        "english_review": "No, I am attending alone."
+      },
+      {
+        "intent": "SYMPTOM_PAIN_GENERAL",
+        "input_matches": ["xanuun baan dareemayaa", "xanuun ayaa i haya"],
+        "native_script": "Xanuun baan dareemayaa.",
+        "english_review": "I am experiencing pain."
+      },
+      {
+        "intent": "SYMPTOM_FEVER",
+        "input_matches": ["xumad baan qabaa", "qandho"],
+        "native_script": "Qandho/Xumad baan qabaa.",
+        "english_review": "I have a fever/temperature."
+      },
+      {
+        "intent": "SYMPTOM_NO_PAIN",
+        "input_matches": ["xanuun ma jiro", "xanuun ma dareemayo"],
+        "native_script": "Wax xanuun ah ma dareemayo.",
+        "english_review": "I do not have pain."
+      },
+      {
+        "intent": "UNDERSTOOD_WAIT",
+        "input_matches": ["waan fahmay waan sugi", "waan fahmay"],
+        "native_script": "Waan fahmay. Waan fariisanayaa oo sugi doonaa.",
+        "english_review": "Understood. I will take a seat and wait."
+      },
+      {
+        "intent": "AFFIRM_HAVE_GENERAL",
+        "input_matches": ["haa waan wataa", "haa waan hayaa"],
+        "native_script": "Haa, waan hayaa.",
+        "english_review": "Yes, I have it."
+      },
+      {
+        "intent": "HAVE_GENERAL",
+        "input_matches": ["waan wataa", "waan hayaa"],
+        "native_script": "Waan hayaa.",
+        "english_review": "I have it."
+      },
+      {
+        "intent": "NEEDED",
+        "input_matches": ["waa loo baahan yahay", "waan rabaa"],
+        "native_script": "Waa loo baahan yahay.",
+        "english_review": "Yes, required."
+      },
+      {
+        "intent": "NOT_NEEDED",
+        "input_matches": ["looma baahna", "ma rabo"],
+        "native_script": "Looma baahna.",
+        "english_review": "Not needed."
+      },
+      {
+        "intent": "AFFIRM_YES",
+        "input_matches": ["haa", "waa sax"],
+        "native_script": "Haa.",
+        "english_review": "Yes."
+      },
+      {
+        "intent": "NEGATE_NO",
+        "input_matches": ["maya", "ma aha"],
+        "native_script": "Maya.",
+        "english_review": "No."
+      },
+      {
+        "intent": "GENERAL_ACKNOWLEDGE",
+        "input_matches": ["mahadsanid", "waad mahadsan tahay"],
+        "native_script": "Waad mahadsan tahay.",
+        "english_review": "Understood, thank you."
+      }
+    ],
     "Romanian": [
       {
-        "intent": "APPOINTMENT_SPECIFIC_YES",
-        "input_matches": ["am programare", "am scrisoarea", "da am programare", "programare"],
-        "native_script": "Da, am o programare / scrisoarea la mine.",
-        "english_review": "Yes, I have an appointment / letter."
+        "intent": "APPOINTMENT_YES_HAVE",
+        "input_matches": ["da am programare", "da, am programare"],
+        "native_script": "Da, am o programare.",
+        "english_review": "Yes, I have an appointment."
+      },
+      {
+        "intent": "APPOINTMENT_HAVE",
+        "input_matches": ["am programare", "programare"],
+        "native_script": "Am o programare.",
+        "english_review": "I have an appointment."
       },
       {
         "intent": "APPOINTMENT_SPECIFIC_NO",
@@ -576,28 +1142,10 @@
         "english_review": "No, I do not have an appointment."
       },
       {
-        "intent": "COMPANION_YES",
-        "input_matches": ["este cineva cu mine", "cu familia", "cu sotia", "cu sotul"],
-        "native_script": "Da, este cineva din familie cu mine.",
-        "english_review": "Yes, a family member is with me."
-      },
-      {
-        "intent": "COMPANION_NO",
-        "input_matches": ["sunt singur", "singura", "fara nimeni"],
-        "native_script": "Nu, am venit singur(ă).",
-        "english_review": "No, I am attending alone."
-      },
-      {
-        "intent": "INTERPRETER_SPECIFIC_NO",
-        "input_matches": ["fara interpret", "nu am nevoie de traducator"],
-        "native_script": "Nu, nu este nevoie de interpret.",
-        "english_review": "No, an interpreter is not needed."
-      },
-      {
-        "intent": "INTERPRETER_SPECIFIC_YES",
-        "input_matches": ["am nevoie de interpret", "doresc interpret", "doresc traducator"],
-        "native_script": "Da, am nevoie de un interpret.",
-        "english_review": "Yes, I require an interpreter."
+        "intent": "DOCUMENT_HAVE",
+        "input_matches": ["am scrisoarea", "am scrisoarea medicala"],
+        "native_script": "Am scrisoarea de programare la mine.",
+        "english_review": "I have the appointment letter."
       },
       {
         "intent": "NHS_OR_ID_PROVIDED",
@@ -612,16 +1160,88 @@
         "english_review": "No, I do not know my NHS number."
       },
       {
-        "intent": "NOT_NEEDED",
-        "input_matches": ["nu este nevoie", "nu e nevoie"],
-        "native_script": "Nu este nevoie.",
-        "english_review": "Not needed."
+        "intent": "PRESCRIPTION_NEED",
+        "input_matches": ["am nevoie de reteta", "pentru reteta"],
+        "native_script": "Sunt aici pentru rețetă / medicamente.",
+        "english_review": "I am here for my prescription/medication."
+      },
+      {
+        "intent": "TOILET_WHERE",
+        "input_matches": ["unde este toaleta", "unde e baia"],
+        "native_script": "Unde este toaleta?",
+        "english_review": "Where is the toilet/washroom?"
+      },
+      {
+        "intent": "INTERPRETER_SPECIFIC_YES",
+        "input_matches": ["am nevoie de traducator", "am nevoie de interpret", "doresc interpret", "doresc traducator"],
+        "native_script": "Da, am nevoie de un interpret.",
+        "english_review": "Yes, I require an interpreter."
+      },
+      {
+        "intent": "INTERPRETER_SPECIFIC_NO",
+        "input_matches": ["fara interpret", "nu am nevoie de traducator", "fara traducator"],
+        "native_script": "Nu, nu este nevoie de interpret.",
+        "english_review": "No, an interpreter is not needed."
+      },
+      {
+        "intent": "COMPANION_YES",
+        "input_matches": ["este cineva cu mine", "cu familia", "familia este cu mine", "am o ruda cu mine"],
+        "native_script": "Da, este cineva din familie cu mine.",
+        "english_review": "Yes, a family member is with me."
+      },
+      {
+        "intent": "COMPANION_NO",
+        "input_matches": ["sunt singur", "singura", "fara nimeni"],
+        "native_script": "Nu, am venit singur(ă).",
+        "english_review": "No, I am attending alone."
+      },
+      {
+        "intent": "SYMPTOM_PAIN_GENERAL",
+        "input_matches": ["am dureri", "ma doare", "simt durere"],
+        "native_script": "Simt o durere.",
+        "english_review": "I am experiencing pain."
+      },
+      {
+        "intent": "SYMPTOM_FEVER",
+        "input_matches": ["am febra", "febra"],
+        "native_script": "Am febră / temperatură.",
+        "english_review": "I have a fever/temperature."
+      },
+      {
+        "intent": "SYMPTOM_NO_PAIN",
+        "input_matches": ["nu ma doare", "nu am dureri"],
+        "native_script": "Nu am dureri.",
+        "english_review": "I do not have pain."
+      },
+      {
+        "intent": "UNDERSTOOD_WAIT",
+        "input_matches": ["am inteles voi astepta", "am inteles"],
+        "native_script": "Am înțeles. Mă voi așeza și voi aștepta.",
+        "english_review": "Understood. I will take a seat and wait."
+      },
+      {
+        "intent": "AFFIRM_HAVE_GENERAL",
+        "input_matches": ["da il am", "da o am"],
+        "native_script": "Da, îl am la mine.",
+        "english_review": "Yes, I have it."
+      },
+      {
+        "intent": "HAVE_GENERAL",
+        "input_matches": ["il am", "o am"],
+        "native_script": "Îl am la mine.",
+        "english_review": "I have it."
       },
       {
         "intent": "NEEDED",
         "input_matches": ["este nevoie", "am nevoie"],
         "native_script": "Este nevoie.",
         "english_review": "Yes, required."
+      },
+      {
+        "intent": "NOT_NEEDED",
+        "input_matches": ["nu este nevoie", "nu e nevoie"],
+        "native_script": "Nu este nevoie.",
+        "english_review": "Not needed."
       },
       {
         "intent": "GENERIC_YES",
@@ -642,83 +1262,283 @@
         "english_review": "Understood, thank you."
       }
     ],
-    "Arabic": [
+    "Punjabi": [
       {
-        "intent": "APPOINTMENT_SPECIFIC_YES",
-        "input_matches": ["indi maweid", "maee khetab", "3indi maw3id", "عندي موعد", "لدي موعد"],
-        "native_script": "نعم، لدي موعد / الخطاب معي.",
-        "english_review": "Yes, I have an appointment / letter."
+        "intent": "APPOINTMENT_YES_HAVE",
+        "input_matches": ["haan appointment hai", "meri appointment hai"],
+        "native_script": "ਹਾਂ, ਮੇਰੀ ਅਪਾਇੰਟਮੈਂਟ ਹੈ।",
+        "english_review": "Yes, I have an appointment."
+      },
+      {
+        "intent": "APPOINTMENT_HAVE",
+        "input_matches": ["appointment hai", "ਅਪਾਇੰਟਮੈਂਟ ਹੈ"],
+        "native_script": "ਮੇਰੀ ਅਪਾਇੰਟਮੈਂਟ ਹੈ।",
+        "english_review": "I have an appointment."
       },
       {
         "intent": "APPOINTMENT_SPECIFIC_NO",
-        "input_matches": ["laysa ladaya maweid", "ma indi maweid", "ليس لدي موعد"],
-        "native_script": "لا، ليس لدي موعد مسبق.",
+        "input_matches": ["appointment nahi hai", "meri appointment nahi", "ਅਪਾਇੰਟਮੈਂਟ ਨਹੀਂ ਹੈ"],
+        "native_script": "ਨਹੀਂ, ਮੇਰੀ ਕੋਈ ਅਪਾਇੰਟਮੈਂਟ ਨਹੀਂ ਹੈ।",
         "english_review": "No, I do not have an appointment."
       },
       {
-        "intent": "COMPANION_YES",
-        "input_matches": ["maee ahad", "maee aela", "maee zawjati", "أحد معي", "معي عائلتي"],
-        "native_script": "نعم، أحد أفراد عائلتي معي.",
-        "english_review": "Yes, a family member is with me."
-      },
-      {
-        "intent": "COMPANION_NO",
-        "input_matches": ["wahdi", "ana wahdi", "laysa maee ahad", "بمفردي"],
-        "native_script": "لا، أنا بمفردي.",
-        "english_review": "No, I am attending alone."
-      },
-      {
-        "intent": "INTERPRETER_SPECIFIC_NO",
-        "input_matches": ["la ahtaj motarjim", "mush lazim motarjim"],
-        "native_script": "لا، لا داعي لمترجم.",
-        "english_review": "No, an interpreter is not needed."
-      },
-      {
-        "intent": "INTERPRETER_SPECIFIC_YES",
-        "input_matches": ["ahtaj motarjim", "uridu motarjim", "أحتاج مترجم"],
-        "native_script": "نعم، أحتاج إلى مترجم.",
-        "english_review": "Yes, I require an interpreter."
+        "intent": "DOCUMENT_HAVE",
+        "input_matches": ["chitti hai", "letter hai"],
+        "native_script": "ਮੇਰੇ ਕੋਲ ਚਿੱਠੀ ਹੈ।",
+        "english_review": "I have the appointment letter."
       },
       {
         "intent": "NHS_OR_ID_PROVIDED",
-        "input_matches": ["hatha howiya", "raqam nhs", "indi raqam nhs", "بطاقة الهوية"],
-        "native_script": "تفضل، هذا رقم NHS / بطاقة هويتي.",
+        "input_matches": ["nhs number hai", "id card kol hai", "aa lo id", "ਨੰਬਰ ਹੈ"],
+        "native_script": "ਇਹ ਰਿਹਾ ਮੇਰਾ NHS ਨੰਬਰ / ਸ਼ਨਾਖਤੀ ਕਾਰਡ।",
         "english_review": "Here is my NHS number / ID card."
       },
       {
         "intent": "NHS_UNKNOWN",
-        "input_matches": ["ma aarif alraqam", "la atathakar", "لا أعرف"],
-        "native_script": "لا، لا أعرف رقم NHS الخاص بي.",
+        "input_matches": ["number nahi pata", "yaad nahi", "ਪਤਾ ਨਹੀਂ"],
+        "native_script": "ਨਹੀਂ, ਮੈਨੂੰ ਆਪਣਾ NHS ਨੰਬਰ ਨਹੀਂ ਪਤਾ।",
         "english_review": "No, I do not know my NHS number."
       },
       {
-        "intent": "NOT_NEEDED",
-        "input_matches": ["la daee", "laysa lazim", "لا داعي"],
-        "native_script": "لا داعي لذلك.",
-        "english_review": "Not needed."
+        "intent": "PRESCRIPTION_NEED",
+        "input_matches": ["dawai chahidi", "prescription chahida"],
+        "native_script": "ਮੈਨੂੰ ਦਵਾਈ / ਪਰਚੀ ਚਾਹੀਦੀ ਹੈ।",
+        "english_review": "I am here for my prescription/medication."
+      },
+      {
+        "intent": "TOILET_WHERE",
+        "input_matches": ["toilet kithe hai", "bathroom kithe hai"],
+        "native_script": "ਟਾਇਲਟ ਕਿੱਥੇ ਹੈ?",
+        "english_review": "Where is the toilet/washroom?"
+      },
+      {
+        "intent": "INTERPRETER_SPECIFIC_YES",
+        "input_matches": ["interpreter chahida", "punjabi interpreter chahida"],
+        "native_script": "ਹਾਂ, ਮੈਨੂੰ ਅਨੁਵਾਦਕ ਦੀ ਲੋੜ ਹੈ।",
+        "english_review": "Yes, I require an interpreter."
+      },
+      {
+        "intent": "INTERPRETER_SPECIFIC_NO",
+        "input_matches": ["interpreter nahi lod", "anuvadak nahi lod"],
+        "native_script": "ਨਹੀਂ, ਅਨੁਵਾਦਕ ਦੀ ਲੋੜ ਨਹੀਂ ਹੈ।",
+        "english_review": "No, an interpreter is not needed."
+      },
+      {
+        "intent": "COMPANION_YES",
+        "input_matches": ["parivar naal hai", "relative naal hai", "koi naal hai", "ਨਾਲ ਹੈ"],
+        "native_script": "ਹਾਂ, ਮੇਰੇ ਨਾਲ ਪਰਿਵਾਰ ਦਾ ਮੈਂਬਰ ਹੈ।",
+        "english_review": "Yes, a family member is with me."
+      },
+      {
+        "intent": "COMPANION_NO",
+        "input_matches": ["kalla haan", "ikalla", "koi nahi naal", "ਇਕੱਲਾ ਹਾਂ"],
+        "native_script": "ਨਹੀਂ, ਮੈਂ ਇਕੱਲਾ ਆਇਆ ਹਾਂ।",
+        "english_review": "No, I am attending alone."
+      },
+      {
+        "intent": "SYMPTOM_PAIN_GENERAL",
+        "input_matches": ["dard ho reha hai", "dard hai"],
+        "native_script": "ਮੈਨੂੰ ਦਰਦ ਹੋ ਰਿਹਾ ਹੈ।",
+        "english_review": "I am experiencing pain."
+      },
+      {
+        "intent": "SYMPTOM_FEVER",
+        "input_matches": ["bukhar hai"],
+        "native_script": "ਮੈਨੂੰ ਬੁਖ਼ਾਰ ਹੈ।",
+        "english_review": "I have a fever/temperature."
+      },
+      {
+        "intent": "SYMPTOM_NO_PAIN",
+        "input_matches": ["dard nahi hai"],
+        "native_script": "ਕੋਈ ਦਰਦ ਨਹੀਂ ਹੈ।",
+        "english_review": "I do not have pain."
+      },
+      {
+        "intent": "UNDERSTOOD_WAIT",
+        "input_matches": ["samajh aa gayi", "baithda haan"],
+        "native_script": "ਸਮਝ ਗਿਆ। ਮੈਂ ਇੰਤਜ਼ਾਰ ਕਰਾਂਗਾ।",
+        "english_review": "Understood. I will take a seat and wait."
+      },
+      {
+        "intent": "AFFIRM_HAVE_GENERAL",
+        "input_matches": ["haan hai", "kol hai"],
+        "native_script": "ਹਾਂ, ਮੇਰੇ ਕੋਲ ਹੈ।",
+        "english_review": "Yes, I have it."
+      },
+      {
+        "intent": "HAVE_GENERAL",
+        "input_matches": ["mere kol hai"],
+        "native_script": "ਮੇਰੇ ਕੋਲ ਹੈ।",
+        "english_review": "I have it."
       },
       {
         "intent": "NEEDED",
-        "input_matches": ["ahtaj", "lazim", "أحتاج"],
-        "native_script": "أحتاج إلى ذلك.",
+        "input_matches": ["lod hai", "chahida", "ਲੋੜ ਹੈ"],
+        "native_script": "ਲੋੜ ਹੈ।",
         "english_review": "Yes, required."
       },
       {
+        "intent": "NOT_NEEDED",
+        "input_matches": ["lod nahi hai", "lod nahi", "ਨਹੀਂ ਲੋੜ"],
+        "native_script": "ਲੋੜ ਨਹੀਂ ਹੈ।",
+        "english_review": "Not needed."
+      },
+      {
         "intent": "GENERIC_YES",
-        "input_matches": ["naam", "ajall", "hasanan", "نعم", "أجل"],
-        "native_script": "نعم.",
+        "input_matches": ["haan", "haan ji", "ji haan", "theek hai", "ਹਾਂ", "ਹਾਂਜੀ"],
+        "native_script": "ਹਾਂ।",
         "english_review": "Yes."
       },
       {
         "intent": "GENERIC_NO",
-        "input_matches": ["la", "kalla", "لا", "كلا"],
-        "native_script": "لا.",
+        "input_matches": ["nahi", "nahi ji", "ਨਹੀਂ"],
+        "native_script": "ਨਹੀਂ।",
         "english_review": "No."
       },
       {
         "intent": "GENERAL_ACKNOWLEDGE",
-        "input_matches": ["shukran", "tayyeb", "sa ajles", "شكراً"],
-        "native_script": "حسناً، شكراً لك.",
+        "input_matches": ["dhanvaad", "sat sri akal", "ਧੰਨਵਾਦ"],
+        "native_script": "ਠੀਕ ਹੈ, ਧੰਨਵਾਦ।",
+        "english_review": "Understood, thank you."
+      }
+    ],
+    "Gujarati": [
+      {
+        "intent": "APPOINTMENT_YES_HAVE",
+        "input_matches": ["ha appointment che", "maro appointment che"],
+        "native_script": "હા, મારો એપોઇન્ટમેન્ટ છે.",
+        "english_review": "Yes, I have an appointment."
+      },
+      {
+        "intent": "APPOINTMENT_HAVE",
+        "input_matches": ["appointment che", "એપોઇન્ટમેન્ટ છે"],
+        "native_script": "મારો એપોઇન્ટમેન્ટ છે.",
+        "english_review": "I have an appointment."
+      },
+      {
+        "intent": "APPOINTMENT_SPECIFIC_NO",
+        "input_matches": ["appointment nathi", "maro appointment nathi", "એપોઇન્ટમેન્ટ નથી"],
+        "native_script": "ના, મારો એપોઇન્ટમેન્ટ નથી.",
+        "english_review": "No, I do not have an appointment."
+      },
+      {
+        "intent": "DOCUMENT_HAVE",
+        "input_matches": ["letter che", "kagal che"],
+        "native_script": "મારી પાસે પત્ર છે.",
+        "english_review": "I have the appointment letter."
+      },
+      {
+        "intent": "NHS_OR_ID_PROVIDED",
+        "input_matches": ["nhs number che", "id card che", "aa rahyo card", "નંબર છે"],
+        "native_script": "આ રહ્યો મારો NHS નંબર / ઓળખપત્ર.",
+        "english_review": "Here is my NHS number / ID card."
+      },
+      {
+        "intent": "NHS_UNKNOWN",
+        "input_matches": ["number nathi khabar", "yaad nathi", "ખબર નથી"],
+        "native_script": "ના, મને મારો NHS નંબર ખબર નથી.",
+        "english_review": "No, I do not know my NHS number."
+      },
+      {
+        "intent": "PRESCRIPTION_NEED",
+        "input_matches": ["dava joiye", "prescription joiye"],
+        "native_script": "મને દવા / પ્રિસ્ક્રિપ્શન જોઈએ છે.",
+        "english_review": "I am here for my prescription/medication."
+      },
+      {
+        "intent": "TOILET_WHERE",
+        "input_matches": ["toilet kya che", "bathroom kya che"],
+        "native_script": "શૌચાલય ક્યાં છે?",
+        "english_review": "Where is the toilet/washroom?"
+      },
+      {
+        "intent": "INTERPRETER_SPECIFIC_YES",
+        "input_matches": ["interpreter joiyye", "gujarati interpreter joiyye"],
+        "native_script": "હા, મને દુભાષિયાની જરૂર છે.",
+        "english_review": "Yes, I require an interpreter."
+      },
+      {
+        "intent": "INTERPRETER_SPECIFIC_NO",
+        "input_matches": ["interpreter jarur nathi", "dubhashiya nathi joitu"],
+        "native_script": "ના, દુભાષિયાની જરૂર નથી.",
+        "english_review": "No, an interpreter is not needed."
+      },
+      {
+        "intent": "COMPANION_YES",
+        "input_matches": ["parivar sathe che", "relative che", "sathe koi che", "સાથે છે"],
+        "native_script": "હા, મારી સાથે પરિવારના સભ્ય છે.",
+        "english_review": "Yes, a family member is with me."
+      },
+      {
+        "intent": "COMPANION_NO",
+        "input_matches": ["eklo chu", "ekli chu", "koi nathi", "એકલો છું"],
+        "native_script": "ના, હું એકલો આવ્યો છું.",
+        "english_review": "No, I am attending alone."
+      },
+      {
+        "intent": "SYMPTOM_PAIN_GENERAL",
+        "input_matches": ["dukhavo che", "dard che"],
+        "native_script": "મને દુખાવો થાય છે.",
+        "english_review": "I am experiencing pain."
+      },
+      {
+        "intent": "SYMPTOM_FEVER",
+        "input_matches": ["taav che"],
+        "native_script": "મને તાવ છે.",
+        "english_review": "I have a fever/temperature."
+      },
+      {
+        "intent": "SYMPTOM_NO_PAIN",
+        "input_matches": ["dukhavo nathi"],
+        "native_script": "કોઈ દુખાવો નથી.",
+        "english_review": "I do not have pain."
+      },
+      {
+        "intent": "UNDERSTOOD_WAIT",
+        "input_matches": ["samji gayo", "besu chu", "raah jou chu"],
+        "native_script": "સમજી ગયો. હું બેસીને રાહ જોઈશ.",
+        "english_review": "Understood. I will take a seat and wait."
+      },
+      {
+        "intent": "AFFIRM_HAVE_GENERAL",
+        "input_matches": ["ha che", "paase che"],
+        "native_script": "હા, મારી પાસે છે.",
+        "english_review": "Yes, I have it."
+      },
+      {
+        "intent": "HAVE_GENERAL",
+        "input_matches": ["paase che"],
+        "native_script": "મારી પાસે છે.",
+        "english_review": "I have it."
+      },
+      {
+        "intent": "NEEDED",
+        "input_matches": ["jarur che", "joiyye", "જરૂર છે"],
+        "native_script": "જરૂર છે.",
+        "english_review": "Yes, required."
+      },
+      {
+        "intent": "NOT_NEEDED",
+        "input_matches": ["jarur nathi", "nathi joitu", "જરૂર નથી"],
+        "native_script": "જરૂર નથી.",
+        "english_review": "Not needed."
+      },
+      {
+        "intent": "GENERIC_YES",
+        "input_matches": ["ha", "haji", "saru", "હા", "હાજી"],
+        "native_script": "હા.",
+        "english_review": "Yes."
+      },
+      {
+        "intent": "GENERIC_NO",
+        "input_matches": ["na", "nathi", "ના"],
+        "native_script": "ના.",
+        "english_review": "No."
+      },
+      {
+        "intent": "GENERAL_ACKNOWLEDGE",
+        "input_matches": ["aabhar", "આભાર"],
+        "native_script": "સારું, આભાર.",
         "english_review": "Understood, thank you."
       }
     ]
