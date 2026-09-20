@@ -40,7 +40,7 @@
     letter-spacing: 0.3px;
   }
 
-  /* ── Setup Screen: Aligned to top to prevent vertical cropping ── */
+  /* ── Setup Screen ── */
   #setupScreen {
     display: none;
     flex: 1 1 auto !important;
@@ -293,7 +293,6 @@
 <div id="setupScreen" class="screen active">
   <div class="setup-container">
     
-    <!-- Header Block -->
     <div class="setup-title-box">
       <div class="brand-heading">
         <div class="logo-icon">
@@ -350,7 +349,6 @@
       <p class="card-hint">Displays native script beside English meaning for staff-led understanding checks.</p>
       
       <div class="lang-grid-enhanced">
-        <!-- Tamil -->
         <div class="lang-card" data-lang="Tamil" data-code="ta" onclick="selectLang(this)">
           <div>
             <span class="eng-name">Tamil</span>
@@ -359,7 +357,6 @@
           <span class="native-name">தமிழ்</span>
         </div>
 
-        <!-- Hindi -->
         <div class="lang-card" data-lang="Hindi" data-code="hi" onclick="selectLang(this)">
           <div>
             <span class="eng-name">Hindi</span>
@@ -368,7 +365,6 @@
           <span class="native-name">हिन्दी</span>
         </div>
 
-        <!-- Malayalam -->
         <div class="lang-card" data-lang="Malayalam" data-code="ml" onclick="selectLang(this)">
           <div>
             <span class="eng-name">Malayalam</span>
@@ -377,7 +373,6 @@
           <span class="native-name">മലയാളം</span>
         </div>
 
-        <!-- Polish -->
         <div class="lang-card" data-lang="Polish" data-code="pl" onclick="selectLang(this)">
           <div>
             <span class="eng-name">Polish</span>
@@ -386,7 +381,6 @@
           <span class="native-name">Polski</span>
         </div>
 
-        <!-- Arabic -->
         <div class="lang-card" data-lang="Arabic" data-code="ar" onclick="selectLang(this)">
           <div>
             <span class="eng-name">Arabic</span>
@@ -395,7 +389,6 @@
           <span class="native-name">العربية</span>
         </div>
 
-        <!-- Urdu -->
         <div class="lang-card" data-lang="Urdu" data-code="ur" onclick="selectLang(this)">
           <div>
             <span class="eng-name">Urdu</span>
@@ -404,7 +397,6 @@
           <span class="native-name">اردو</span>
         </div>
 
-        <!-- Bengali -->
         <div class="lang-card" data-lang="Bengali" data-code="bn" onclick="selectLang(this)">
           <div>
             <span class="eng-name">Bengali</span>
@@ -413,7 +405,6 @@
           <span class="native-name">বাংলা</span>
         </div>
 
-        <!-- Somali -->
         <div class="lang-card" data-lang="Somali" data-code="so" onclick="selectLang(this)">
           <div>
             <span class="eng-name">Somali</span>
@@ -422,7 +413,6 @@
           <span class="native-name">Soomaali</span>
         </div>
 
-        <!-- Romanian -->
         <div class="lang-card" data-lang="Romanian" data-code="ro" onclick="selectLang(this)">
           <div>
             <span class="eng-name">Romanian</span>
@@ -463,7 +453,6 @@
 <div id="mainScreen" class="screen">
   <div class="app-layout">
 
-    <!-- Sidebar -->
     <aside class="sidebar">
       <div class="sidebar-logo">
         <div class="logo-icon sm">
@@ -504,7 +493,6 @@
       </div>
     </aside>
 
-    <!-- Main Chat + Input Area -->
     <main class="main-area">
       <div class="chat-header">
         <div>
@@ -538,7 +526,6 @@
           <button class="tab" data-tab="confirm" onclick="switchTab(this)">Understanding Check</button>
         </div>
 
-        <!-- Free text tab -->
         <div class="tab-pane active" id="tab-free">
           <div class="input-row">
             <textarea id="freeInput" placeholder="Type a message or question for the patient in English..." rows="2"></textarea>
@@ -555,7 +542,6 @@
           </div>
         </div>
 
-        <!-- Patient response tab -->
         <div class="tab-pane" id="tab-patient">
           <div class="input-row">
             <textarea id="patientInput" placeholder="Type or paste what the patient said (native script or phonetic/romanized)..." rows="2"></textarea>
@@ -566,7 +552,7 @@
           <div class="input-hint">Translates the patient's message back to English and displays the original/native-script text alongside it for staff review during the active session.</div>
         </div>
 
-        <!-- ═══ UNDERSTANDING CHECK: ONE-CLICK VERIFICATION ═══ -->
+        <!-- ═══ UNDERSTANDING CHECK ═══ -->
         <div class="tab-pane" id="tab-confirm">
           <input type="hidden" id="confirmInput" value=""/>
 
@@ -577,7 +563,7 @@
                 <strong style="font-size: 14px; color: #92400e;">Staff-Led Understanding Check</strong>
               </div>
               <p style="margin: 0; font-size: 12.5px; color: #78350f; line-height: 1.4;">
-                Sends a formal verification prompt back to the patient in their language to confirm that routine guidance or responses were understood accurately before staff proceed.
+                Displays a prepared confirmation prompt and records confirmation or correction for staff review.
               </p>
             </div>
             <button type="button" class="action-btn amber" onclick="runUnderstandingCheck()" id="confirmBtn" style="white-space: nowrap; padding: 12px 22px; font-weight: 700; cursor: pointer; border-radius: 6px;">
@@ -586,7 +572,7 @@
           </div>
 
           <div class="input-hint" style="margin-top: 8px;">
-            Prompts closed-loop back-confirmation to verify patient comprehension under standard practice governance.
+            Displays a prepared confirmation prompt and records confirmation or correction for staff review.
           </div>
         </div>
       </div>
@@ -735,7 +721,7 @@ function runUnderstandingCheck() {
     const errorHtml = `
       <div class="msg-row system" style="display: flex; width: 100%; margin-bottom: 12px; justify-content: center;">
         <div style="max-width: 80%; background: #fff1f2; border: 1.5px solid #fecdd3; border-radius: 8px; padding: 12px 16px; color: #9f1239; font-size: 13px;">
-          <strong>Verification Unavailable:</strong> configured confirmation prompts found for "${langKey || 'Unselected Language'}". Understanding check halted without cross-language fallback.
+          <strong>Verification Unavailable:</strong> No configured confirmation prompts found for "${langKey || 'Unselected Language'}". Understanding check halted without cross-language fallback.
         </div>
       </div>
     `;
