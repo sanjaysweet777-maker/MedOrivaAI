@@ -1,22 +1,15 @@
 import json
+import logging
 import os
 import re
 import uuid
-from datetime import timedelta
+from datetime import datetime, timezone
 from flask import Flask, flash, jsonify, redirect, render_template, request, session, url_for
 from flask_login import LoginManager, UserMixin, current_user, login_required, login_user, logout_user
 from translator import LANGUAGES, patient_translation, staff_translation
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 template_dir = os.path.join(BASE_DIR, 'templates')
-
-# Load MedOriva Rule Dictionary for MVP patient matching
-RULES_DICT_PATH = os.path.join(BASE_DIR, "rules_dictionary.json")
-try:
-    with open(RULES_DICT_PATH, "r", encoding="utf-8") as f:
-        RULES_DATA = json.load(f).get("rules_by_language", {})
-except Exception:
-    RULES_DATA = {}
 
 app = Flask(__name__, template_folder=template_dir)
 app.secret_key = os.environ.get("SECRET_KEY", "medoriva-clinical-mvp-2026-v4")
@@ -25,6 +18,98 @@ app.secret_key = os.environ.get("SECRET_KEY", "medoriva-clinical-mvp-2026-v4")
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("medoriva.app")
+
+# ============================================================
+# CANONICAL LANGUAGE ALIAS REGISTRY (All 9 MVP Languages + Extras)
+# ============================================================
+CANONICAL_LANGUAGES = {
+    "ta": ("Tamil", "ta"), "tamil": ("Tamil", "ta"),
+    "hi": ("Hindi", "hi"), "hindi": ("Hindi", "hi"),
+    "ml": ("Malayalam", "ml"), "malayalam": ("Malayalam", "ml"),
+    "pl": ("Polish", "pl"), "polish": ("Polish", "pl"),
+    "ar": ("Arabic", "ar"), "arabic": ("Arabic", "ar"),
+    "ur": ("Urdu", "ur"), "urdu": ("Urdu", "ur"),
+    "bn": ("Bengali", "bn"), "bengali": ("Bengali", "bn"),
+    "so": ("Somali", "so"), "somali": ("Somali", "so"),
+    "ro": ("Romanian", "ro"), "romanian": ("Romanian", "ro"),
+    "pa": ("Punjabi", "pa"), "punjabi": ("Punjabi", "pa"),
+    "gu": ("Gujarati", "gu"), "gujarati": ("Gujarati", "gu"),
+}
+
+def get_canonical_language(raw_lang, raw_code=None):
+    """Resolves arbitrary display strings or codes to canonical (Name, Code)."""
+    if raw_code and str(raw_code).strip().lower() in CANONICAL_LANGUAGES:
+        return CANONICAL_LANGUAGES[str(raw_code).strip().lower()]
+    
+    if raw_lang:
+        # Extract first word to cleanly strip brackets like 'Tamil (தமிழ்)'
+        first_token = re.split(r'[\s\(\-_/]', str(raw_lang).strip())[0].lower()
+        if first_token in CANONICAL_LANGUAGES:
+            return CANONICAL_LANGUAGES[first_token]
+            
+    return ("Tamil", "ta")
+
+# ============================================================
+# MULTILINGUAL NEGATION TOKENS (All 9 MVP Languages)
+# ============================================================
+NEGATION_TOKENS_BY_LANG = {
+    "Tamil": {"illai", "illa", "kidayathu", "illamal", "vendam", "thevai illai", "இல்லை", "கிடையாது", "வேண்டாம்"},
+    "Hindi": {"nahi", "nahin", "na", "mat", "नहीं", "ना", "मत"},
+    "Malayalam": {"illa", "alla", "illaathe", "venda", "aavashyamilla", "ഇല്ല", "അല്ല", "വേണ്ട"},
+    "Polish": {"nie", "brak", "bez", "ani"},
+    "Arabic": {"la", "kalla", "laysa", "ma", "mush", "lan", "lam", "لا", "كلا", "ليس", "ما", "مش"},
+    "Urdu": {"nahi", "nahin", "na", "mat", "nhi", "نہیں", "نہ", "مت"},
+    "Bengali": {"na", "nei", "noi", "noy", "না", "নেই", "নয়"},
+    "Somali": {"maya", "ma", "maha", "malihi", "ha", "ma jiro"},
+    "Romanian": {"nu", "nici", "fara", "fără"},
+    "Punjabi": {"nahi", "nhi", "na", "nahin", "ਨਹੀਂ", "ਨਾ"},
+    "Gujarati": {"nathi", "na", "નથી", "ના"}
+}
+
+def normalize_phrase(text):
+    """Strips punctuation, normalizes unicode, and collapses whitespace."""
+    if not text:
+        return ""
+    cleaned = re.sub(r'[^\w\s]', ' ', str(text), flags=re.UNICODE).lower()
+    return " ".join(cleaned.split())
+
+# ============================================================
+# SCHEMA-VALIDATED RULE DICTIONARY LOADER
+# ============================================================
+RULES_DICT_PATH = os.path.join(BASE_DIR, "rules_dictionary.json")
+
+def load_rules_data(filepath):
+    if not os.path.exists(filepath):
+        logger.warning("Rules file not found at %s", filepath)
+        return {}
+    try:
+        with open(filepath, "r", encoding="utf-8") as f:
+            raw = json.load(f)
+        
+        # Support both {"rules_by_language": {...}} and flat {...}
+        rules_dict = raw.get("rules_by_language", raw) if isinstance(raw, dict) else {}
+        
+        normalized = {}
+        for lang_key, rules_list in rules_dict.items():
+            if lang_key in {"system", "version"}:
+                continue
+            canonical_name, _ = get_canonical_language(lang_key)
+            if isinstance(rules_list, list):
+                normalized[canonical_name] = rules_list
+                
+        logger.info("Loaded verified rules for %d languages.", len(normalized))
+        return normalized
+    except Exception as e:
+        logger.error("Failed to load rules from %s: %s", filepath, e)
+        return {}
+
+RULES_DATA = load_rules_data(RULES_DICT_PATH)
+
+# ============================================================
+# LOGIN & SESSION SECURITY
+# ============================================================
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
@@ -54,10 +139,6 @@ def unauthorized():
 
 @app.after_request
 def add_security_headers(response):
-    """
-    NHS DSPT & UK GDPR Compliance: Prevents shared reception workstations
-    from caching sensitive conversational text in local browser disk memory.
-    """
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     response.headers["Pragma"] = "no-cache"
     response.headers["X-Content-Type-Options"] = "nosniff"
@@ -69,7 +150,7 @@ def reset_translation_session():
         session.pop(key, None)
 
 # ============================================================
-# CLINICAL SIMPLIFICATION RULES (21 Standard Intake Terms)
+# CLINICAL SIMPLIFICATION RULES
 # ============================================================
 SIMPLIFY_RULES = [
     (r"require\s+further\s+diagnostic\s+evaluation", "need more tests"),
@@ -207,7 +288,31 @@ def submit_contact():
     if not name or not email or not message:
         return jsonify({"status": "error", "message": "All fields are required."}), 400
 
-    return jsonify({"status": "ok", "message": "Inquiry received. Our practice pilot team will contact you within 24 hours."}), 200
+    inquiry_record = {
+        "id": str(uuid.uuid4()),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "name": name,
+        "email": email,
+        "organization": org,
+        "message": message,
+        "status": "pending_pilot_review"
+    }
+
+    # Persist inquiry to append-only storage
+    inquiries_file = os.path.join(BASE_DIR, "contact_inquiries.jsonl")
+    try:
+        with open(inquiries_file, "a", encoding="utf-8") as f:
+            f.write(json.dumps(inquiry_record, ensure_ascii=False) + "\n")
+        logger.info("Contact inquiry stored successfully: %s", inquiry_record["id"])
+    except Exception as e:
+        logger.error("Failed to persist contact inquiry: %s", e)
+        return jsonify({"status": "error", "message": "Unable to save inquiry. Please try again later."}), 500
+
+    return jsonify({
+        "status": "ok",
+        "message": "Inquiry received. Our practice pilot team will contact you within 24 hours.",
+        "reference_id": inquiry_record["id"][:8]
+    }), 200
 
 @app.route("/api/ping", methods=["GET"])
 def ping():
@@ -230,10 +335,14 @@ def start_session():
             context_key = k
             break
 
+    raw_lang = data.get("lang", "Tamil")
+    raw_code = data.get("lang_code") or data.get("code")
+    canonical_lang, canonical_code = get_canonical_language(raw_lang, raw_code)
+
     session["session_id"] = str(uuid.uuid4())[:8]
     session["context"] = context_key
-    session["lang"] = data.get("lang", "Tamil")
-    session["lang_code"] = data.get("lang_code", "ta")
+    session["lang"] = canonical_lang
+    session["lang_code"] = canonical_code
     session["active"] = True
 
     prompts = CONTEXT_PROMPTS.get(context_key, CONTEXT_PROMPTS["Reception"])
@@ -296,43 +405,60 @@ def translate_patient():
     if not raw_text:
         return jsonify({"error": "No text provided"}), 400
 
-    lang_code = session.get("lang_code", "ta")
-    lang_name = session.get("lang", "Tamil")
+    canonical_lang, lang_code = get_canonical_language(
+        session.get("lang", "Tamil"),
+        session.get("lang_code", "ta")
+    )
 
-    # Step 1: Query MedOriva rule dictionary with length-priority resolution
-    clean_input = raw_text.strip().lower()
-    rules_for_lang = RULES_DATA.get(lang_name, [])
+    norm_input = normalize_phrase(raw_text)
+    input_tokens = set(norm_input.split())
+    rules_for_lang = RULES_DATA.get(canonical_lang, [])
 
-    # Compile all candidate match phrases sorted by length (longest phrase first)
-    match_candidates = []
-    for rule in rules_for_lang:
-        for keyword in rule.get("input_matches", []):
-            match_candidates.append((keyword.strip().lower(), rule))
-
-    # Longest patterns evaluate first so multi-word phrases aren't cut off by single words
-    match_candidates.sort(key=lambda x: len(x[0]), reverse=True)
+    # Identify if patient input contains any known negation token for this language
+    lang_negations = NEGATION_TOKENS_BY_LANG.get(canonical_lang, set())
+    has_negation_in_input = bool(input_tokens & lang_negations)
 
     matched_rule = None
-    for keyword, rule in match_candidates:
-        # Check whole-word or exact substring match
-        pattern = r'(?:\b|^)' + re.escape(keyword) + r'(?:\b|$)'
-        if re.search(pattern, clean_input) or keyword in clean_input:
-            matched_rule = rule
+
+    # Step 1: Strict exact phrase matching only.
+    # A rule will only match if the normalized utterance EXACTLY equals a registered match phrase.
+    # Partial fragments are rejected to prevent erasing clinical words, durations, or negations.
+    for rule in rules_for_lang:
+        intent = rule.get("intent", "").upper()
+        is_negative_intent = any(neg in intent for neg in ["_NO", "NOT_", "NEGATE_", "NO_PAIN"])
+
+        # Prevent affirmative rules from matching utterances containing negation
+        if has_negation_in_input and not is_negative_intent:
+            continue
+
+        for candidate in rule.get("input_matches", []):
+            norm_candidate = normalize_phrase(candidate)
+            if norm_input == norm_candidate:
+                matched_rule = rule
+                break
+        if matched_rule:
             break
 
     if matched_rule:
+        intent = matched_rule.get("intent", "").upper()
+        is_negative = any(neg in intent for neg in ["_NO", "NOT_", "NEGATE_", "NO_PAIN"])
+        symptom_detected = "SYMPTOM_" in intent
+        medical_alert = bool(symptom_detected and not is_negative)
+
         return jsonify({
             "original": raw_text,
             "native": matched_rule["native_script"],
             "translated": matched_rule["english_review"],
-            "lang": lang_name,
-            "symptom_detected": False,
-            "is_negative": False,
-            "medical_alert": False,
-            "warning": None
+            "lang": canonical_lang,
+            "symptom_detected": symptom_detected,
+            "is_negative": is_negative,
+            "medical_alert": medical_alert,
+            "warning": None,
+            "match_type": "verified_rule"
         })
 
-    # Step 2: Fallback to translator engine if no pre-mapped pattern matches
+    # Step 2: Fallback to translator engine whenever the utterance contains additional words,
+    # anatomical terms, durations, or unmapped expressions.
     res = patient_translation(raw_text, lang_code)
     medical_alert = bool(res.symptom and not res.is_negative)
 
@@ -340,11 +466,12 @@ def translate_patient():
         "original": raw_text,
         "native": res.native,
         "translated": res.text,
-        "lang": lang_name,
+        "lang": canonical_lang,
         "symptom_detected": res.symptom,
         "is_negative": res.is_negative,
         "medical_alert": medical_alert,
-        "warning": res.warning
+        "warning": res.warning,
+        "match_type": "translation_engine"
     })
 
 if __name__ == "__main__":
