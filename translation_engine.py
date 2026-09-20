@@ -28,6 +28,7 @@ LANGUAGES = {
 }
 
 NON_LATIN_LANGUAGES = {'ta', 'hi', 'ml', 'bn', 'ar', 'ur'}
+LATIN_LANGUAGES = {'en', 'pl', 'ro', 'so'}
 
 @dataclass(frozen=True)
 class Translation:
@@ -46,7 +47,7 @@ def unavailable(error_code=''):
         native='',
         status='unavailable',
         source='none',
-        warning='Translation unavailable.',
+        warning='Translation unavailable — rephrase, use supported native-script input, or seek interpreter support.',
         error_code=error_code
     )
 
@@ -89,35 +90,63 @@ def in_range(code_point, rng):
     return rng[0] <= code_point <= rng[1]
 
 def script_matches(text, language):
+    """
+    Validates script membership.
+    Rejects Cyrillic ('Привет'), Greek, and cross-script contamination in Latin & Indic outputs.
+    """
     if not text:
         return False
 
     if language in NON_LATIN_LANGUAGES:
-        target_range = NATIVE_RANGES[language]
+        target_range = NATIVE_RANGES.get(language)
+        if not target_range:
+            return False
         has_target_script = False
 
         for c in text:
             cp = ord(c)
 
-            # Allow common whitespace, digits, ASCII characters (like NHS), punctuation, and shared Indic dandas
+            # Allow common whitespace, digits, ASCII, punctuation, and shared Indic dandas
             if cp in SHARED_INDIC_PUNCTUATION or cp < 0x0080 or unicodedata.category(c).startswith(('P', 'Z', 'N')):
                 continue
 
-            # Check for illegal cross-Indic or non-native script contamination
+            # Check for illegal cross-Indic or foreign script mixing
             for r_start, r_end in ALL_INDIC_RANGES:
                 if r_start <= cp <= r_end:
                     if not in_range(cp, target_range):
-                        return False  # Foreign script mixing detected
+                        return False
 
             if in_range(cp, target_range):
                 has_target_script = True
 
         return has_target_script
 
-    # Latin languages (pl, ro, so)
-    has_non_latin = any(ord(c) > 0x0590 for c in text if c.isalpha())
-    has_latin = any(('a' <= c.lower() <= 'z') or unicodedata.category(c).startswith('L') for c in text)
-    return has_latin and not has_non_latin
+    if language in LATIN_LANGUAGES:
+        has_latin_letter = False
+        for c in text:
+            # Skip punctuation, whitespace, numbers, symbols
+            if unicodedata.category(c).startswith(('P', 'Z', 'N', 'S')) or c in '\r\n\t ':
+                continue
+            
+            # Character must be a letter
+            if not c.isalpha():
+                continue
+
+            try:
+                name = unicodedata.name(c, '')
+            except ValueError:
+                return False
+
+            # Strict Unicode script check: must be a LATIN character
+            if 'LATIN' in name:
+                has_latin_letter = True
+            else:
+                # Disallow CYRILLIC, GREEK, ARABIC, DEVANAGARI, etc.
+                return False
+
+        return has_latin_letter
+
+    return True
 
 # ============================================================
 # NUMERIC & DOSAGE GUARDS
@@ -185,7 +214,7 @@ def provider_error(response):
         native='',
         status='unavailable',
         source='google_cloud',
-        warning='Provider error occurred. Details withheld for safety.',
+        warning='Translation unavailable — rephrase, use supported native-script input, or seek interpreter support.',
         error_code=error_code
     )
 
@@ -263,7 +292,6 @@ def online(text, source, target):
 
 # ============================================================
 # PREPARED CLINICAL STAFF LOOKUP (All 9 Languages)
-# Pure Malayalam & Pure Urdu without Devanagari contamination
 # ============================================================
 STAFF_LOOKUP = {
     "Do you have an appointment?": {
