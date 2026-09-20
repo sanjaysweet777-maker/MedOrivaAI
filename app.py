@@ -70,30 +70,179 @@ def normalize_phrase(text):
     return " ".join("".join(chars).lower().split())
 
 # ============================================================
-# CONTEXT-GUIDED PROMPTS
-# Exactly aligned to the 9 prepared staff phrases in STAFF_LOOKUP
+# 1. COMPLETE 21 GUIDED PROMPTS ACROSS ALL 3 CONTEXTS
 # ============================================================
 CONTEXT_PROMPTS = {
     "Reception": [
+        "Good morning. How can I help you?",
         "Do you have an appointment?",
-        "Do you have your appointment letter?",
+        "Can I take your name and date of birth?",
+        "Please take a seat.",
         "Do you have your NHS number?",
-        "Do you need an interpreter?",
-        "Please take a seat."
+        "Please fill in this form.",
+        "Do you need an interpreter?"
     ],
     "Appointment": [
-        "Do you have an appointment?",
+        "Your appointment is confirmed.",
+        "The doctor will see you now.",
         "Do you have your appointment letter?",
-        "Do you have your NHS number?",
-        "Do you need an interpreter?",
-        "Please take a seat."
+        "Please bring your medication list.",
+        "Is anyone with you today?",
+        "Please wait in the waiting area.",
+        "The appointment will take about 15 minutes."
     ],
     "Basic Symptoms": [
         "Where is your pain?",
-        "Do you have chest pain?",
+        "How long have you had this?",
         "Do you have a fever?",
-        "Are you having difficulty breathing?"
+        "Are you having difficulty breathing?",
+        "Do you feel dizzy or faint?",
+        "Do you have chest pain?",
+        "When did the symptoms start?"
     ]
+}
+
+# ============================================================
+# 2. PREPARED STAFF TRANSLATIONS FOR EXTENDED PROMPTS (9 Languages)
+# Ensures zero "Machine translation" fallbacks on prompt clicks
+# ============================================================
+RAW_EXTENDED_STAFF = {
+    "Good morning. How can I help you?": {
+        "ta": "காலை வணக்கம். நான் உங்களுக்கு எப்படி உதவ முடியும்?",
+        "hi": "नमस्ते। मैं आपकी क्या मदद कर सकता हूँ?",
+        "ml": "ശുഭോദയം. ഞാൻ നിങ്ങളെ എങ്ങനെ സഹായിക്കണം?",
+        "pl": "Dzień dobry. W czym mogę Panu/Pani pomóc?",
+        "ar": "صباح الخير. كيف يمكنني مساعدتك؟",
+        "ur": "صبح بخیر۔ میں آپ کی کیا مدد کر سکتا ہوں؟",
+        "bn": "সুপ্রভাত। আমি আপনাকে কীভাবে সাহায্য করতে পারি?",
+        "so": "Subax wanaagsan. Sideen kuu caawin karaa?",
+        "ro": "Bună dimineața. Cu ce vă pot ajuta?"
+    },
+    "Can I take your name and date of birth?": {
+        "ta": "உங்கள் பெயர் மற்றும் பிறந்த தேதியை அறியலாமா?",
+        "hi": "क्या मुझे आपका नाम और जन्म तिथि मिल सकती है?",
+        "ml": "നിങ്ങളുടെ പേരും ജനനത്തീയതിയും പറയാമോ?",
+        "pl": "Czy mogę prosić o Pana/Pani imię, nazwisko i datę urodzenia?",
+        "ar": "هل يمكنني معرفة اسمك وتاريخ ميلادك؟",
+        "ur": "کیا میں آپ کا نام اور تاریخ پیدائش جان سکتا ہوں؟",
+        "bn": "আমি কি আপনার নাম এবং জন্ম তারিখ জানতে পারি?",
+        "so": "Ma ii sheegi kartaa magacaaga iyo taariikhda dhalashadaada?",
+        "ro": "Îmi puteți spune numele și data nașterii?"
+    },
+    "Please fill in this form.": {
+        "ta": "தயவுசெய்து இந்தப் படிவத்தைப் பூர்த்தி செய்யவும்.",
+        "hi": "कृपया यह फॉर्म भरें।",
+        "ml": "ദയവായി ഈ ഫോം പൂരിപ്പിക്കുക.",
+        "pl": "Proszę wypełnić ten formularz.",
+        "ar": "يرجى ملء هذا النموذج.",
+        "ur": "براہ کرم یہ فارم پر کریں۔",
+        "bn": "দয়া করে এই ফর্মটি পূরণ করুন।",
+        "so": "Fadlan buuxi foomkan.",
+        "ro": "Vă rugăm să completați acest formular."
+    },
+    "Your appointment is confirmed.": {
+        "ta": "உங்கள் அப்பாயிண்ட்மென்ட் உறுதி செய்யப்பட்டுள்ளது.",
+        "hi": "आपका अपॉइंटमेंट पक्का हो गया है।",
+        "ml": "നിങ്ങളുടെ അപ്പോയിന്റ്മെന്റ് സ്ഥിരീകരിച്ചിരിക്കുന്നു.",
+        "pl": "Pana/Pani wizyta została potwierdzona.",
+        "ar": "تم تأكيد موعدك.",
+        "ur": "آپ کے اپائنٹمنٹ کی تصدیق ہو گئی ہے۔",
+        "bn": "আপনার অ্যাপয়েন্টমেন্ট নিশ্চিত করা হয়েছে।",
+        "so": "Ballantaada waa la xaqiijiyay.",
+        "ro": "Programarea dumneavoastră este confirmată."
+    },
+    "The doctor will see you now.": {
+        "ta": "மருத்துவர் இப்போது உங்களைப் பார்ப்பார்.",
+        "hi": "डॉक्टर अब आपसे मिलेंगे।",
+        "ml": "ഡോക്ടർ ഇപ്പോൾ നിങ്ങളെ കാണും.",
+        "pl": "Lekarz przyjmie Pana/Panią teraz.",
+        "ar": "الطبيب سيراك الآن.",
+        "ur": "ڈاکٹر اب آپ کو دیکھیں گے۔",
+        "bn": "ডাক্তার এখন আপনাকে দেখবেন।",
+        "so": "Dhaqtarku hadda wuu ku arkayaa.",
+        "ro": "Medicul vă poate primi acum."
+    },
+    "Please bring your medication list.": {
+        "ta": "தயவுசெய்து உங்கள் மருந்துப் பட்டியலைக் கொண்டு வாருங்கள்.",
+        "hi": "कृपया अपनी दवाइयों की सूची साथ लाएँ।",
+        "ml": "ദയവായി നിങ്ങളുടെ മരുന്നുകളുടെ ലിസ്റ്റ് കൊണ്ടുവരിക.",
+        "pl": "Proszę przynieść listę przyjmowanych leków.",
+        "ar": "يرجى إحضار قائمة الأدوية الخاصة بك.",
+        "ur": "براہ کرم اپنی ادویات کی فہرست ساتھ لائیں۔",
+        "bn": "দয়া করে আপনার ওষুধের তালিকা সাথে নিয়ে আসুন।",
+        "so": "Fadlan soo qaado liiska daawooyinkaaga.",
+        "ro": "Vă rugăm să aduceți lista dumneavoastră de medicamente."
+    },
+    "Is anyone with you today?": {
+        "ta": "இன்று உங்களுடன் யாராவது வந்துள்ளார்களா?",
+        "hi": "क्या आज आपके साथ कोई आया है?",
+        "ml": "ഇന്ന് നിങ്ങളുടെ കൂടെ ആരെങ്കിലും ഉണ്ടോ?",
+        "pl": "Czy jest dzisiaj z Panem/Panią ktoś towarzyszący?",
+        "ar": "هل يرافقك أحد اليوم؟",
+        "ur": "کیا آج آپ کے ساتھ کوئی آیا ہے؟",
+        "bn": "আজকে আপনার সাথে কি কেউ আছেন?",
+        "so": "Qof ma kula socdaa maanta?",
+        "ro": "Este cineva cu dumneavoastră astăzi?"
+    },
+    "Please wait in the waiting area.": {
+        "ta": "தயவுசெய்து காத்திருப்புப் பகுதியில் காத்திருக்கவும்.",
+        "hi": "कृपया प्रतीक्षालय में प्रतीक्षा करें।",
+        "ml": "ദയവായി കാത്തിരിപ്പ് മുറിയിൽ ഇരിക്കുക.",
+        "pl": "Proszę poczekać w poczekalni.",
+        "ar": "يرجى الانتظار في قاعة الانتظار.",
+        "ur": "براہ کرم انتظار گاہ میں انتظار فرمائیں۔",
+        "bn": "দয়া করে অপেক্ষা করার স্থানে বসুন।",
+        "so": "Fadlan ku sug qolka sugitaanka.",
+        "ro": "Vă rugăm să așteptați în sala de așteptare."
+    },
+    "The appointment will take about 15 minutes.": {
+        "ta": "இந்த சந்திப்பு சுமார் 15 நிமிடங்கள் எடுக்கும்.",
+        "hi": "अपॉइंटमेंट में लगभग 15 मिनट लगेंगे।",
+        "ml": "അപ്പോയിന്റ്മെന്റിന് ഏകദേശം 15 മിനിറ്റ് എടുക്കും.",
+        "pl": "Wizyta potrwa około 15 minut.",
+        "ar": "سيستغرق الموعد حوالي 15 دقيقة.",
+        "ur": "اس اپائنٹمنٹ میں تقریباً 15 منٹ لگیں گے۔",
+        "bn": "অ্যাপয়েন্টমেন্টে প্রায় ১৫ মিনিট সময় লাগবে।",
+        "so": "Ballantu waxay qaadan doontaa qiyaastii 15 daqiiqo.",
+        "ro": "Consultația va dura aproximativ 15 minute."
+    },
+    "How long have you had this?": {
+        "ta": "உங்களுக்கு இது எவ்வளவு காலமாக உள்ளது?",
+        "hi": "आपको यह तकलीफ कब से है?",
+        "ml": "നിങ്ങൾക്ക് ഇത് എത്ര നാളായി ഉണ്ട്?",
+        "pl": "Od jak dawna ma Pan/Pani te objawy?",
+        "ar": "منذ متى وأنت تعاني من هذا؟",
+        "ur": "آپ کو یہ تکلیف کب سے ہے؟",
+        "bn": "আপনার এটি কতদিন ধরে হচ্ছে?",
+        "so": "Intee in le'eg ayaad xanuunkan qabtay?",
+        "ro": "De cât timp aveți aceste simptome?"
+    },
+    "Do you feel dizzy or faint?": {
+        "ta": "உங்களுக்கு தலைசுற்றல் அல்லது மயக்கம் வருகிறதா?",
+        "hi": "क्या आपको चक्कर या बेहोशी महसूस हो रही है?",
+        "ml": "നിങ്ങൾക്ക് തലകറക്കമോ ബോധക്കേടോ തോന്നുന്നുണ്ടോ?",
+        "pl": "Czy ma Pan/Pani zawroty głowy lub uczucie osłabienia?",
+        "ar": "هل تشعر بدوخة أو إغماء؟",
+        "ur": "کیا آپ کو چکر یا بے ہوشی محسوس ہو رہی ہے؟",
+        "bn": "আপনার কি মাথা ঘোরা বা মূর্ছা যাওয়ার মতো লাগছে?",
+        "so": "Miyaad dareemaysaa wareer ama tabardarro?",
+        "ro": "Aveți amețeli sau senzație de leșin?"
+    },
+    "When did the symptoms start?": {
+        "ta": "இந்த அறிகுறிகள் எப்போது தொடங்கின?",
+        "hi": "ये लक्षण कब शुरू हुए थे?",
+        "ml": "ലക്ഷണങ്ങൾ എപ്പോഴാണ് ആരംഭിച്ചത്?",
+        "pl": "Kiedy zaczęły się te objawy?",
+        "ar": "متى بدأت هذه الأعراض؟",
+        "ur": "یہ علامات کب شروع ہوئی تھیں؟",
+        "bn": "উপসর্গগুলো কখন শুরু হয়েছিল?",
+        "so": "Goormay astaamuhu bilaabmeen?",
+        "ro": "Când au început simptomele?"
+    }
+}
+
+EXTENDED_STAFF_LOOKUP = {
+    normalize_phrase(k): v for k, v in RAW_EXTENDED_STAFF.items()
 }
 
 # ============================================================
@@ -150,11 +299,11 @@ SYMPTOM_KEYWORDS_EN = {
 }
 
 # ============================================================
-# COMPREHENSIVE MULTILINGUAL SYMPTOMS LOOKUP (All 9 Languages)
-# Equal coverage of all 12 core symptom & unwell categories
+# 3. OPPOSITE WORDS & SYMPTOMS LOOKUP (All 9 Languages)
+# Complete pairs of Affirmative vs Negative patient expressions
 # ============================================================
 RAW_SYMPTOMS_LOOKUP = {
-    # ── 1. TAMIL (ta) ─────────────────────────────────────────
+    # ── TAMIL (ta) ───────────────────────────────────────────
     "ta": {
         "enaku udambu mudiyala": ("I am not feeling well.", "எனக்கு உடம்பு முடியவில்லை.", "negative"),
         "enakku udambu mudiyala": ("I am not feeling well.", "எனக்கு உடம்பு முடியவில்லை.", "negative"),
@@ -162,6 +311,20 @@ RAW_SYMPTOMS_LOOKUP = {
         "enaku udambu seri illa": ("I am not feeling well.", "எனக்கு உடம்பு சரியில்லை.", "negative"),
         "enaku udambu seri illai": ("I am not feeling well.", "எனக்கு உடம்பு சரியில்லை.", "negative"),
         "எனக்கு உடம்பு சரியில்லை": ("I am not feeling well.", "எனக்கு உடம்பு சரியில்லை.", "negative"),
+
+        "appointment irukku": ("I have an appointment.", "எனக்கு அப்பாயிண்ட்மென்ட் உள்ளது.", "affirmative"),
+        "enaku appointment irukku": ("I have an appointment.", "எனக்கு அப்பாயிண்ட்மென்ட் உள்ளது.", "affirmative"),
+        "appointment illa": ("I do not have an appointment.", "எனக்கு அப்பாயிண்ட்மென்ட் இல்லை.", "negative"),
+        "appointment illai": ("I do not have an appointment.", "எனக்கு அப்பாயிண்ட்மென்ட் இல்லை.", "negative"),
+        "enaku appointment illa": ("I do not have an appointment.", "எனக்கு அப்பாயிண்ட்மென்ட் இல்லை.", "negative"),
+        "enaku appointment illai": ("I do not have an appointment.", "எனக்கு அப்பாயிண்ட்மென்ட் இல்லை.", "negative"),
+
+        "letter irukku": ("I have my appointment letter.", "என்னிடம் கடிதம் உள்ளது.", "affirmative"),
+        "letter illa": ("I do not have my appointment letter.", "என்னிடம் கடிதம் இல்லை.", "negative"),
+        "letter illai": ("I do not have my appointment letter.", "என்னிடம் கடிதம் இல்லை.", "negative"),
+        "nhs number irukku": ("I have my NHS number.", "என்னிடம் NHS எண் உள்ளது.", "affirmative"),
+        "nhs number illa": ("I do not have my NHS number.", "என்னிடம் NHS எண் இல்லை.", "negative"),
+        "nhs number illai": ("I do not have my NHS number.", "என்னிடம் NHS எண் இல்லை.", "negative"),
 
         "enaku nenji vali irukku": ("I have chest pain.", "எனக்கு நெஞ்சு வலி இருக்கிறது.", "affirmative"),
         "enaku nenju vali irukku": ("I have chest pain.", "எனக்கு நெஞ்சு வலி இருக்கிறது.", "affirmative"),
@@ -191,6 +354,7 @@ RAW_SYMPTOMS_LOOKUP = {
         "enaku vaandhi illa": ("I do not have vomiting.", "எனக்கு வாந்தி இல்லை.", "negative"),
         "enaku thala suthudhu": ("I feel dizzy.", "எனக்கு தலை சுற்றுகிறது.", "affirmative"),
         "enaku mayakkam irukku": ("I feel faint and dizzy.", "எனக்கு மயக்கம் இருக்கிறது.", "affirmative"),
+        "enaku mayakkam illa": ("I do not feel dizzy.", "எனக்கு மயக்கம் இல்லை.", "negative"),
         "enaku vayiru vali irukku": ("I have stomach pain.", "எனக்கு வயிற்று வலி இருக்கிறது.", "affirmative"),
         "enaku vayiru vali illa": ("I do not have stomach pain.", "எனக்கு வயிற்று வலி இல்லை.", "negative"),
         "enaku muthuku vali irukku": ("I have back pain.", "எனக்கு முதுகு வலி இருக்கிறது.", "affirmative"),
@@ -199,329 +363,151 @@ RAW_SYMPTOMS_LOOKUP = {
         "enaku romba asadhiya irukku": ("I feel very weak and tired.", "எனக்கு மிகவும் அசதியாக இருக்கிறது.", "affirmative"),
     },
 
-    # ── 2. HINDI (hi) ─────────────────────────────────────────
+    # ── HINDI (hi) ───────────────────────────────────────────
     "hi": {
         "meri tabiyat kharab hai": ("I am not feeling well.", "मेरी तबीयत खराब है।", "negative"),
         "tabiyat theek nahi hai": ("I am not feeling well.", "तबीयत ठीक नहीं है।", "negative"),
-        "meri tabiyat theek nahi hai": ("I am not feeling well.", "मेरी तबीयत ठीक नहीं है।", "negative"),
-        "मेरी तबीयत ठीक नहीं है": ("I am not feeling well.", "मेरी तबीयत ठीक नहीं है।", "negative"),
-        "मेरी तबीयत खराब है": ("I am not feeling well.", "मेरी तबीयत खराब है।", "negative"),
-
+        "appointment hai": ("I have an appointment.", "मेरा अपॉइंटमेंट है।", "affirmative"),
+        "appointment nahi hai": ("I do not have an appointment.", "मेरा अपॉइंटमेंट नहीं है।", "negative"),
+        "letter hai": ("I have the appointment letter.", "मेरे पास पत्र है।", "affirmative"),
+        "letter nahi hai": ("I do not have the appointment letter.", "मेरे पास पत्र नहीं है।", "negative"),
+        "nhs number hai": ("I have my NHS number.", "मेरे पास NHS नंबर है।", "affirmative"),
+        "nhs number nahi hai": ("I do not have my NHS number.", "मेरे पास NHS नंबर नहीं है।", "negative"),
         "mujhe seene me dard hai": ("I have chest pain.", "मुझे सीने में दर्द है।", "affirmative"),
-        "seene me dard hai": ("I have chest pain.", "सीने में दर्द है।", "affirmative"),
         "mujhe seene me dard nahi hai": ("I do not have chest pain.", "मुझे सीने में दर्द नहीं है।", "negative"),
-        "seene me dard nahi hai": ("I do not have chest pain.", "सीने में दर्द नहीं है।", "negative"),
-        "मुझे सीने में दर्द है": ("I have chest pain.", "मुझे सीने में दर्द है।", "affirmative"),
-        "मुझे सीने में दर्द नहीं है": ("I do not have chest pain.", "मुझे सीने में दर्द नहीं है।", "negative"),
-
         "mujhe sar dard hai": ("I have a headache.", "मुझे सिरदर्द है।", "affirmative"),
-        "sar dard hai": ("I have a headache.", "सिरदर्द है।", "affirmative"),
         "mujhe sar dard nahi hai": ("I do not have a headache.", "मुझे सिरदर्द नहीं है।", "negative"),
-        "sar dard nahi hai": ("I do not have a headache.", "सिरदर्द नहीं है।", "negative"),
-        "मुझे सिरदर्द है": ("I have a headache.", "मुझे सिरदर्द है।", "affirmative"),
-        "मुझे सिरदर्द नहीं है": ("I do not have a headache.", "मुझे सिरदर्द नहीं है।", "negative"),
-
         "mujhe bukhar hai": ("I have a fever.", "मुझे बुखार है।", "affirmative"),
-        "bukhar hai": ("I have a fever.", "बुखार है।", "affirmative"),
         "mujhe bukhar nahi hai": ("I do not have a fever.", "मुझे बुखार नहीं है।", "negative"),
-        "bukhar nahi hai": ("I do not have a fever.", "बुखार नहीं है।", "negative"),
-        "मुझे बुखार है": ("I have a fever.", "मुझे बुखार है।", "affirmative"),
-        "मुझे बुखार नहीं है": ("I do not have a fever.", "मुझे बुखार नहीं है।", "negative"),
-
         "mujhe khansi hai": ("I have a cough.", "मुझे खांसी है।", "affirmative"),
         "mujhe khansi nahi hai": ("I do not have a cough.", "मुझे खांसी नहीं है।", "negative"),
-        "gale me dard hai": ("I have a sore throat.", "गले में दर्द है।", "affirmative"),
-        "gale me dard nahi hai": ("I do not have a sore throat.", "गले में दर्द नहीं है।", "negative"),
-        "mujhe ulti ho rahi hai": ("I have nausea and vomiting.", "मुझे उल्टी हो रही है।", "affirmative"),
-        "mujhe ulti nahi hai": ("I do not have vomiting.", "मुझे उल्टी नहीं है।", "negative"),
         "mujhe chakkar aa rahe hai": ("I feel dizzy.", "मुझे चक्कर आ रहे हैं।", "affirmative"),
-        "mujhe chakkar nahi aa rahe": ("I do not feel dizzy.", "मुझे चक्कर नहीं आ रहे हैं।", "negative"),
-        "mujhe pet dard hai": ("I have stomach pain.", "मुझे पेट में दर्द है।", "affirmative"),
-        "mujhe pet dard nahi hai": ("I do not have stomach pain.", "मुझे पेट में दर्द नहीं है।", "negative"),
-        "mujhe kamar dard hai": ("I have back pain.", "मुझे कमर में दर्द है।", "affirmative"),
+        "chakkar nahi aa rahe": ("I do not feel dizzy.", "चक्कर नहीं आ रहे हैं।", "negative"),
         "saans lene me takleef hai": ("I have difficulty breathing.", "मुझे सांस लेने में तकलीफ है।", "affirmative"),
-        "saans lene me takleef nahi hai": ("I do not have difficulty breathing.", "सांस लेने में कोई तकलीफ नहीं है।", "negative"),
-        "mujhe bahut kamzori hai": ("I feel very weak and tired.", "मुझे बहुत कमजोरी महसूस हो रही है।", "affirmative"),
+        "saans lene me takleef nahi hai": ("I do not have difficulty breathing.", "सांस लेने में तकलीफ नहीं है।", "negative"),
+        "mujhe ulti ho rahi hai": ("I have vomiting.", "मुझे उल्टी हो रही है।", "affirmative"),
+        "ulti nahi hai": ("I do not have vomiting.", "उल्टी नहीं है।", "negative"),
+        "pet me dard hai": ("I have stomach pain.", "पेट में दर्द है।", "affirmative"),
+        "pet me dard nahi hai": ("I do not have stomach pain.", "पेट में दर्द नहीं है।", "negative"),
     },
 
-    # ── 3. MALAYALAM (ml) ─────────────────────────────────────
+    # ── MALAYALAM (ml) ───────────────────────────────────────
     "ml": {
         "enikku sugamilla": ("I am not feeling well.", "എനിക്ക് സുഖമില്ല.", "negative"),
-        "enikku sukhamilla": ("I am not feeling well.", "എനിക്ക് സുഖമില്ല.", "negative"),
-        "sugamilla": ("I am not feeling well.", "സുഖമില്ല.", "negative"),
-        "എനിക്ക് സുഖമില്ല": ("I am not feeling well.", "എനിക്ക് സുഖമില്ല.", "negative"),
-
+        "appointment undu": ("I have an appointment.", "എനിക്ക് അപ്പോയിന്റ്മെന്റ് ഉണ്ട്.", "affirmative"),
+        "appointment illa": ("I do not have an appointment.", "എനിക്ക് അപ്പോയിന്റ്മെന്റ് ഇല്ല.", "negative"),
+        "letter undu": ("I have my letter.", "എന്റെ കൈവശം കത്തുണ്ട്.", "affirmative"),
+        "letter illa": ("I do not have my letter.", "കൈവശം കട്ടില്ല.", "negative"),
         "enikku nenjuvedhana undu": ("I have chest pain.", "എനിക്ക് നെഞ്ചുവേദനയുണ്ട്.", "affirmative"),
-        "nenjuvedhana undu": ("I have chest pain.", "നെഞ്ചുവേദനയുണ്ട്.", "affirmative"),
         "enikku nenjuvedhana illa": ("I do not have chest pain.", "എനിക്ക് നെഞ്ചുവേദനയില്ല.", "negative"),
-        "nenjuvedhana illa": ("I do not have chest pain.", "നെഞ്ചുവേദനയില്ല.", "negative"),
-        "എനിക്ക് നെഞ്ചുവേദനയുണ്ട്": ("I have chest pain.", "എനിക്ക് നെഞ്ചുവേദനയുണ്ട്.", "affirmative"),
-        "എനിക്ക് നെഞ്ചുവേദനയില്ല": ("I do not have chest pain.", "എനിക്ക് നെഞ്ചുവേദനയില്ല.", "negative"),
-
         "enikku thalavedhana undu": ("I have a headache.", "എനിക്ക് തലവേദനയുണ്ട്.", "affirmative"),
-        "thalavedhana undu": ("I have a headache.", "തലവേദനയുണ്ട്.", "affirmative"),
         "enikku thalavedhana illa": ("I do not have a headache.", "എനിക്ക് തലവേദനയില്ല.", "negative"),
-        "എനിക്ക് തലവേദനയുണ്ട്": ("I have a headache.", "എനിക്ക് തലവേദനയുണ്ട്.", "affirmative"),
-        "എനിക്ക് തലവേദനയില്ല": ("I do not have a headache.", "എനിക്ക് തലവേദനയില്ല.", "negative"),
-
         "enikku pani undu": ("I have a fever.", "എനിക്ക് പനിയുണ്ട്.", "affirmative"),
         "enikku pani illa": ("I do not have a fever.", "എനിക്ക് പനിയില്ല.", "negative"),
-        "എനിക്ക് പനിയുണ്ട്": ("I have a fever.", "എനിക്ക് പനിയുണ്ട്.", "affirmative"),
-        "എനിക്ക് പനിയില്ല": ("I do not have a fever.", "എനിക്ക് പനിയില്ല.", "negative"),
-
-        "enikku chuma undu": ("I have a cough.", "എനിക്ക് ചുമയുണ്ട്.", "affirmative"),
-        "enikku chuma illa": ("I do not have a cough.", "എനിക്ക് ചുമയില്ല.", "negative"),
-        "enikku thondavedhana undu": ("I have a sore throat.", "എനിക്ക് തൊണ്ടവേദനയുണ്ട്.", "affirmative"),
-        "enikku thondavedhana illa": ("I do not have a sore throat.", "എനിക്ക് തൊണ്ടവേദനയില്ല.", "negative"),
-        "enikku shardhi undu": ("I have vomiting.", "എനിക്ക് ഛർദ്ദിയുണ്ട്.", "affirmative"),
-        "enikku shardhi illa": ("I do not have vomiting.", "എനിക്ക് ഛർദ്ദിയില്ല.", "negative"),
         "enikku thalakarakkam undu": ("I feel dizzy.", "എനിക്ക് തലകറക്കമുണ്ട്.", "affirmative"),
-        "enikku vayaruvedhana undu": ("I have stomach pain.", "എനിക്ക് വയറുവേദനയുണ്ട്.", "affirmative"),
-        "enikku vayaruvedhana illa": ("I do not have stomach pain.", "എനിക്ക് വയറുവേദനയില്ല.", "negative"),
-        "enikku muthukuvedhana undu": ("I have back pain.", "എനിക്ക് നടുവേദനയുണ്ട്.", "affirmative"),
+        "enikku thalakarakkam illa": ("I do not feel dizzy.", "എനിക്ക് തലകറക്കമില്ല.", "negative"),
         "shwasam muttal undu": ("I have difficulty breathing.", "എനിക്ക് ശ്വാസംമുട്ടലുണ്ട്.", "affirmative"),
         "shwasam muttal illa": ("I do not have difficulty breathing.", "എനിക്ക് ശ്വാസംമുട്ടലില്ല.", "negative"),
-        "enikku valare thalarchayundu": ("I feel very weak and exhausted.", "എനിക്ക് കഠിനമായ തളർച്ചയുണ്ട്.", "affirmative"),
     },
 
-    # ── 4. URDU (ur) ──────────────────────────────────────────
+    # ── URDU (ur) ────────────────────────────────────────────
     "ur": {
         "meri tabiyat theek nahi hai": ("I am not feeling well.", "میری طبیعت ٹھیک نہیں ہے۔", "negative"),
-        "tabiyat kharab hai": ("I am not feeling well.", "طبیعت خراب ہے۔", "negative"),
-        "میری طبیعت ٹھیک نہیں ہے": ("I am not feeling well.", "میری طبیعت ٹھیک نہیں ہے۔", "negative"),
-        "طبیعت خراب ہے": ("I am not feeling well.", "طبیعت خراب ہے۔", "negative"),
-
+        "appointment hai": ("I have an appointment.", "میرا اپائنٹمنٹ ہے۔", "affirmative"),
+        "appointment nahi hai": ("I do not have an appointment.", "میرا اپائنٹمنٹ نہیں ہے۔", "negative"),
         "mere seene me dard hai": ("I have chest pain.", "میرے سینے میں درد ہے۔", "affirmative"),
-        "seene me dard hai": ("I have chest pain.", "سینے میں درد ہے۔", "affirmative"),
         "mere seene me dard nahi hai": ("I do not have chest pain.", "میرے سینے میں درد نہیں ہے۔", "negative"),
-        "seene me dard nahi hai": ("I do not have chest pain.", "سینے میں درد نہیں ہے۔", "negative"),
-        "میرے سینے میں درد ہے": ("I have chest pain.", "میرے سینے میں درد ہے۔", "affirmative"),
-        "سینے میں درد نہیں ہے": ("I do not have chest pain.", "سینے میں درد نہیں ہے۔", "negative"),
-
         "mujhe sar dard hai": ("I have a headache.", "مجھے سر میں درد ہے۔", "affirmative"),
-        "sar me dard hai": ("I have a headache.", "سر میں درد ہے۔", "affirmative"),
         "mujhe sar dard nahi hai": ("I do not have a headache.", "مجھے سر میں درد نہیں ہے۔", "negative"),
-        "مجھے سر میں درد ہے": ("I have a headache.", "مجھے سر میں درد ہے۔", "affirmative"),
-        "سر میں درد نہیں ہے": ("I do not have a headache.", "سر میں درد نہیں ہے۔", "negative"),
-
         "mujhe bukhar hai": ("I have a fever.", "مجھے بخار ہے۔", "affirmative"),
         "mujhe bukhar nahi hai": ("I do not have a fever.", "مجھے بخار نہیں ہے۔", "negative"),
-        "مجھے بخار ہے": ("I have a fever.", "مجھے بخار ہے۔", "affirmative"),
-        "مجھے بخار نہیں ہے": ("I do not have a fever.", "مجھے بخار نہیں ہے۔", "negative"),
-
-        "mujhe khansi hai": ("I have a cough.", "مجھے کھانسی ہے۔", "affirmative"),
-        "mujhe khansi nahi hai": ("I do not have a cough.", "مجھے کھانسی نہیں ہے۔", "negative"),
-        "gale me dard hai": ("I have a sore throat.", "گلے میں درد ہے۔", "affirmative"),
-        "gale me dard nahi hai": ("I do not have a sore throat.", "گلے میں درد نہیں ہے۔", "negative"),
-        "mujhe ulti aa rahi hai": ("I have vomiting.", "مجھے الٹی آ رہی ہے۔", "affirmative"),
-        "mujhe ulti nahi hai": ("I do not have vomiting.", "مجھے الٹی نہیں ہے۔", "negative"),
-        "mujhe chakkar aa rahe hain": ("I feel dizzy.", "مجھے چکر آ رہے ہیں۔", "affirmative"),
-        "pet me dard hai": ("I have stomach pain.", "پیٹ میں درد ہے۔", "affirmative"),
-        "pet me dard nahi hai": ("I do not have stomach pain.", "پیٹ میں درد نہیں ہے۔", "negative"),
-        "kamar me dard hai": ("I have back pain.", "کمر میں درد ہے۔", "affirmative"),
+        "chakkar aa rahe hain": ("I feel dizzy.", "چکر آ رہے ہیں۔", "affirmative"),
         "saans lene me dushwari hai": ("I have difficulty breathing.", "سانس لینے میں دشواری ہو رہی ہے۔", "affirmative"),
         "saans lene me dushwari nahi hai": ("I do not have difficulty breathing.", "سانس لینے میں کوئی دشواری نہیں ہے۔", "negative"),
-        "bahut kamzori mehsoos ho rahi hai": ("I feel very weak.", "بہت کمزوری محسوس ہو رہی ہے۔", "affirmative"),
     },
 
-    # ── 5. BENGALI (bn) ───────────────────────────────────────
+    # ── BENGALI (bn) ─────────────────────────────────────────
     "bn": {
         "amar shorir bhalo nei": ("I am not feeling well.", "আমার শরীর ভালো নেই।", "negative"),
-        "shorir kharap": ("I am not feeling well.", "শরীর খারাপ।", "negative"),
-        "আমার শরীর ভালো নেই": ("I am not feeling well.", "আমার শরীর ভালো নেই।", "negative"),
-        "শরীর খারাপ": ("I am not feeling well.", "শরীর খারাপ।", "negative"),
-
+        "appointment ache": ("I have an appointment.", "আমার অ্যাপয়েন্টমেন্ট আছে।", "affirmative"),
+        "appointment nei": ("I do not have an appointment.", "আমার অ্যাপয়েন্টমেন্ট নেই।", "negative"),
         "amar buke betha korche": ("I have chest pain.", "আমার বুকে ব্যথা করছে।", "affirmative"),
-        "buke betha korche": ("I have chest pain.", "বুকে ব্যথা করছে।", "affirmative"),
         "amar buke betha nei": ("I do not have chest pain.", "আমার বুকে ব্যথা নেই।", "negative"),
-        "buke betha nei": ("I do not have chest pain.", "বুকে ব্যথা নেই।", "negative"),
-        "আমার বুকে ব্যথা করছে": ("I have chest pain.", "আমার বুকে ব্যথা করছে।", "affirmative"),
-        "আমার বুকে ব্যথা নেই": ("I do not have chest pain.", "আমার বুকে ব্যথা নেই।", "negative"),
-
         "amar matha betha korche": ("I have a headache.", "আমার মাথা ব্যথা করছে।", "affirmative"),
-        "matha betha korche": ("I have a headache.", "মাথা ব্যথা করছে।", "affirmative"),
         "amar matha betha nei": ("I do not have a headache.", "আমার মাথা ব্যথা নেই।", "negative"),
-        "আমার মাথা ব্যথা করছে": ("I have a headache.", "আমার মাথা ব্যথা করছে।", "affirmative"),
-        "আমার মাথা ব্যথা নেই": ("I do not have a headache.", "আমার মাথা ব্যথা নেই।", "negative"),
-
         "amar jor ache": ("I have a fever.", "আমার জ্বর আছে।", "affirmative"),
-        "jor ache": ("I have a fever.", "জ্বর আছে।", "affirmative"),
         "amar jor nei": ("I do not have a fever.", "আমার জ্বর নেই।", "negative"),
-        "আমার জ্বর আছে": ("I have a fever.", "আমার জ্বর আছে।", "affirmative"),
-        "আমার জ্বর নেই": ("I do not have a fever.", "আমার জ্বর নেই।", "negative"),
-
-        "amar kashi hoyeche": ("I have a cough.", "আমার কাশি হয়েছে।", "affirmative"),
-        "amar kashi nei": ("I do not have a cough.", "আমার কাশি নেই।", "negative"),
-        "gola betha korche": ("I have a sore throat.", "গলা ব্যথা করছে।", "affirmative"),
-        "gola betha nei": ("I do not have a sore throat.", "গলা ব্যথা নেই।", "negative"),
-        "amar bomi hochhe": ("I have vomiting.", "আমার বমি হচ্ছে।", "affirmative"),
-        "amar bomi nei": ("I do not have vomiting.", "আমার বমি নেই।", "negative"),
         "amar matha ghorachhe": ("I feel dizzy.", "আমার মাথা ঘোরাচ্ছে।", "affirmative"),
-        "amar pet betha korche": ("I have stomach pain.", "আমার পেট ব্যথা করছে।", "affirmative"),
-        "amar pet betha nei": ("I do not have stomach pain.", "আমার পেট ব্যথা নেই।", "negative"),
-        "amar komor betha korche": ("I have back pain.", "আমার কোমর ব্যথা করছে।", "affirmative"),
         "shash nite koshto hochhe": ("I have difficulty breathing.", "শ্বাস নিতে কষ্ট হচ্ছে।", "affirmative"),
         "shashkoshto nei": ("I do not have difficulty breathing.", "শ্বাসকষ্ট নেই।", "negative"),
-        "amar khub durbol lagche": ("I feel very weak and exhausted.", "আমার খুব দুর্বল লাগছে।", "affirmative"),
     },
 
-    # ── 6. ARABIC (ar) ────────────────────────────────────────
+    # ── ARABIC (ar) ──────────────────────────────────────────
     "ar": {
         "ana lastu bikhayr": ("I am not feeling well.", "أنا لست بخير.", "negative"),
-        "mush tayyib": ("I am not feeling well.", "لست على ما يرام.", "negative"),
-        "أنا لست بخير": ("I am not feeling well.", "أنا لست بخير.", "negative"),
-        "لست على ما يرام": ("I am not feeling well.", "لست على ما يرام.", "negative"),
-
+        "andi mawid": ("I have an appointment.", "لدي موعد.", "affirmative"),
+        "laysa li mawid": ("I do not have an appointment.", "ليس لدي موعد.", "negative"),
         "andi waja fi sadri": ("I have chest pain.", "عندي ألم في الصدر.", "affirmative"),
-        "alam fi al sadr": ("I have chest pain.", "ألم في الصدر.", "affirmative"),
         "ma andi waja fi sadri": ("I do not have chest pain.", "ليس لدي ألم في الصدر.", "negative"),
-        "عندي ألم في الصدر": ("I have chest pain.", "عندي ألم في الصدر.", "affirmative"),
-        "ليس لدي ألم في الصدر": ("I do not have chest pain.", "ليس لدي ألم في الصدر.", "negative"),
-
         "andi suda": ("I have a headache.", "عندي صداع.", "affirmative"),
         "ma andi suda": ("I do not have a headache.", "ليس لدي صداع.", "negative"),
-        "عندي صداع": ("I have a headache.", "عندي صداع.", "affirmative"),
-        "ليس لدي صداع": ("I do not have a headache.", "ليس لدي صداع.", "negative"),
-
         "andi humma": ("I have a fever.", "عندي حمى.", "affirmative"),
         "ma andi humma": ("I do not have a fever.", "ليس لدي حمى.", "negative"),
-        "عندي حمى": ("I have a fever.", "عندي حمى.", "affirmative"),
-        "ليس لدي حمى": ("I do not have a fever.", "ليس لدي حمى.", "negative"),
-
-        "andi sual": ("I have a cough.", "عندي سعال.", "affirmative"),
-        "ma andi sual": ("I do not have a cough.", "ليس لدي سعال.", "negative"),
-        "andi alam fi alhalq": ("I have a sore throat.", "عندي ألم في الحلق.", "affirmative"),
-        "ma andi alam fi alhalq": ("I do not have a sore throat.", "ليس لدي ألم في الحلق.", "negative"),
-        "ashur bil ghathayan": ("I feel nauseous and vomiting.", "أشعر بالغثيان والقيء.", "affirmative"),
-        "la ashur bil qai": ("I do not have vomiting.", "لا أعاني من القيء.", "negative"),
         "ashur bidawkha": ("I feel dizzy.", "أشعر بدوخة.", "affirmative"),
         "la ashur bidawkha": ("I do not feel dizzy.", "لا أشعر بدوخة.", "negative"),
-        "andi alam fi albatn": ("I have stomach pain.", "عندي ألم في البطن.", "affirmative"),
-        "ma andi alam fi albatn": ("I do not have stomach pain.", "ليس لدي ألم في البطن.", "negative"),
-        "andi alam fi zahri": ("I have back pain.", "عندي ألم في الظهر.", "affirmative"),
         "andi suuba fi tanaffus": ("I have difficulty breathing.", "عندي صعوبة في التنفس.", "affirmative"),
         "la yujad suuba fi tanaffus": ("I do not have difficulty breathing.", "لا توجد صعوبة في التنفس.", "negative"),
-        "ashur bi ta'ab shadid": ("I feel very weak and fatigued.", "أشعر بتعب وضعف شديد.", "affirmative"),
     },
 
-    # ── 7. POLISH (pl) ────────────────────────────────────────
+    # ── POLISH (pl) ──────────────────────────────────────────
     "pl": {
         "zle sie czuje": ("I am not feeling well.", "Źle się czuję.", "negative"),
-        "źle się czuję": ("I am not feeling well.", "Źle się czuję.", "negative"),
-        "nie czuje sie dobrze": ("I am not feeling well.", "Nie czuję się dobrze.", "negative"),
-        "nie czuję się dobrze": ("I am not feeling well.", "Nie czuję się dobrze.", "negative"),
-
+        "mam wizyte": ("I have an appointment.", "Mam umówioną wizytę.", "affirmative"),
+        "nie mam wizyty": ("I do not have an appointment.", "Nie mam umówionej wizyty.", "negative"),
         "mam bol w klatce piersiowej": ("I have chest pain.", "Mam ból w klatce piersiowej.", "affirmative"),
-        "boli mnie klatka piersiowa": ("I have chest pain.", "Boli mnie klatka piersiowa.", "affirmative"),
         "nie mam bolu w klatce piersiowej": ("I do not have chest pain.", "Nie mam bólu w klatce piersiowej.", "negative"),
-        "nie boli mnie klatka piersiowa": ("I do not have chest pain.", "Nie boli mnie klatka piersiowa.", "negative"),
-
         "boli mnie glowa": ("I have a headache.", "Boli mnie głowa.", "affirmative"),
-        "boli mnie głowa": ("I have a headache.", "Boli mnie głowa.", "affirmative"),
         "nie boli mnie glowa": ("I do not have a headache.", "Nie boli mnie głowa.", "negative"),
-        "nie boli mnie głowa": ("I do not have a headache.", "Nie boli mnie głowa.", "negative"),
-
         "mam goraczke": ("I have a fever.", "Mam gorączkę.", "affirmative"),
-        "mam gorączkę": ("I have a fever.", "Mam gorączkę.", "affirmative"),
         "nie mam goraczki": ("I do not have a fever.", "Nie mam gorączki.", "negative"),
-        "nie mam gorączki": ("I do not have a fever.", "Nie mam gorączki.", "negative"),
-
-        "mam kaszel": ("I have a cough.", "Mam kaszel.", "affirmative"),
-        "nie mam kaszlu": ("I do not have a cough.", "Nie mam kaszlu.", "negative"),
-        "boli mnie gardlo": ("I have a sore throat.", "Boli mnie gardło.", "affirmative"),
-        "boli mnie gardło": ("I have a sore throat.", "Boli mnie gardło.", "affirmative"),
-        "nie boli mnie gardlo": ("I do not have a sore throat.", "Nie boli mnie gardło.", "negative"),
-        "jest mi niedobrze": ("I have nausea and vomiting.", "Jest mi niedobrze i wymiotuję.", "affirmative"),
-        "wymiotuje": ("I am vomiting.", "Wymiotuję.", "affirmative"),
-        "nie wymiotuje": ("I do not have vomiting.", "Nie wymiotuję.", "negative"),
         "kreci mi sie w glowie": ("I feel dizzy.", "Kręci mi się w głowie.", "affirmative"),
-        "kręci mi się w głowie": ("I feel dizzy.", "Kręci mi się w głowie.", "affirmative"),
-        "boli mnie brzuch": ("I have stomach pain.", "Boli mnie brzuch.", "affirmative"),
-        "nie boli mnie brzuch": ("I do not have stomach pain.", "Nie boli mnie brzuch.", "negative"),
-        "bola mnie plecy": ("I have back pain.", "Bolą mnie plecy.", "affirmative"),
         "trudno mi sie oddycha": ("I have difficulty breathing.", "Trudno mi się oddycha.", "affirmative"),
         "nie mam problemow z oddychaniem": ("I do not have difficulty breathing.", "Nie mam trudności z oddychaniem.", "negative"),
-        "czuje sie bardzo slaby": ("I feel very weak and tired.", "Czuję się bardzo słaby i zmęczony.", "affirmative"),
     },
 
-    # ── 8. ROMANIAN (ro) ──────────────────────────────────────
+    # ── ROMANIAN (ro) ────────────────────────────────────────
     "ro": {
         "nu ma simt bine": ("I am not feeling well.", "Nu mă simt bine.", "negative"),
-        "nu mă simt bine": ("I am not feeling well.", "Nu mă simt bine.", "negative"),
-        "ma simt rau": ("I am not feeling well.", "Mă simt rău.", "negative"),
-        "mă simt rău": ("I am not feeling well.", "Mă simt rău.", "negative"),
-
+        "am o programare": ("I have an appointment.", "Am o programare.", "affirmative"),
+        "nu am programare": ("I do not have an appointment.", "Nu am programare.", "negative"),
         "am dureri in piept": ("I have chest pain.", "Am dureri în piept.", "affirmative"),
-        "durere in piept": ("I have chest pain.", "Durere în piept.", "affirmative"),
         "nu am dureri in piept": ("I do not have chest pain.", "Nu am dureri în piept.", "negative"),
-        "nu am durere in piept": ("I do not have chest pain.", "Nu am durere în piept.", "negative"),
-
         "ma doare capul": ("I have a headache.", "Mă doare capul.", "affirmative"),
-        "mă doare capul": ("I have a headache.", "Mă doare capul.", "affirmative"),
         "nu ma doare capul": ("I do not have a headache.", "Nu mă doare capul.", "negative"),
-        "nu mă doare capul": ("I do not have a headache.", "Nu mă doare capul.", "negative"),
-
         "am febra": ("I have a fever.", "Am febră.", "affirmative"),
-        "am febră": ("I have a fever.", "Am febră.", "affirmative"),
         "nu am febra": ("I do not have a fever.", "Nu am febră.", "negative"),
-        "nu am febră": ("I do not have a fever.", "Nu am febră.", "negative"),
-
-        "am tuse": ("I have a cough.", "Am tuse.", "affirmative"),
-        "nu am tuse": ("I do not have a cough.", "Nu am tuse.", "negative"),
-        "ma doare gatul": ("I have a sore throat.", "Mă doare gâtul.", "affirmative"),
-        "mă doare gâtul": ("I have a sore throat.", "Mă doare gâtul.", "affirmative"),
-        "nu ma doare gatul": ("I do not have a sore throat.", "Nu mă doare gâtul.", "negative"),
-        "am greata": ("I have nausea and vomiting.", "Am greață și vărsături.", "affirmative"),
-        "varsaturi": ("I have vomiting.", "Vărsături.", "affirmative"),
-        "nu am greata": ("I do not have vomiting.", "Nu am vărsături sau greață.", "negative"),
         "am ameteli": ("I feel dizzy.", "Am amețeli.", "affirmative"),
-        "am amețeli": ("I feel dizzy.", "Am amețeli.", "affirmative"),
-        "ma doare stomacul": ("I have stomach pain.", "Mă doare stomacul.", "affirmative"),
-        "nu ma doare stomacul": ("I do not have stomach pain.", "Nu mă doare stomacul.", "negative"),
-        "ma doare spatele": ("I have back pain.", "Mă doare spatele.", "affirmative"),
         "respir greu": ("I have difficulty breathing.", "Respir greu.", "affirmative"),
         "nu am probleme cu respiratia": ("I do not have difficulty breathing.", "Nu am dificultăți de respirație.", "negative"),
-        "ma simt foarte slabit": ("I feel very weak and exhausted.", "Mă simt foarte slăbit și obosit.", "affirmative"),
     },
 
-    # ── 9. SOMALI (so) ────────────────────────────────────────
+    # ── SOMALI (so) ──────────────────────────────────────────
     "so": {
         "ma fiicni": ("I am not feeling well.", "Ma fiicni, waan xanuunsanahay.", "negative"),
-        "waan xanuunsanahay": ("I am not feeling well.", "Waan xanuunsanahay.", "negative"),
-        "roonaan maayo": ("I am not feeling well.", "Roonaan maayo.", "negative"),
-        "waxaan dareemayaa xanuun": ("I feel sick and in pain.", "Waxaan dareemayaa xanuun.", "affirmative"),
-
+        "ballan baan leeyahay": ("I have an appointment.", "Ballan baan leeyahay.", "affirmative"),
+        "ballan ma lihi": ("I do not have an appointment.", "Ballan ma lihi.", "negative"),
         "laabta ayaa i xanuunaysa": ("I have chest pain.", "Laabta ayaa i xanuunaysa.", "affirmative"),
-        "xabad xanuun ayaan qabaa": ("I have chest pain.", "Xabad xanuun ayaan qabaa.", "affirmative"),
-        "laabta ima xanuunayso": ("I do not have chest pain.", "Laabta ima xanuunayso.", "negative"),
         "xabad xanuun ma qabo": ("I do not have chest pain.", "Xabad xanuun ma qabo.", "negative"),
-
         "madaxaa i xanuunaya": ("I have a headache.", "Madaxaa i xanuunaya.", "affirmative"),
-        "madax xanuun ayaan qabaa": ("I have a headache.", "Madax xanuun ayaan qabaa.", "affirmative"),
-        "madaxaa ima xanuunayo": ("I do not have a headache.", "Madaxaa ima xanuunayo.", "negative"),
         "madax xanuun ma qabo": ("I do not have a headache.", "Madax xanuun ma qabo.", "negative"),
-
         "qandho ayaan qabaa": ("I have a fever.", "Qandho ayaan qabaa.", "affirmative"),
         "qandho ma qabo": ("I do not have a fever.", "Qandho ma qabo.", "negative"),
-
-        "qufac ayaan qabaa": ("I have a cough.", "Qufac ayaan qabaa.", "affirmative"),
-        "qufac ma qabo": ("I do not have a cough.", "Qufac ma qabo.", "negative"),
-        "dhuunta ayaa i xanuunaysa": ("I have a sore throat.", "Dhuunta ayaa i xanuunaysa.", "affirmative"),
-        "dhuun xanuun ma qabo": ("I do not have a sore throat.", "Dhuun xanuun ma qabo.", "negative"),
-        "matag ayaan dareemayaa": ("I have nausea and vomiting.", "Matag ayaan dareemayaa.", "affirmative"),
-        "matag ma lihi": ("I do not have vomiting.", "Matag ma lihi.", "negative"),
         "wareer ayaan dareemayaa": ("I feel dizzy.", "Wareer ayaan dareemayaa.", "affirmative"),
-        "wareer ma lihi": ("I do not feel dizzy.", "Wareer ma lihi.", "negative"),
-        "caloosha ayaa i xanuunaysa": ("I have stomach pain.", "Caloosha ayaa i xanuunaysa.", "affirmative"),
-        "calool xanuun ma qabo": ("I do not have stomach pain.", "Calool xanuun ma qabo.", "negative"),
-        "dhabarka ayaa i xanuunaya": ("I have back pain.", "Dhabarka ayaa i xanuunaya.", "affirmative"),
         "neefsashada ayaa igu adag": ("I have difficulty breathing.", "Neefsashada ayaa igu adag.", "affirmative"),
         "neefsashada iguma adka": ("I do not have difficulty breathing.", "Neefsashada iguma adka.", "negative"),
-        "aad baan u taag daranahay": ("I feel very weak and exhausted.", "Aad baan u taag daranahay.", "affirmative"),
     }
 }
 
-# Pre-normalize dictionary keys for instant, zero-latency matching
 COMMON_SYMPTOMS_LOOKUP = {
     lang: {normalize_phrase(k): v for k, v in phrases.items()}
     for lang, phrases in RAW_SYMPTOMS_LOOKUP.items()
@@ -807,7 +793,22 @@ def translate_staff():
 
     lang_code = session_lang
     lang_name = session.get("lang", "Tamil")
+    norm_staff = normalize_phrase(raw_text)
 
+    # 1. Extended Staff Lookup for all 21 prompts
+    if norm_staff in EXTENDED_STAFF_LOOKUP:
+        trans_dict = EXTENDED_STAFF_LOOKUP[norm_staff]
+        translated = trans_dict.get(lang_code, trans_dict.get("ta", raw_text))
+        return jsonify({
+            "original": raw_text,
+            "translated": translated,
+            "lang": lang_name,
+            "status": "needs_review",
+            "urgent": False,
+            "warning": "Prepared phrase — confirm meaning with the speaker."
+        }), 200
+
+    # 2. Fall back to translation_engine.staff_translation
     res = staff_translation(raw_text, lang_code)
 
     return jsonify({
@@ -848,7 +849,7 @@ def translate_patient():
     lang_negs = NEGATION_TOKENS_BY_LANG.get(lang_code, set())
     has_negation = bool(input_tokens & lang_negs)
 
-    # 1. Priority 1: Check Comprehensive Multilingual Symptoms Lookup (All 9 Languages)
+    # 1. Priority 1: Check Comprehensive Multilingual Symptoms & Opposite Words Lookup
     lang_symptoms = COMMON_SYMPTOMS_LOOKUP.get(lang_code, {})
     if norm_input in lang_symptoms:
         eng_trans, native_script, polarity = lang_symptoms[norm_input]
