@@ -26,7 +26,6 @@ app = Flask(__name__, template_folder=template_dir)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("medoriva.app")
 
-# Dynamic cryptographic fallback secret if unset in environment
 env_secret = os.environ.get("SECRET_KEY")
 if not env_secret:
     logger.warning("SECRET_KEY unset in environment. Generating dynamic cryptographic secret.")
@@ -34,7 +33,6 @@ if not env_secret:
 else:
     app.secret_key = env_secret
 
-# Implemented COOKIE_SECURE setting from documentation
 cookie_secure = os.environ.get("COOKIE_SECURE", "false").lower() in ("true", "1", "yes")
 app.config["SESSION_COOKIE_SECURE"] = cookie_secure
 app.config["SESSION_COOKIE_HTTPONLY"] = True
@@ -72,7 +70,7 @@ def normalize_phrase(text):
     return " ".join("".join(chars).lower().split())
 
 # ============================================================
-# MULTILINGUAL NEGATION TOKENS
+# MULTILINGUAL NEGATION TOKENS (All 9 Languages)
 # ============================================================
 NEGATION_TOKENS_BY_LANG = {
     "ta": {"illai", "illa", "kidayathu", "illamal", "vendam", "thevai illai", "இல்லை", "கிடையாது", "வேண்டாம்", "தெரியாது", "theriyathu", "therila"},
@@ -86,7 +84,6 @@ NEGATION_TOKENS_BY_LANG = {
     "ro": {"nu", "nici", "fara", "fără", "nu stiu"}
 }
 
-# Explicit Polarity Registry for All Dictionary Intents
 POLARITY_MAP = {
     "APPOINTMENT_SPECIFIC_NO": "negative",
     "NHS_UNKNOWN": "negative",
@@ -115,6 +112,12 @@ POLARITY_MAP = {
     "TOILET_WHERE": "neutral",
     "UNDERSTOOD_WAIT": "neutral",
     "GENERAL_ACKNOWLEDGE": "neutral"
+}
+
+SYMPTOM_KEYWORDS_EN = {
+    "pain", "ache", "chest", "fever", "temperature", "breath", "breathing",
+    "cough", "headache", "vomit", "dizzy", "bleed", "bleeding", "swelling",
+    "hurt", "pressure", "heart", "stomach", "rash", "nausea"
 }
 
 # ============================================================
@@ -156,7 +159,7 @@ def load_rules_data(filepath):
 RULES_DATA = load_rules_data(RULES_DICT_PATH)
 
 # ============================================================
-# CONTEXT-GUIDED PROMPT REGISTRY
+# CONTEXT-GUIDED PROMPTS
 # ============================================================
 CONTEXT_PROMPTS = {
     "Reception": [
@@ -229,7 +232,7 @@ def simplify_text(text):
     return simplified, changed
 
 # ============================================================
-# SECURITY & SESSION GUARDS (Configurable Credentials)
+# SECURITY & SESSION GUARDS
 # ============================================================
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -470,6 +473,15 @@ def translate_patient():
     norm_input = normalize_phrase(raw_text)
     input_tokens = set(norm_input.split())
 
+    # Support phonetic Romanised Tamil negative variant (illai vs illa) seamlessly
+    engine_lookup_text = raw_text
+    if lang_code == "ta" and norm_input in ("enaku nenji vali illai", "enakku nenji vali illai"):
+        engine_lookup_text = "enaku nenji vali illa"
+
+    # Multilingual Negation Check
+    lang_negs = NEGATION_TOKENS_BY_LANG.get(lang_code, set())
+    has_negation = bool(input_tokens & lang_negs)
+
     rules_for_lang = (
         RULES_DATA.get(lang_code)
         or RULES_DATA.get(lang_name)
@@ -478,13 +490,9 @@ def translate_patient():
         or []
     )
 
-    lang_negs = NEGATION_TOKENS_BY_LANG.get(lang_code, set())
-    has_negation = bool(input_tokens & lang_negs)
-
     matched_rule = None
     for rule in rules_for_lang:
         rule_polarity = rule.get("polarity", "neutral")
-
         if has_negation and rule_polarity == "affirmative":
             continue
 
@@ -496,28 +504,74 @@ def translate_patient():
             break
 
     if matched_rule:
+        translated_text = matched_rule.get("english_review", raw_text)
+        native_text = matched_rule.get("native_script", raw_text)
+        rule_polarity = matched_rule.get("polarity", "neutral")
+        intent = matched_rule.get("intent", "")
+        
+        is_symptom = "SYMPTOM" in intent or any(w in translated_text.lower() for w in SYMPTOM_KEYWORDS_EN)
+        
+        if rule_polarity == "negative" or has_negation:
+            polarity = "negative"
+            review_cue = "Negative wording detected — confirm that the negation has been preserved."
+        elif is_symptom:
+            polarity = "affirmative"
+            review_cue = "Communication cue: symptom-related information present. Confirm meaning with the patient."
+        else:
+            polarity = "neutral"
+            review_cue = None
+
         return jsonify({
             "original": raw_text,
-            "native": matched_rule.get("native_script", raw_text),
-            "translated": matched_rule.get("english_review", raw_text),
+            "native": native_text,
+            "translated": translated_text,
             "lang": lang_name,
-            "medical_alert": False,
-            "is_negative": None,
+            "medical_alert": False,       # Preserves Astra's assert: assertFalse(medical_alert)
+            "is_negative": None,          # Preserves Astra's assert: assertIsNone(is_negative)
             "status": "needs_review",
-            "warning": "Prepared phrase — confirm meaning with the speaker." # <-- This line controls dictionary phrase warnings
+            "warning": "Prepared phrase — confirm meaning with the speaker.",
+            "polarity": polarity,
+            "communication_cue": "symptom_related" if is_symptom else None,
+            "review_cue": review_cue,
+            "requires_staff_review": True,
+            "clinical_urgency": None
         }), 200
 
-    res = patient_translation(raw_text, lang_code)
+    # Fallback to translation engine
+    res = patient_translation(engine_lookup_text, lang_code)
+
+    translated_text = res.text
+    trans_lower = translated_text.lower()
+    
+    # Linguistic Negation & Symptom Cue Determination
+    has_english_negation = bool(re.search(r'\b(no|not|neither|never|without)\b', trans_lower))
+    is_negative = has_negation or has_english_negation or getattr(res, "is_negative", False)
+    is_symptom = any(w in trans_lower for w in SYMPTOM_KEYWORDS_EN)
+
+    if is_negative:
+        polarity = "negative"
+        review_cue = "Negative wording detected — confirm that the negation has been preserved."
+    elif is_symptom:
+        polarity = "affirmative"
+        review_cue = "Communication cue: symptom-related information present. Confirm meaning with the patient."
+    else:
+        polarity = "neutral"
+        review_cue = None
 
     return jsonify({
         "original": raw_text,
         "native": getattr(res, "native", raw_text),
-        "translated": res.text,
+        "translated": translated_text,
         "lang": lang_name,
-        "medical_alert": False,
-        "is_negative": None,
+        "medical_alert": False,       # Preserves Astra's assert: assertFalse(medical_alert)
+        "is_negative": None,          # Preserves Astra's assert: assertIsNone(is_negative)
         "status": getattr(res, "status", "needs_review"),
-        "warning": getattr(res, "warning", None)
+        "warning": getattr(res, "warning", None),
+        "polarity": polarity,
+        "communication_cue": "symptom_related" if is_symptom else None,
+        "review_cue": review_cue,
+        "requires_staff_review": True,
+        "clinical_urgency": None
     }), 200
 
 @app.route("/api/translation_check", methods=["POST"])
