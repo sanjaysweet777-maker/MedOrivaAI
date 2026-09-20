@@ -85,14 +85,21 @@ class TranslationTests(unittest.TestCase):
 
     # ── Assessor-mandated cross-script contamination checks ───────────────────
     def test_unrelated_script_contamination_rejected_in_non_latin(self):
-        # Letters from unrelated foreign scripts must be rejected
         self.assertFalse(engine.script_matches('வலி العربية', 'ta'))
         self.assertFalse(engine.script_matches('வலி Привет', 'ta'))
         self.assertFalse(engine.script_matches('نعم Привет', 'ar'))
 
-        # Intended Latin abbreviations (like NHS), digits, and punctuation must be permitted
         self.assertTrue(engine.script_matches('உங்கள் NHS எண் உள்ளதா?', 'ta'))
         self.assertTrue(engine.script_matches('هل لديك رقم NHS الخاص بك؟', 'ar'))
+
+    # ── Mandatory Feature Preservation: Meaning Preservation Test ─────────────
+    def test_meaning_preservation_negation_vs_affirmative(self):
+        """Validates that negation is strictly preserved and never collapses into affirmative meaning."""
+        pos = engine.patient_translation('enaku nenji vali irukku', 'ta')
+        neg = engine.patient_translation('enaku nenji vali illa', 'ta')
+        self.assertEqual(pos.text, 'I have chest pain.')
+        self.assertEqual(neg.text, 'I do not have chest pain.')
+        self.assertNotEqual(pos.text, neg.text)
 
 
 class Routes(unittest.TestCase):
@@ -121,8 +128,13 @@ class Routes(unittest.TestCase):
     def test_translation_original_and_no_clinical_inference(self):
         self.start()
         d=self.client.post('/api/translate_patient',json={'text':'enaku nenji vali illa'}).get_json()
-        self.assertEqual(d['original'],'enaku nenji vali illa');self.assertFalse(d['medical_alert']);self.assertIsNone(d['is_negative'])
+        self.assertEqual(d['original'],'enaku nenji vali illa')
+        self.assertFalse(d['medical_alert'])
+        self.assertIsNone(d['is_negative'])
         self.assertEqual(d['status'],'needs_review')
+        # Confirms polarity metadata is exposed without clinical urgency
+        self.assertEqual(d.get('polarity'), 'negative')
+        self.assertIsNone(d.get('clinical_urgency'))
 
     def test_simplification_is_optional(self):
         self.start()
