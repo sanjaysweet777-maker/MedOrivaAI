@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import re
+import secrets
 import unicodedata
 import uuid
 from urllib.parse import urlparse
@@ -22,17 +23,22 @@ template_dir = os.path.join(BASE_DIR, 'templates')
 
 app = Flask(__name__, template_folder=template_dir)
 
-# Configurable environment signing secret
-app.secret_key = os.environ.get("SECRET_KEY", "medoriva-clinical-mvp-2026-v4")
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("medoriva.app")
+
+# Dynamic cryptographic fallback secret if unset in environment
+env_secret = os.environ.get("SECRET_KEY")
+if not env_secret:
+    logger.warning("SECRET_KEY unset in environment. Generating dynamic cryptographic secret.")
+    app.secret_key = secrets.token_hex(32)
+else:
+    app.secret_key = env_secret
 
 # Implemented COOKIE_SECURE setting from documentation
 cookie_secure = os.environ.get("COOKIE_SECURE", "false").lower() in ("true", "1", "yes")
 app.config["SESSION_COOKIE_SECURE"] = cookie_secure
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("medoriva.app")
 
 # ============================================================
 # CANONICAL LANGUAGE MAPPING (All 9 Approved MVP Languages)
@@ -59,7 +65,6 @@ def get_canonical(raw_lang, raw_code=None):
         return (str(raw_lang).strip(), str(raw_code or raw_lang).strip())
     return ("Tamil", "ta")
 
-# Priority 5 Fix: Preserve Unicode combining marks in normalisation
 def normalize_phrase(text):
     if not text:
         return ""
@@ -81,9 +86,8 @@ NEGATION_TOKENS_BY_LANG = {
     "ro": {"nu", "nici", "fara", "fără", "nu stiu"}
 }
 
-# Priority 2 Fix: Explicit Polarity Registry for All Dictionary Intents
+# Explicit Polarity Registry for All Dictionary Intents
 POLARITY_MAP = {
-    # Negative polarity (explicit denials, unpossessed, unknown values, refusals)
     "APPOINTMENT_SPECIFIC_NO": "negative",
     "NHS_UNKNOWN": "negative",
     "INTERPRETER_SPECIFIC_NO": "negative",
@@ -93,7 +97,6 @@ POLARITY_MAP = {
     "GENERIC_NO": "negative",
     "NEGATE_NO": "negative",
 
-    # Affirmative polarity
     "APPOINTMENT_YES_HAVE": "affirmative",
     "APPOINTMENT_HAVE": "affirmative",
     "DOCUMENT_HAVE": "affirmative",
@@ -108,7 +111,6 @@ POLARITY_MAP = {
     "GENERIC_YES": "affirmative",
     "AFFIRM_YES": "affirmative",
 
-    # Neutral / inquiry intents
     "PRESCRIPTION_NEED": "neutral",
     "TOILET_WHERE": "neutral",
     "UNDERSTOOD_WAIT": "neutral",
@@ -134,7 +136,6 @@ def load_rules_data(filepath):
                 continue
             name, code = get_canonical(lang_key)
             if isinstance(rules_list, list):
-                # Augment rules with explicit polarity
                 augmented_rules = []
                 for r in rules_list:
                     r_copy = dict(r)
@@ -155,7 +156,7 @@ def load_rules_data(filepath):
 RULES_DATA = load_rules_data(RULES_DICT_PATH)
 
 # ============================================================
-# CONTEXT-LOCKED GUIDED PROMPT REGISTRY
+# CONTEXT-GUIDED PROMPT REGISTRY
 # ============================================================
 CONTEXT_PROMPTS = {
     "Reception": [
@@ -332,7 +333,6 @@ def logout():
 
 # ============================================================
 # API ENDPOINTS
-# Priority 7 Fix: Do not claim delivery until actual transport is active
 # ============================================================
 @app.route("/api/contact", methods=["POST"])
 def submit_contact():
@@ -426,7 +426,6 @@ def translate_staff():
     if not isinstance(raw_text, str) or not raw_text.strip() or len(raw_text) > 2000:
         return jsonify({"error": "Bad Request", "message": "Invalid text input."}), 400
 
-    # Validate language against active session
     session_lang = session.get("lang_code", "ta")
     req_lang = data.get("lang_code")
     if req_lang and req_lang != session_lang:
@@ -446,7 +445,6 @@ def translate_staff():
         "warning": getattr(res, "warning", None)
     }), 200
 
-# Priority 4 Fix: Enforce active session & session language in translate_patient
 @app.route("/api/translate_patient", methods=["POST"])
 @login_required
 def translate_patient():
@@ -461,7 +459,6 @@ def translate_patient():
     if not isinstance(raw_text, str) or not raw_text.strip() or len(raw_text) > 2000:
         return jsonify({"error": "Bad Request", "message": "Invalid text input."}), 400
 
-    # Validate language against active session
     session_lang = session.get("lang_code", "ta")
     req_lang = data.get("lang_code")
     if req_lang and req_lang != session_lang:
@@ -484,12 +481,10 @@ def translate_patient():
     lang_negs = NEGATION_TOKENS_BY_LANG.get(lang_code, set())
     has_negation = bool(input_tokens & lang_negs)
 
-    # Priority 2 Fix: Match using explicit rule polarity
     matched_rule = None
     for rule in rules_for_lang:
         rule_polarity = rule.get("polarity", "neutral")
 
-        # Never match an affirmative rule if patient input contains negation tokens
         if has_negation and rule_polarity == "affirmative":
             continue
 
@@ -509,7 +504,7 @@ def translate_patient():
             "medical_alert": False,
             "is_negative": None,
             "status": "needs_review",
-            "warning": None
+            "warning": "Prepared phrase — confirm meaning with the speaker."
         }), 200
 
     res = patient_translation(raw_text, lang_code)
