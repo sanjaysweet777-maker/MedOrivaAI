@@ -21,9 +21,8 @@ function selectLang(btn) {
     document.querySelectorAll('.lang-card, .lang-btn').forEach(b => b.classList.remove('active'));
     el.classList.add('active');
     
-    // Safely read language and code attributes
     selectedLang = el.getAttribute('data-lang') || el.dataset.lang;
-    selectedLangCode = el.getAttribute('data-code') || el.dataset.code || 'en';
+    selectedLangCode = el.getAttribute('data-code') || el.dataset.code || 'ta';
     
     checkReady();
 }
@@ -56,7 +55,7 @@ async function startSession() {
             body: JSON.stringify({
                 context: selectedContext,
                 lang: selectedLang,
-                lang_code: selectedLangCode || 'en'
+                lang_code: selectedLangCode || 'ta'
             })
         });
 
@@ -74,18 +73,19 @@ async function startSession() {
         const currentContext = data.context || selectedContext;
         const currentLang = data.lang || selectedLang;
 
-        // Update sidebar state badges
         const sideCtx = document.getElementById('sideCtx');
         const sideLang = document.getElementById('sideLang');
         const sideId = document.getElementById('sideId');
         if (sideCtx) sideCtx.textContent = currentContext;
-        if (sideLang) sideLang.textContent = currentLang;
+        if (sideLang) {
+            sideLang.textContent = currentLang;
+            sideLang.setAttribute('data-lang', currentLang);
+            sideLang.setAttribute('data-code', selectedLangCode || 'ta');
+        }
         if (sideId) sideId.textContent = sessionId;
 
-        // Render guided prompts in sidebar
-        renderPrompts(data.prompts || []);
+        renderPrompts(data.prompts || data.prepared_prompts || []);
 
-        // Switch active screens
         const setupScreen = document.getElementById('setupScreen');
         const mainScreen = document.getElementById('mainScreen');
         if (setupScreen) setupScreen.classList.remove('active');
@@ -120,22 +120,22 @@ async function checkTranslationConnection() {
 
     try {
         const testCode = selectedLangCode || 'ta';
-        const res = await fetch('/api/translate_staff', {
+        const res = await fetch('/api/translation_check', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: 'Do you have an appointment?' })
+            body: JSON.stringify({ lang_code: testCode })
         });
         const data = await res.json();
         
-        if (res.ok && data.translated) {
-            result.textContent = `✓ Connected: "${data.translated}" (${data.lang || testCode})`;
+        if (res.ok && data.connected) {
+            result.textContent = `✓ Connected: Translation services operational (${testCode}).`;
             result.style.color = '#10b981';
         } else {
-            result.textContent = '⚠ Service reachable, but received default fallback.';
+            result.textContent = `⚠ Service status: ${data.error_code || 'unconfigured / local prepared only'}`;
             result.style.color = '#f59e0b';
         }
     } catch (e) {
-        result.textContent = '✕ Connection failed. Check network or server status.';
+        result.textContent = '✕ Connection check failed.';
         result.style.color = '#ef4444';
     } finally {
         if (btn) btn.disabled = false;
@@ -168,9 +168,18 @@ async function sendStaffPrompt(text) {
         const res = await fetch('/api/translate_staff', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: text })
+            body: JSON.stringify({
+                text: text,
+                lang: selectedLang,
+                lang_code: selectedLangCode
+            })
         });
         const data = await res.json();
+
+        if (!res.ok) {
+            alert(data.message || 'Staff translation error.');
+            return;
+        }
 
         appendMessage('staff', {
             original: data.original || text,
@@ -178,7 +187,7 @@ async function sendStaffPrompt(text) {
             lang: data.lang || selectedLang || 'Patient'
         });
     } catch (e) {
-        alert('Translation error. Please try again.');
+        alert('Translation request failed.');
     }
 }
 
@@ -194,7 +203,6 @@ async function sendFreeText() {
     await sendStaffPrompt(text);
 }
 
-// Plain Language Simplification
 async function suggestSimplification() {
     const input = document.getElementById('freeInput');
     const note = document.getElementById('simplifyNote');
@@ -214,7 +222,6 @@ async function suggestSimplification() {
     } catch (e) {}
 }
 
-// Patient Response
 async function translatePatient() {
     const input = document.getElementById('patientInput');
     if (!input || !input.value.trim()) return;
@@ -228,13 +235,22 @@ async function translatePatient() {
         const res = await fetch('/api/translate_patient', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: text })
+            body: JSON.stringify({
+                text: text,
+                lang: selectedLang,
+                lang_code: selectedLangCode
+            })
         });
         const data = await res.json();
 
+        if (!res.ok) {
+            alert(data.message || 'Patient translation error. Session may have expired.');
+            return;
+        }
+
         appendMessage('patient', {
             typedInput: text,
-            englishMeaning: data.translated || text,
+            englishMeaning: data.translated,
             nativeScript: data.native || text,
             lang: data.lang || selectedLang || 'Patient',
             alert: data.medical_alert,
@@ -251,47 +267,14 @@ async function translatePatient() {
     }
 }
 
-// Understanding Check Tab
-async function checkUnderstanding() {
-    const input = document.getElementById('confirmInput');
-    if (!input || !input.value.trim()) return;
-    const text = input.value.trim();
-    input.value = '';
-
-    const emptyChat = document.getElementById('emptyChat');
-    if (emptyChat) emptyChat.style.display = 'none';
-
-    try {
-        const res = await fetch('/api/translate_patient', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: text })
-        });
-        const data = await res.json();
-
-        appendMessage('patient', {
-            typedInput: text,
-            englishMeaning: `[Understanding Check]: ${data.translated || text}`,
-            nativeScript: data.native || text,
-            lang: data.lang || selectedLang || 'Patient',
-            alert: data.medical_alert,
-            symptom: data.symptom_detected,
-            isNegative: data.is_negative
-        });
-    } catch (e) {
-        alert('Translation verification error. Please try again.');
-    }
-}
-
 // ============================================================
-// 5. TWO-SIDED CHAT RENDERING (Staff RIGHT ↔ Patient LEFT)
+// 5. TWO-SIDED CHAT RENDERING
 // ============================================================
 
 function appendMessage(sender, msg) {
     const chatArea = document.getElementById('chatArea');
     if (!chatArea) return;
 
-    // Check if patient language is Right-to-Left (Arabic, Urdu)
     const isRtl = ['ar', 'ur'].includes(String(selectedLangCode).toLowerCase());
     const dirAttr = isRtl ? 'dir="rtl"' : 'dir="ltr"';
 
@@ -303,13 +286,12 @@ function appendMessage(sender, msg) {
     row.style.justifyContent = (sender === 'staff') ? 'flex-end' : 'flex-start';
 
     if (sender === 'staff') {
-        // ── STAFF (RIGHT SIDE, GREEN/TEAL BUBBLE) ──
         row.innerHTML = `
             <div class="msg-bubble staff" style="max-width:72%;background:#f0fdf4;border:1px solid #bbf7d0;border-right:4px solid #0F6E56;border-radius:12px 12px 2px 12px;padding:14px 18px;text-align:left;box-shadow:0 2px 6px rgba(15,110,86,0.06);">
-                <div style="font-size:11px;font-weight:800;color:#0F6E56;text-transform:uppercase;margin-bottom:4px;letter-spacing:0.5px;">
+                <div style="font-size:11px;font-weight:800;color:#0F6E56;text-transform:uppercase;margin-bottom:4px;letter-spacing:0.5px;" dir="ltr">
                     Staff Question (English)
                 </div>
-                <div style="font-size:15px;font-weight:700;color:#0f172a;margin-bottom:8px;">
+                <div style="font-size:15px;font-weight:700;color:#0f172a;margin-bottom:8px;" dir="ltr">
                     ${escapeHtml(msg.original)}
                 </div>
                 <div style="font-size:13px;color:#1e293b;background:#ffffff;border:1px solid #dcfce7;border-radius:6px;padding:8px 12px;" ${dirAttr}>
@@ -318,28 +300,23 @@ function appendMessage(sender, msg) {
             </div>
         `;
     } else {
-        // ── PATIENT (LEFT SIDE, WHITE/BLUE BUBBLE) ──
-        // Assessor-safe communication cues (Non-clinical wording)
         const badge = msg.alert 
-            ? `<div style="margin-top:8px;padding:6px 10px;background:#fef3c7;border:1px solid #fde68a;border-radius:6px;color:#92400e;font-weight:700;font-size:12px;">
+            ? `<div style="margin-top:8px;padding:6px 10px;background:#fef3c7;border:1px solid #fde68a;border-radius:6px;color:#92400e;font-weight:700;font-size:12px;" dir="ltr">
                  ℹ️ Recognised Symptom Phrase: ${escapeHtml(msg.symptom)}
                </div>`
-            : (msg.isNegative && msg.symptom ? `<div style="margin-top:8px;padding:6px 10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;color:#16a34a;font-weight:600;font-size:12px;">
-                 ✓ Recognised negative phrase: ${escapeHtml(msg.symptom)} — communication confirmation only
-               </div>` : '');
+            : '';
 
         row.innerHTML = `
             <div class="msg-bubble patient" style="max-width:72%;background:#ffffff;border:1px solid #cbd5e1;border-left:4px solid #0284c7;border-radius:12px 12px 12px 2px;padding:14px 18px;text-align:left;box-shadow:0 2px 6px rgba(0,0,0,0.04);">
-                <div style="font-size:11px;font-weight:800;color:#0284c7;text-transform:uppercase;margin-bottom:4px;letter-spacing:0.5px;">
+                <div style="font-size:11px;font-weight:800;color:#0284c7;text-transform:uppercase;margin-bottom:4px;letter-spacing:0.5px;" dir="ltr">
                     Patient Message (English for Staff Review)
                 </div>
-                <div style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:8px;">
-                    ${escapeHtml(msg.englishMeaning || msg.translated)}
+                <div style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:8px;" dir="ltr">
+                    ${escapeHtml(msg.englishMeaning || 'Translation unavailable')}
                 </div>
-                <div style="font-size:12px;color:#475569;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:6px;padding:8px 12px;display:flex;flex-direction:column;gap:3px;">
-                    <div><strong style="color:#334155;">Patient Typed:</strong> <em>${escapeHtml(msg.typedInput || msg.original)}</em></div>
-                    <!-- Replaced 'Verified Native' with 'Native-Script Mapping' -->
-                    <div ${dirAttr}><strong style="color:#334155;">Native-Script Mapping:</strong> ${escapeHtml(msg.nativeScript || msg.native)}</div>
+                <div style="font-size:12px;color:#475569;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:6px;padding:8px 12px;display:flex;flex-direction:column;gap:3px;" dir="ltr">
+                    <div><strong style="color:#334155;">Patient Typed:</strong> <em>${escapeHtml(msg.typedInput || '')}</em></div>
+                    <div ${dirAttr}><strong style="color:#334155;">Native-Script Mapping:</strong> ${escapeHtml(msg.nativeScript || '')}</div>
                 </div>
                 ${badge}
             </div>
