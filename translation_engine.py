@@ -81,6 +81,8 @@ ALL_INDIC_RANGES = [
     (0x0D00, 0x0D7F),  # Malayalam
 ]
 
+SHARED_INDIC_PUNCTUATION = {0x0964, 0x0965}  # Devanagari Danda & Double Danda shared across Indic scripts
+
 def in_range(code_point, rng):
     if isinstance(rng, list):
         return any(start <= code_point <= end for start, end in rng)
@@ -96,6 +98,11 @@ def script_matches(text, language):
 
         for c in text:
             cp = ord(c)
+
+            # Allow common whitespace, digits, ASCII punctuation, and shared Indic dandas
+            if cp in SHARED_INDIC_PUNCTUATION or cp < 0x0080 or unicodedata.category(c).startswith(('P', 'Z', 'N')):
+                continue
+
             # Check for illegal cross-Indic or non-native script contamination
             for r_start, r_end in ALL_INDIC_RANGES:
                 if r_start <= cp <= r_end:
@@ -126,6 +133,7 @@ def numeric_response(text):
     return bool(NUMERIC_ONLY_PATTERN.match(cleaned))
 
 def convert_arabic_digits(text):
+    arabic_digits = "٠١٢٣٤٥٦ desert"
     arabic_digits = "٠١٢٣٤٥٦٧٨٩"
     for i, c in enumerate(arabic_digits):
         text = text.replace(c, str(i))
@@ -221,7 +229,7 @@ def online(text, source, target):
         if not translated:
             return unavailable('empty_translation')
 
-        # Priority 6: Reject unchanged cross-language outputs (e.g. English -> Polish 'Hello' -> 'Hello')
+        # Priority 6 Fix: Reject unchanged cross-language outputs (e.g. English -> Polish 'Hello' -> 'Hello')
         if source != target and translated.lower() == clean_input.lower() and not numeric_response(clean_input):
             return unavailable('unchanged_echo')
 
@@ -256,7 +264,7 @@ def online(text, source, target):
 
 # ============================================================
 # PREPARED CLINICAL STAFF LOOKUP (All 9 Languages)
-# Priority 3 Fix: Pure Malayalam characters (No Tamil mixing)
+# Pure Malayalam characters without Tamil mixing
 # ============================================================
 STAFF_LOOKUP = {
     "Do you have an appointment?": {
@@ -298,7 +306,7 @@ STAFF_LOOKUP = {
         "ml": "നിങ്ങളുടെ NHS നമ്പർ ഉണ്ടോ?",
         "pl": "Czy ma Pan/Pani swój numer NHS?",
         "ar": "هل لديك رقم NHS الخاص بك؟",
-        "ur": "کیا آپ کے پاس آپ کا NHS نمبر ہے؟",
+        "ur": "کیا آپ کے پاس آپ کا NHS नंबर ہے؟",
         "bn": "আপনার কি NHS নম্বর আছে?",
         "so": "Ma haysataa lambarkaaga NHS?",
         "ro": "Aveți numărul dumneavoastră NHS?"
@@ -317,7 +325,7 @@ STAFF_LOOKUP = {
     "Where is your pain?": {
         "ta": "உங்களுக்கு வலி எங்கே இருக்கிறது?",
         "hi": "आपको दर्द कहाँ है?",
-        "ml": "നിങ്ങൾക്ക് എവിടെയാണ് വേദന?",  # Fixed: pure Malayalam 'എ', replaced Tamil 'எ'
+        "ml": "നിങ്ങൾക്ക് എവിടെയാണ് വേദന?",
         "pl": "Gdzie odczuwa Pan/Pani ból?",
         "ar": "أين تشعر بالألم؟",
         "ur": "آپ کو درد کہاں ہو رہا ہے؟",
@@ -328,7 +336,7 @@ STAFF_LOOKUP = {
     "Do you have chest pain?": {
         "ta": "உங்களுக்கு நெஞ்சு வலி உள்ளதா?",
         "hi": "क्या आपको सीने में दर्द है?",
-        "ml": "നിങ്ങൾക്ക് നെഞ്ചുവേദന ഉണ്ടോ?",  # Fixed: pure Malayalam 'നെ', replaced Tamil 'நெ'
+        "ml": "നിങ്ങൾക്ക് നെഞ്ചുവേദന ഉണ്ടോ?",
         "pl": "Czy ma Pan/Pani ból w klatce piersiowej?",
         "ar": "هل تشعر بألم في الصدر؟",
         "ur": "کیا آپ کے سینے میں درد ہے؟",
