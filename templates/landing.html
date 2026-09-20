@@ -441,7 +441,7 @@
         .section-header h2 { font-size: 32px; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.6px; }
         .section-header p { color: var(--text-muted); font-size: 15.5px; max-width: 740px; margin: 0 auto; line-height: 1.6; }
 
-        /* Feature Cards with Mini-UI */
+        /* Feature Cards */
         .grid-3 {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
@@ -723,10 +723,6 @@
         .modal-content p, .modal-content li { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.6; }
         .modal-content ul { padding-left: 20px; }
 
-        @media(max-width: 980px) {
-            .nav-links { display: none; }
-        }
-
         @media(max-width: 768px) {
             .hero h1 { font-size: 32px; }
             .mockup-body { grid-template-columns: 1fr; }
@@ -748,12 +744,10 @@
 </head>
 <body>
 
-    <!-- Top Announcement Ribbon -->
     <div class="top-banner">
-        🚀 Working MVP — Practice Evaluation Programme — Expressions of Interest Open for GP Practices
+        Practice Evaluation Prototype — Structured Multilingual Communication for Primary Care
     </div>
 
-    <!-- Clean Streamlined Navigation -->
     <nav>
         <div class="nav-container">
             <a href="/" class="nav-brand">
@@ -784,7 +778,6 @@
         </div>
     </nav>
 
-    <!-- Hero Section -->
     <section class="hero">
         <div class="badge">
             <span class="badge-dot"></span>
@@ -800,7 +793,6 @@
             <a href="#contact" class="btn-secondary">Register Interest for Practice Evaluation</a>
         </div>
 
-        <!-- Language Chips Bar -->
         <div class="lang-chips-bar">
             <span class="chip"><span class="chip-dot"></span> தமிழ் (Tamil)</span>
             <span class="chip"><span class="chip-dot"></span> हिन्दी (Hindi)</span>
@@ -813,7 +805,6 @@
             <span class="chip"><span class="chip-dot"></span> Soomaali (Somali)</span>
         </div>
 
-        <!-- Live Primary Care Dual-Screen Mockup -->
         <div class="mockup-container">
             <div class="mockup-header">
                 <div class="mockup-dots">
@@ -828,7 +819,6 @@
             </div>
 
             <div class="mockup-body">
-                <!-- Staff Workspace -->
                 <div class="mockup-pane staff-pane">
                     <div class="pane-header">
                         <span class="pane-tag staff-tag">STAFF WORKSPACE (ENGLISH)</span>
@@ -843,7 +833,7 @@
                         </div>
 
                         <div class="chat-bubble patient-feedback-bubble">
-                            <div class="bubble-sender">Patient Response (English back-translation for staff review)</div>
+                            <div class="bubble-sender">Patient Response (English meaning for staff review)</div>
                             <div class="bubble-text highlighted">"I have an appointment."</div>
                             <div class="bubble-cue">
                                 <span class="cue-icon">ℹ️</span>
@@ -858,7 +848,6 @@
                     </div>
                 </div>
 
-                <!-- Patient Terminal -->
                 <div class="mockup-pane patient-pane">
                     <div class="pane-header">
                         <span class="pane-tag patient-tag">PATIENT INTERFACE (NATIVE SCRIPT)</span>
@@ -883,14 +872,13 @@
                         <div class="check-icon">✓</div>
                         <div>
                             <div class="check-title">Understanding Check Loop Complete</div>
-                            <div class="check-desc">Displays prepared multilingual confirmation prompts and records confirmation or correction. Conversation records are not stored persistently in the database.</div>
+                            <div class="check-desc">Prepared confirmation prompts and recorded responses. Conversation records are not stored persistently in the database.</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Trust Strip -->
         <div class="trust-strip">
             <div class="trust-item">🔒 Application-Level Non-Storage Design</div>
             <div class="trust-item">🛡️ Ephemeral Session Processing</div>
@@ -900,7 +888,6 @@
         </div>
     </section>
 
-    <!-- Clinic Action Photo Showcase -->
     <div class="clinic-showcase">
         <div class="showcase-frame">
             <img 
@@ -921,7 +908,7 @@
                 <div class="f-icon green">✓</div>
                 <div>
                     <div class="f-title">Understanding Check</div>
-                    <div class="f-sub">English back-translation for staff review</div>
+                    <div class="f-sub">English meaning for staff review</div>
                 </div>
             </div>
 
@@ -936,7 +923,6 @@
         </div>
     </div>
 
-    <!-- Before vs. After Transformation Section -->
     <section class="section" id="comparison" style="padding-top: 0;">
         <div class="section-header">
             <h2>Transforming Front-Desk Primary Care Intake</h2>
@@ -995,7 +981,6 @@
         </div>
     </section>
 
-    <!-- 3-Stage Operational Architecture Pipeline -->
     <div class="pipeline-wrapper">
         <div class="pipeline-step">
             <div class="step-num">01</div>
@@ -1017,12 +1002,11 @@
             <div class="step-num">03</div>
             <div class="step-content">
                 <h4>Understanding Check Loop</h4>
-                <p>Displays prepared multilingual confirmation prompts and records patient confirmation or correction.</p>
+                <p>Prepared confirmation prompts and recorded responses.</p>
             </div>
         </div>
     </div>
 
-    <!-- The 3 Context Workflows -->
     <section class="section" id="workflows">
         <div class="section-header">
             <h2>Three Context-Guided Healthcare Workflows</h2>
@@ -1075,7 +1059,6 @@
             </div>
         </div>
 
-        <!-- Founder-Developed Plain-Language Rule Layer -->
         <div class="spotlight-box" id="engine">
             <div class="spotlight-text">
                 <h3>Founder-Developed Plain-Language Rule Layer</h3>
@@ -1100,7 +1083,6 @@
         </div>
     </section>
 
-    <!-- Differentiation Table -->
     <section class="section" id="differentiation" style="padding-top: 0;">
         <div class="section-header">
             <h2>Why MedOriva Is Designed for Primary Care</h2>
@@ -1151,7 +1133,6 @@
         </div>
     </section>
 
-    <!-- Future Adjacent-Care Expansion Roadmap -->
     <section class="section" id="roadmap" style="padding-top: 0;">
         <div class="section-header">
             <h2>Future Adjacent-Care Expansion Roadmap</h2>
@@ -1179,7 +1160,6 @@
         </div>
     </section>
 
-    <!-- Pricing -->
     <section class="section" id="pricing">
         <div class="section-header">
             <h2>Transparent Practice-Level SaaS Pricing</h2>
@@ -1243,7 +1223,6 @@
         </div>
     </section>
 
-    <!-- Governance & Assurance Roadmap -->
     <section class="section" id="governance" style="padding-top: 0;">
         <div class="safety-box">
             <div class="safety-text">
@@ -1279,7 +1258,6 @@
         </div>
     </section>
 
-    <!-- FAQ -->
     <section class="section" id="faq">
         <div class="section-header">
             <h2>Governance &amp; Assurance FAQ</h2>
@@ -1325,7 +1303,6 @@
         </div>
     </section>
 
-    <!-- About Section -->
     <section class="section" id="about">
         <div class="section-header">
             <h2>About MedOriva AI Ltd</h2>
@@ -1346,7 +1323,6 @@
         </div>
     </section>
 
-    <!-- Contact & Pilot Form -->
     <section class="section" id="contact">
         <div class="section-header">
             <h2>Practice Evaluation Discussions</h2>
@@ -1378,7 +1354,6 @@
         </div>
     </section>
 
-    <!-- Footer -->
     <footer>
         <div class="disclaimer-box">
             <strong>INTENDED PURPOSE &amp; REGULATORY NOTICE:</strong> MedOriva AI is currently intended to support administrative and staff-directed routine multilingual communication between healthcare staff and patients. It does not diagnose, determine urgency or risk, perform clinical triage, recommend treatment or replace professional clinical judgement or qualified interpreting where required. Attending healthcare staff retain complete responsibility for applying clinical judgement and local practice protocols.
@@ -1426,7 +1401,6 @@
             </div>
         </div>
 
-        <!-- Evidence & Statistical Sources -->
         <div style="max-width: 1150px; margin: 0 auto 28px; padding-top: 20px; border-top: 1px solid #142038; font-size: 11.5px; color: #64748b;">
             <strong style="color: #94a3b8;">Evidence Base &amp; Regulatory References:</strong>
             <ul style="list-style: none; padding: 0; margin-top: 6px; line-height: 1.7;">
@@ -1445,9 +1419,8 @@
         </div>
     </footer>
 
-    <!-- Cookie Consent Banner -->
     <div class="cookie-banner" id="cookieBanner">
-        <h4>UK GDPR &amp; Cookie Compliance</h4>
+        <h4>Cookies and privacy</h4>
         <p>
             MedOriva AI uses only strictly necessary session cookies to authenticate authorized practice staff. No commercial advertising or third-party marketing trackers are deployed.
         </p>
@@ -1457,11 +1430,10 @@
         </div>
     </div>
 
-    <!-- Modals -->
     <div class="modal" id="privacyModal">
         <div class="modal-content">
             <button class="modal-close" onclick="closeModal('privacyModal')">&times;</button>
-            <h3>Privacy Policy (UK GDPR Aligned)</h3>
+            <h3>Privacy notice</h3>
             <p><strong>Effective Date:</strong> September 2026</p>
             <h4>1. Application-Level Non-Storage Design</h4>
             <p>MedOriva AI does not persist conversational transcripts to application databases. Third-party translation provider processing and hosting infrastructure are governed separately under applicable operational agreements.</p>
@@ -1490,7 +1462,7 @@
         <div class="modal-content">
             <button class="modal-close" onclick="closeModal('cookiesModal')">&times;</button>
             <h3>Cookie Policy</h3>
-            <p><strong>Compliance:</strong> UK PECR &amp; Data Protection Act 2018</p>
+            <p><strong>Relevant frameworks: UK PECR and Data Protection Act 2018.</strong></p>
             <h4>1. Strictly Necessary Cookies Only</h4>
             <ul>
                 <li><code>session</code>: Signed cryptographic session cookie to authenticate active staff sessions.</li>
@@ -1514,7 +1486,6 @@
         </div>
     </div>
 
-    <!-- Client Scripts -->
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             if (!localStorage.getItem("medoriva_cookie_consent")) {
