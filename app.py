@@ -2,12 +2,13 @@ import json
 import logging
 import os
 import re
+import unicodedata
 import uuid
 from urllib.parse import urlparse
 from flask import Flask, flash, jsonify, redirect, render_template, request, session, url_for
 from flask_login import LoginManager, UserMixin, current_user, login_required, login_user, logout_user
 
-# Import engine functions directly from translator.py
+# Import engine functions from translator.py
 from translator import (
     LANGUAGES,
     Translation,
@@ -29,6 +30,80 @@ app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("medoriva.app")
+
+# ============================================================
+# CANONICAL LANGUAGE MAPPING & NORMALISATION (All 9 Languages)
+# ============================================================
+CANONICAL_LANGUAGES = {
+    "ta": ("Tamil", "ta"), "tamil": ("Tamil", "ta"),
+    "hi": ("Hindi", "hi"), "hindi": ("Hindi", "hi"),
+    "ml": ("Malayalam", "ml"), "malayalam": ("Malayalam", "ml"),
+    "pl": ("Polish", "pl"), "polish": ("Polish", "pl"),
+    "ar": ("Arabic", "ar"), "arabic": ("Arabic", "ar"),
+    "ur": ("Urdu", "ur"), "urdu": ("Urdu", "ur"),
+    "bn": ("Bengali", "bn"), "bengali": ("Bengali", "bn"),
+    "so": ("Somali", "so"), "somali": ("Somali", "so"),
+    "ro": ("Romanian", "ro"), "romanian": ("Romanian", "ro"),
+}
+
+def get_canonical(raw_lang, raw_code=None):
+    if raw_code and str(raw_code).strip().lower() in CANONICAL_LANGUAGES:
+        return CANONICAL_LANGUAGES[str(raw_code).strip().lower()]
+    if raw_lang:
+        token = re.split(r'[\s\(\-_/]', str(raw_lang).strip())[0].lower()
+        if token in CANONICAL_LANGUAGES:
+            return CANONICAL_LANGUAGES[token]
+    return ("Tamil", "ta")
+
+def normalize_phrase(text):
+    if not text:
+        return ""
+    cleaned = re.sub(r'[^\w\s]', ' ', str(text), flags=re.UNICODE)
+    return " ".join(unicodedata.normalize('NFC', cleaned).lower().split())
+
+# ============================================================
+# MULTILINGUAL NEGATION TOKENS (All 9 Languages)
+# ============================================================
+NEGATION_TOKENS_BY_LANG = {
+    "ta": {"illai", "illa", "kidayathu", "illamal", "vendam", "thevai illai", "இல்லை", "கிடையாது", "வேண்டாம்"},
+    "hi": {"nahi", "nahin", "na", "mat", "नहीं", "ना", "मत"},
+    "ml": {"illa", "alla", "illaathe", "venda", "aavashyamilla", "ഇല്ല", "അല്ല", "വേണ്ട"},
+    "pl": {"nie", "brak", "bez", "ani"},
+    "ar": {"la", "kalla", "laysa", "ma", "mush", "lan", "lam", "لا", "كلا", "ليس", "ما", "مش"},
+    "ur": {"nahi", "nahin", "na", "mat", "nhi", "نہیں", "نہ", "مت"},
+    "bn": {"na", "nei", "noi", "noy", "না", "নেই", "নয়"},
+    "so": {"maya", "ma", "maha", "malihi", "ha", "ma jiro"},
+    "ro": {"nu", "nici", "fara", "fără"}
+}
+
+# ============================================================
+# LOAD MEDORIVA RULE DICTIONARY FOR ALL 9 LANGUAGES
+# ============================================================
+RULES_DICT_PATH = os.path.join(BASE_DIR, "rules_dictionary.json")
+
+def load_rules_data(filepath):
+    if not os.path.exists(filepath):
+        logger.warning("Rules dictionary not found at %s", filepath)
+        return {}
+    try:
+        with open(filepath, "r", encoding="utf-8") as f:
+            raw = json.load(f)
+        rules_dict = raw.get("rules_by_language", raw) if isinstance(raw, dict) else {}
+        normalized = {}
+        for lang_key, rules_list in rules_dict.items():
+            if lang_key in {"system", "version"}:
+                continue
+            name, code = get_canonical(lang_key)
+            if isinstance(rules_list, list):
+                normalized[code] = rules_list
+                normalized[name] = rules_list
+        logger.info("Loaded rules dictionary for all configured languages.")
+        return normalized
+    except Exception as e:
+        logger.error("Error loading rules dictionary: %s", e)
+        return {}
+
+RULES_DATA = load_rules_data(RULES_DICT_PATH)
 
 # ============================================================
 # CONTEXT-LOCKED GUIDED PROMPT REGISTRY
@@ -135,7 +210,6 @@ def unauthorized():
 
 @app.before_request
 def enforce_security_checks():
-    # Cross-Origin Guard (Reject untrusted Origin headers)
     origin = request.headers.get("Origin")
     if origin:
         parsed_origin = urlparse(origin)
@@ -216,8 +290,6 @@ def submit_contact():
     if not isinstance(data, dict):
         return jsonify({"status": "error", "message": "Invalid payload."}), 400
 
-    name = str(data.get("name", "")).strip()
-
     # Reject fake success when live email/messaging delivery transport is not configured
     if not os.environ.get("CONTACT_DELIVERY_ENABLED") and not os.environ.get("SMTP_HOST"):
         return jsonify({
@@ -255,7 +327,6 @@ def start_session():
     context = data.get("context", "Reception")
     lang_code = data.get("lang_code", "ta")
 
-    # Strict parameter validation
     if not isinstance(context, str) or context not in CONTEXT_PROMPTS:
         return jsonify({"error": "Bad Request", "message": "Invalid intake context."}), 400
 
@@ -316,7 +387,6 @@ def translate_staff():
     lang_code = session.get("lang_code", "ta")
     lang_name = session.get("lang", "Tamil")
 
-    # Staff prompt translated directly without altering original input
     res = staff_translation(raw_text, lang_code)
 
     return jsonify({
@@ -345,10 +415,45 @@ def translate_patient():
     lang_code = session.get("lang_code", "ta")
     lang_name = session.get("lang", "Tamil")
 
-    # Dynamic translation preserving original sentence details
+    # Step 1: Check verified rules_dictionary.json across all 9 languages
+    norm_input = normalize_phrase(raw_text)
+    input_tokens = set(norm_input.split())
+    rules_for_lang = RULES_DATA.get(lang_code, []) or RULES_DATA.get(lang_name, [])
+
+    lang_negs = NEGATION_TOKENS_BY_LANG.get(lang_code, set())
+    has_negation = bool(input_tokens & lang_negs)
+
+    matched_rule = None
+    for rule in rules_for_lang:
+        intent = rule.get("intent", "").upper()
+        is_neg_intent = any(neg in intent for neg in ["_NO", "NOT_", "NEGATE_", "NO_PAIN"])
+
+        # Never match affirmative rule if patient typed a negation
+        if has_negation and not is_neg_intent:
+            continue
+
+        for candidate in rule.get("input_matches", []):
+            if norm_input == normalize_phrase(candidate):
+                matched_rule = rule
+                break
+        if matched_rule:
+            break
+
+    if matched_rule:
+        return jsonify({
+            "original": raw_text,
+            "native": matched_rule.get("native_script", raw_text),
+            "translated": matched_rule.get("english_review", raw_text),
+            "lang": lang_name,
+            "medical_alert": False,
+            "is_negative": None,
+            "status": "needs_review",
+            "warning": None
+        }), 200
+
+    # Step 2: Fallback to translation engine for descriptive phrases & full sentences
     res = patient_translation(raw_text, lang_code)
 
-    # Complies with non-clinical boundary: does not assert clinical negation or triage alert
     return jsonify({
         "original": raw_text,
         "native": getattr(res, "native", raw_text),
@@ -376,7 +481,6 @@ def translation_check():
     key = configured_key()
     configured = bool(key)
 
-    # Always checks connectivity using standard appointment prompt without forwarding private payload
     res = online("Do you have an appointment?", "en", target_code)
 
     connected = (
