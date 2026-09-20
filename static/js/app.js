@@ -143,7 +143,7 @@ async function checkTranslationConnection() {
 }
 
 // ============================================================
-// 4. STAFF & PATIENT CHAT LOGIC
+// 4. STAFF & PATIENT CHAT LOGIC (Priority 1 Fix Applied)
 // ============================================================
 
 function renderPrompts(prompts) {
@@ -170,7 +170,6 @@ async function sendStaffPrompt(text) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 text: text,
-                lang: selectedLang,
                 lang_code: selectedLangCode
             })
         });
@@ -181,10 +180,15 @@ async function sendStaffPrompt(text) {
             return;
         }
 
+        // Priority 1 Fix: Explicitly handle unavailable state instead of echoing raw text
+        const isUnavailable = (data.status === 'unavailable') || !data.translated;
+        const translatedDisplay = isUnavailable ? '[Translation unavailable — communicate via interpreter]' : data.translated;
+
         appendMessage('staff', {
             original: data.original || text,
-            translated: data.translated || text,
-            lang: data.lang || selectedLang || 'Patient'
+            translated: translatedDisplay,
+            lang: data.lang || selectedLang || 'Patient',
+            unavailable: isUnavailable
         });
     } catch (e) {
         alert('Translation request failed.');
@@ -237,7 +241,6 @@ async function translatePatient() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 text: text,
-                lang: selectedLang,
                 lang_code: selectedLangCode
             })
         });
@@ -248,14 +251,18 @@ async function translatePatient() {
             return;
         }
 
+        const isUnavailable = (data.status === 'unavailable') || !data.translated;
+        const englishDisplay = isUnavailable ? '[Translation unavailable — confirm verbally]' : data.translated;
+
         appendMessage('patient', {
             typedInput: text,
-            englishMeaning: data.translated,
+            englishMeaning: englishDisplay,
             nativeScript: data.native || text,
             lang: data.lang || selectedLang || 'Patient',
             alert: data.medical_alert,
             symptom: data.symptom_detected,
-            isNegative: data.is_negative
+            isNegative: data.is_negative,
+            unavailable: isUnavailable
         });
 
         const alertBanner = document.getElementById('alertBanner');
@@ -286,39 +293,38 @@ function appendMessage(sender, msg) {
     row.style.justifyContent = (sender === 'staff') ? 'flex-end' : 'flex-start';
 
     if (sender === 'staff') {
+        const bubbleStyle = msg.unavailable 
+            ? 'background:#fef2f2;border:1px solid #fecdd3;border-right:4px solid #ef4444;' 
+            : 'background:#f0fdf4;border:1px solid #bbf7d0;border-right:4px solid #0F6E56;';
+
         row.innerHTML = `
-            <div class="msg-bubble staff" style="max-width:72%;background:#f0fdf4;border:1px solid #bbf7d0;border-right:4px solid #0F6E56;border-radius:12px 12px 2px 12px;padding:14px 18px;text-align:left;box-shadow:0 2px 6px rgba(15,110,86,0.06);">
-                <div style="font-size:11px;font-weight:800;color:#0F6E56;text-transform:uppercase;margin-bottom:4px;letter-spacing:0.5px;" dir="ltr">
+            <div class="msg-bubble staff" style="max-width:72%;${bubbleStyle}border-radius:12px 12px 2px 12px;padding:14px 18px;text-align:left;box-shadow:0 2px 6px rgba(0,0,0,0.04);">
+                <div style="font-size:11px;font-weight:800;color:${msg.unavailable ? '#b91c1c' : '#0F6E56'};text-transform:uppercase;margin-bottom:4px;letter-spacing:0.5px;" dir="ltr">
                     Staff Question (English)
                 </div>
                 <div style="font-size:15px;font-weight:700;color:#0f172a;margin-bottom:8px;" dir="ltr">
                     ${escapeHtml(msg.original)}
                 </div>
-                <div style="font-size:13px;color:#1e293b;background:#ffffff;border:1px solid #dcfce7;border-radius:6px;padding:8px 12px;" ${dirAttr}>
-                    <span style="color:#0F6E56;font-weight:700;">${escapeHtml(msg.lang)}:</span> ${escapeHtml(msg.translated)}
+                <div style="font-size:13px;color:#1e293b;background:#ffffff;border:1px solid ${msg.unavailable ? '#fecdd3' : '#dcfce7'};border-radius:6px;padding:8px 12px;" ${dirAttr}>
+                    <span style="color:${msg.unavailable ? '#b91c1c' : '#0F6E56'};font-weight:700;">${escapeHtml(msg.lang)}:</span> ${escapeHtml(msg.translated)}
                 </div>
             </div>
         `;
     } else {
-        const badge = msg.alert 
-            ? `<div style="margin-top:8px;padding:6px 10px;background:#fef3c7;border:1px solid #fde68a;border-radius:6px;color:#92400e;font-weight:700;font-size:12px;" dir="ltr">
-                 ℹ️ Recognised Symptom Phrase: ${escapeHtml(msg.symptom)}
-               </div>`
-            : '';
+        const borderStyle = msg.unavailable ? 'border-left:4px solid #ef4444;' : 'border-left:4px solid #0284c7;';
 
         row.innerHTML = `
-            <div class="msg-bubble patient" style="max-width:72%;background:#ffffff;border:1px solid #cbd5e1;border-left:4px solid #0284c7;border-radius:12px 12px 12px 2px;padding:14px 18px;text-align:left;box-shadow:0 2px 6px rgba(0,0,0,0.04);">
-                <div style="font-size:11px;font-weight:800;color:#0284c7;text-transform:uppercase;margin-bottom:4px;letter-spacing:0.5px;" dir="ltr">
+            <div class="msg-bubble patient" style="max-width:72%;background:#ffffff;border:1px solid #cbd5e1;${borderStyle}border-radius:12px 12px 12px 2px;padding:14px 18px;text-align:left;box-shadow:0 2px 6px rgba(0,0,0,0.04);">
+                <div style="font-size:11px;font-weight:800;color:${msg.unavailable ? '#b91c1c' : '#0284c7'};text-transform:uppercase;margin-bottom:4px;letter-spacing:0.5px;" dir="ltr">
                     Patient Message (English for Staff Review)
                 </div>
-                <div style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:8px;" dir="ltr">
-                    ${escapeHtml(msg.englishMeaning || 'Translation unavailable')}
+                <div style="font-size:16px;font-weight:700;color:${msg.unavailable ? '#991b1b' : '#0f172a'};margin-bottom:8px;" dir="ltr">
+                    ${escapeHtml(msg.englishMeaning)}
                 </div>
                 <div style="font-size:12px;color:#475569;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:6px;padding:8px 12px;display:flex;flex-direction:column;gap:3px;" dir="ltr">
                     <div><strong style="color:#334155;">Patient Typed:</strong> <em>${escapeHtml(msg.typedInput || '')}</em></div>
                     <div ${dirAttr}><strong style="color:#334155;">Native-Script Mapping:</strong> ${escapeHtml(msg.nativeScript || '')}</div>
                 </div>
-                ${badge}
             </div>
         `;
     }
