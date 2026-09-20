@@ -276,7 +276,7 @@ def online(text, source, target):
             native=translated,
             status='needs_review',
             source='google_cloud',
-            warning=REVIEW
+            warning=REVIEW  # <-- REVIEW is defined at the top as 'Machine translation · Confirm meaning with speaker.'
         )
 
     except requests.Timeout:
