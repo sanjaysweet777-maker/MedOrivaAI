@@ -235,7 +235,7 @@ RAW_EXTENDED_STAFF = {
         "pl": "Kiedy zaczęły się te objawy?",
         "ar": "متى بدأت هذه الأعراض؟",
         "ur": "یہ علامات کب شروع ہوئی تھیں؟",
-        "bn": "উপসর্গগুলো কখন শুরু হয়েছিল?",
+        "bn": "উপসর্গগুলো কখন शुरू হয়েছিল?",
         "so": "Goormay astaamuhu bilaabmeen?",
         "ro": "Când au început simptomele?"
     }
@@ -249,7 +249,7 @@ EXTENDED_STAFF_LOOKUP = {
 # MULTILINGUAL NEGATION TOKENS (All 9 Languages)
 # ============================================================
 NEGATION_TOKENS_BY_LANG = {
-    "ta": {"illai", "illa", "kidayathu", "illamal", "vendam", "thevai illai", "இல்லை", "கிடையாது", "வேண்டாம்", "தெரியாது", "theriyathu", "therila"},
+    "ta": {"illai", "illa", "valikkala", "kidayathu", "illamal", "vendam", "thevai illai", "இல்லை", "கிடையாது", "வேண்டாம்", "தெரியாது", "theriyathu", "therila"},
     "hi": {"nahi", "nahin", "na", "mat", "नहीं", "ना", "मत", "pata nahi", "पता नहीं"},
     "ml": {"illa", "alla", "illaathe", "venda", "aavashyamilla", "ഇല്ല", "അല്ല", "വേണ്ട", "അറിയില്ല", "ariyilla"},
     "pl": {"nie", "brak", "bez", "ani", "nie znam", "nie pamietam"},
@@ -290,221 +290,384 @@ POLARITY_MAP = {
     "GENERAL_ACKNOWLEDGE": "neutral"
 }
 
-SYMPTOM_KEYWORDS_EN = {
-    "pain", "ache", "chest", "fever", "temperature", "breath", "breathing",
-    "cough", "headache", "vomit", "vomiting", "nausea", "dizzy", "dizziness",
-    "bleed", "bleeding", "swelling", "hurt", "pressure", "heart", "stomach",
-    "rash", "throat", "back", "unwell", "sick", "tired", "weak", "exhausted",
-    "fatigue", "diarrhea"
+# ============================================================
+# STRICT HIGH-RISK CLINICAL KEYWORDS
+# ONLY these critical terms trigger Communication Cue / Meaning Check
+# Routine terms (headache, leg pain, fever, cough, etc.) do NOT trigger cues
+# ============================================================
+HIGH_RISK_KEYWORDS = {
+    "chest pain", "chest", "heart", "heart attack",
+    "difficulty breathing", "shortness of breath", "struggling to breathe", "breath", "breathing",
+    "bleeding", "severe bleeding", "blood", "coughing blood", "vomiting blood",
+    "unconscious", "passed out", "collapsed", "fainted", "choking"
 }
 
 # ============================================================
-# 3. OPPOSITE WORDS & SYMPTOMS LOOKUP (All 9 Languages)
-# Complete pairs of Affirmative vs Negative patient expressions
+# 3. EXPANDED PATIENT LOOKUP: CLINICAL & ROUTINE PHRASES
+# Format: (English Review, Native Script, Polarity, is_high_risk)
+# is_high_risk = True  -> Receives Communication Cue / Meaning Check
+# is_high_risk = False -> Clean response (no cues displayed)
 # ============================================================
 RAW_SYMPTOMS_LOOKUP = {
     # ── TAMIL (ta) ───────────────────────────────────────────
     "ta": {
-        "enaku udambu mudiyala": ("I am not feeling well.", "எனக்கு உடம்பு முடியவில்லை.", "negative"),
-        "enakku udambu mudiyala": ("I am not feeling well.", "எனக்கு உடம்பு முடியவில்லை.", "negative"),
-        "udambu mudiyala": ("I am not feeling well.", "உடம்பு முடியவில்லை.", "negative"),
-        "enaku udambu seri illa": ("I am not feeling well.", "எனக்கு உடம்பு சரியில்லை.", "negative"),
-        "enaku udambu seri illai": ("I am not feeling well.", "எனக்கு உடம்பு சரியில்லை.", "negative"),
-        "எனக்கு உடம்பு சரியில்லை": ("I am not feeling well.", "எனக்கு உடம்பு சரியில்லை.", "negative"),
+        # Routine Admin (is_high_risk = False)
+        "aam": ("Yes.", "ஆம்.", "affirmative", False),
+        "aama": ("Yes.", "ஆமாம்.", "affirmative", False),
+        "aamam": ("Yes.", "ஆமாம்.", "affirmative", False),
+        "seri": ("Okay.", "சரி.", "affirmative", False),
+        "illa": ("No.", "இல்லை.", "negative", False),
+        "illai": ("No.", "இல்லை.", "negative", False),
+        "appointment irukku": ("I have an appointment.", "எனக்கு அப்பாயிண்ட்மென்ட் உள்ளது.", "affirmative", False),
+        "enaku appointment irukku": ("I have an appointment.", "எனக்கு அப்பாயிண்ட்மென்ட் உள்ளது.", "affirmative", False),
+        "appointment illa": ("I do not have an appointment.", "எனக்கு அப்பாயிண்ட்மென்ட் இல்லை.", "negative", False),
+        "appointment illai": ("I do not have an appointment.", "எனக்கு அப்பாயிண்ட்மென்ட் இல்லை.", "negative", False),
+        "enaku appointment illa": ("I do not have an appointment.", "எனக்கு அப்பாயிண்ட்மென்ட் இல்லை.", "negative", False),
+        "enaku appointment illai": ("I do not have an appointment.", "எனக்கு அப்பாயிண்ட்மென்ட் இல்லை.", "negative", False),
+        "letter irukku": ("I have my appointment letter.", "என்னிடம் கடிதம் உள்ளது.", "affirmative", False),
+        "letter illa": ("I do not have my appointment letter.", "என்னிடம் கடிதம் இல்லை.", "negative", False),
+        "letter illai": ("I do not have my appointment letter.", "என்னிடம் கடிதம் இல்லை.", "negative", False),
+        "nhs number irukku": ("I have my NHS number.", "என்னிடம் NHS எண் உள்ளது.", "affirmative", False),
+        "nhs number illa": ("I do not have my NHS number.", "என்னிடம் NHS எண் இல்லை.", "negative", False),
+        "nhs number illai": ("I do not have my NHS number.", "என்னிடம் NHS எண் இல்லை.", "negative", False),
 
-        "appointment irukku": ("I have an appointment.", "எனக்கு அப்பாயிண்ட்மென்ட் உள்ளது.", "affirmative"),
-        "enaku appointment irukku": ("I have an appointment.", "எனக்கு அப்பாயிண்ட்மென்ட் உள்ளது.", "affirmative"),
-        "appointment illa": ("I do not have an appointment.", "எனக்கு அப்பாயிண்ட்மென்ட் இல்லை.", "negative"),
-        "appointment illai": ("I do not have an appointment.", "எனக்கு அப்பாயிண்ட்மென்ட் இல்லை.", "negative"),
-        "enaku appointment illa": ("I do not have an appointment.", "எனக்கு அப்பாயிண்ட்மென்ட் இல்லை.", "negative"),
-        "enaku appointment illai": ("I do not have an appointment.", "எனக்கு அப்பாயிண்ட்மென்ட் இல்லை.", "negative"),
+        # Routine Non-Critical Symptoms (is_high_risk = False -> Clean, NO cues)
+        "enaku thalai vali irukku": ("I have a headache.", "எனக்கு தலைவலி இருக்கிறது.", "affirmative", False),
+        "enaku thalai vali": ("I have a headache.", "எனக்கு தலைவலி இருக்கிறது.", "affirmative", False),
+        "thalai vali": ("I have a headache.", "தலைவலி இருக்கிறது.", "affirmative", False),
+        "enaku thala vali irukku": ("I have a headache.", "எனக்கு தலைவலி இருக்கிறது.", "affirmative", False),
+        "enaku thala vali": ("I have a headache.", "எனக்கு தலைவலி இருக்கிறது.", "affirmative", False),
+        "thala vali": ("I have a headache.", "தலைவலி இருக்கிறது.", "affirmative", False),
+        "enaku thalai valikirathu": ("I have a headache.", "எனக்கு தலை வலிக்கிறது.", "affirmative", False),
+        "thalai valikirathu": ("I have a headache.", "தலை வலிக்கிறது.", "affirmative", False),
+        "enaku thala valikuthu": ("I have a headache.", "எனக்கு தலை வலிக்கிறது.", "affirmative", False),
+        "thala valikuthu": ("I have a headache.", "தலை வலிக்கிறது.", "affirmative", False),
+        "enaku thalai valikuthu": ("I have a headache.", "எனக்கு தலை வலிக்கிறது.", "affirmative", False),
+        "enaku thalai vali illa": ("I do not have a headache.", "எனக்கு தலைவலி இல்லை.", "negative", False),
+        "enaku thalai vali illai": ("I do not have a headache.", "எனக்கு தலைவலி இல்லை.", "negative", False),
+        "enaku thala vali illa": ("I do not have a headache.", "எனக்கு தலைவலி இல்லை.", "negative", False),
+        "enaku thala vali illai": ("I do not have a headache.", "எனக்கு தலைவலி இல்லை.", "negative", False),
+        "thalai vali illa": ("I do not have a headache.", "தலைவலி இல்லை.", "negative", False),
+        "thalai vali illai": ("I do not have a headache.", "தலைவலி இல்லை.", "negative", False),
+        "enaku thalai valikkala": ("I do not have a headache.", "எனக்கு தலை வலிக்கவில்லை.", "negative", False),
 
-        "letter irukku": ("I have my appointment letter.", "என்னிடம் கடிதம் உள்ளது.", "affirmative"),
-        "letter illa": ("I do not have my appointment letter.", "என்னிடம் கடிதம் இல்லை.", "negative"),
-        "letter illai": ("I do not have my appointment letter.", "என்னிடம் கடிதம் இல்லை.", "negative"),
-        "nhs number irukku": ("I have my NHS number.", "என்னிடம் NHS எண் உள்ளது.", "affirmative"),
-        "nhs number illa": ("I do not have my NHS number.", "என்னிடம் NHS எண் இல்லை.", "negative"),
-        "nhs number illai": ("I do not have my NHS number.", "என்னிடம் NHS எண் இல்லை.", "negative"),
+        "enaku kaaichal": ("I have a fever.", "எனக்கு காய்ச்சல் இருக்கிறது.", "affirmative", False),
+        "kaaichal": ("I have a fever.", "காய்ச்சல் இருக்கிறது.", "affirmative", False),
+        "enaku kaaichal irukku": ("I have a fever.", "எனக்கு காய்ச்சல் இருக்கிறது.", "affirmative", False),
+        "enaku kaichal": ("I have a fever.", "எனக்கு காய்ச்சல் இருக்கிறது.", "affirmative", False),
+        "kaichal": ("I have a fever.", "காய்ச்சல் இருக்கிறது.", "affirmative", False),
+        "enaku kaichal irukku": ("I have a fever.", "எனக்கு காய்ச்சல் இருக்கிறது.", "affirmative", False),
+        "enaku kaachal": ("I have a fever.", "எனக்கு காய்ச்சல் இருக்கிறது.", "affirmative", False),
+        "enaku kaaichal illa": ("I do not have a fever.", "எனக்கு காய்ச்சல் இல்லை.", "negative", False),
+        "enaku kaaichal illai": ("I do not have a fever.", "எனக்கு காய்ச்சல் இல்லை.", "negative", False),
+        "enaku kaichal illa": ("I do not have a fever.", "எனக்கு காய்ச்சல் இல்லை.", "negative", False),
+        "enaku kaichal illai": ("I do not have a fever.", "எனக்கு காய்ச்சல் இல்லை.", "negative", False),
 
-        "enaku nenji vali irukku": ("I have chest pain.", "எனக்கு நெஞ்சு வலி இருக்கிறது.", "affirmative"),
-        "enaku nenju vali irukku": ("I have chest pain.", "எனக்கு நெஞ்சு வலி இருக்கிறது.", "affirmative"),
-        "enaku nenji vali illa": ("I do not have chest pain.", "எனக்கு நெஞ்சு வலி இல்லை.", "negative"),
-        "enaku nenji vali illai": ("I do not have chest pain.", "எனக்கு நெஞ்சு வலி இல்லை.", "negative"),
-        "எனக்கு நெஞ்சு வலி இருக்கிறது": ("I have chest pain.", "எனக்கு நெஞ்சு வலி இருக்கிறது.", "affirmative"),
-        "எனக்கு நெஞ்சு வலி இல்லை": ("I do not have chest pain.", "எனக்கு நெஞ்சு வலி இல்லை.", "negative"),
+        "enaku kaal vali": ("I have leg pain.", "எனக்கு கால் வலி இருக்கிறது.", "affirmative", False),
+        "kaal vali": ("I have leg pain.", "கால் வலி இருக்கிறது.", "affirmative", False),
+        "enaku kaal vali irukku": ("I have leg pain.", "எனக்கு கால் வலி இருக்கிறது.", "affirmative", False),
+        "enaku kaal valikirathu": ("I have leg pain.", "எனக்கு கால் வலிக்கிறது.", "affirmative", False),
+        "kaal valikirathu": ("I have leg pain.", "கால் வலிக்கிறது.", "affirmative", False),
+        "enaku kaal valikuthu": ("I have leg pain.", "எனக்கு கால் வலிக்கிறது.", "affirmative", False),
+        "enaku kaal vali illa": ("I do not have leg pain.", "எனக்கு கால் வலி இல்லை.", "negative", False),
+        "enaku kaal vali illai": ("I do not have leg pain.", "எனக்கு கால் வலி இல்லை.", "negative", False),
 
-        "enaku thalai vali irukku": ("I have a headache.", "எனக்கு தலைவலி இருக்கிறது.", "affirmative"),
-        "enaku thala vali irukku": ("I have a headache.", "எனக்கு தலைவலி இருக்கிறது.", "affirmative"),
-        "enaku thalai vali illa": ("I do not have a headache.", "எனக்கு தலைவலி இல்லை.", "negative"),
-        "enaku thalai vali illai": ("I do not have a headache.", "எனக்கு தலைவலி இல்லை.", "negative"),
-        "எனக்கு தலைவலி இருக்கிறது": ("I have a headache.", "எனக்கு தலைவலி இருக்கிறது.", "affirmative"),
-        "எனக்கு தலைவலி இல்லை": ("I do not have a headache.", "எனக்கு தலைவலி இல்லை.", "negative"),
+        "enaku kai vali": ("I have arm pain.", "எனக்கு கை வலி இருக்கிறது.", "affirmative", False),
+        "kai vali": ("I have arm pain.", "கை வலி இருக்கிறது.", "affirmative", False),
+        "enaku kai vali illa": ("I do not have arm pain.", "எனக்கு கை வலி இல்லை.", "negative", False),
 
-        "enaku kaichal irukku": ("I have a fever.", "எனக்கு காய்ச்சல் இருக்கிறது.", "affirmative"),
-        "enaku kaichal illa": ("I do not have a fever.", "எனக்கு காய்ச்சல் இல்லை.", "negative"),
-        "enaku kaichal illai": ("I do not have a fever.", "எனக்கு காய்ச்சல் இல்லை.", "negative"),
-        "எனக்கு காய்ச்சல் இருக்கிறது": ("I have a fever.", "எனக்கு காய்ச்சல் இருக்கிறது.", "affirmative"),
-        "எனக்கு காய்ச்சல் இல்லை": ("I do not have a fever.", "எனக்கு காய்ச்சல் இல்லை.", "negative"),
+        "enaku vayiru vali": ("I have stomach pain.", "எனக்கு வயிற்று வலி இருக்கிறது.", "affirmative", False),
+        "vayiru vali": ("I have stomach pain.", "வயிற்று வலி இருக்கிறது.", "affirmative", False),
+        "enaku vayiru vali irukku": ("I have stomach pain.", "எனக்கு வயிற்று வலி இருக்கிறது.", "affirmative", False),
+        "enaku vayiru vali illa": ("I do not have stomach pain.", "எனக்கு வயிற்று வலி இல்லை.", "negative", False),
+        "enaku vayiru vali illai": ("I do not have stomach pain.", "எனக்கு வயிற்று வலி இல்லை.", "negative", False),
 
-        "enaku irumal irukku": ("I have a cough.", "எனக்கு இருமல் இருக்கிறது.", "affirmative"),
-        "enaku irumal illa": ("I do not have a cough.", "எனக்கு இருமல் இல்லை.", "negative"),
-        "enaku thondai vali irukku": ("I have a sore throat.", "எனக்கு தொண்டை வலி இருக்கிறது.", "affirmative"),
-        "enaku thondai vali illa": ("I do not have a sore throat.", "எனக்கு தொண்டை வலி இல்லை.", "negative"),
-        "enaku vaandhi varudhu": ("I have vomiting.", "எனக்கு வாந்தி வருகிறது.", "affirmative"),
-        "enaku vaandhi illa": ("I do not have vomiting.", "எனக்கு வாந்தி இல்லை.", "negative"),
-        "enaku thala suthudhu": ("I feel dizzy.", "எனக்கு தலை சுற்றுகிறது.", "affirmative"),
-        "enaku mayakkam irukku": ("I feel faint and dizzy.", "எனக்கு மயக்கம் இருக்கிறது.", "affirmative"),
-        "enaku mayakkam illa": ("I do not feel dizzy.", "எனக்கு மயக்கம் இல்லை.", "negative"),
-        "enaku vayiru vali irukku": ("I have stomach pain.", "எனக்கு வயிற்று வலி இருக்கிறது.", "affirmative"),
-        "enaku vayiru vali illa": ("I do not have stomach pain.", "எனக்கு வயிற்று வலி இல்லை.", "negative"),
-        "enaku muthuku vali irukku": ("I have back pain.", "எனக்கு முதுகு வலி இருக்கிறது.", "affirmative"),
-        "enaku moochu thinaral irukku": ("I have difficulty breathing.", "எனக்கு மூச்சுத்திணறல் இருக்கிறது.", "affirmative"),
-        "enaku moochu thinaral illa": ("I do not have difficulty breathing.", "எனக்கு மூச்சுத்திணறல் இல்லை.", "negative"),
-        "enaku romba asadhiya irukku": ("I feel very weak and tired.", "எனக்கு மிகவும் அசதியாக இருக்கிறது.", "affirmative"),
+        "enaku muthuku vali": ("I have back pain.", "எனக்கு முதுகு வலி இருக்கிறது.", "affirmative", False),
+        "muthuku vali": ("I have back pain.", "முதுகு வலி இருக்கிறது.", "affirmative", False),
+        "enaku idupu vali": ("I have back pain.", "எனக்கு இடுப்பு வலி இருக்கிறது.", "affirmative", False),
+        "enaku muthuku vali illa": ("I do not have back pain.", "எனக்கு முதுகு வலி இல்லை.", "negative", False),
+
+        "enaku irumal": ("I have a cough.", "எனக்கு இருமல் இருக்கிறது.", "affirmative", False),
+        "irumal": ("I have a cough.", "இருமல் இருக்கிறது.", "affirmative", False),
+        "enaku irumal irukku": ("I have a cough.", "எனக்கு இருமல் இருக்கிறது.", "affirmative", False),
+        "enaku irumal illa": ("I do not have a cough.", "எனக்கு இருமல் இல்லை.", "negative", False),
+        "enaku thondai vali": ("I have a sore throat.", "எனக்கு தொண்டை வலி இருக்கிறது.", "affirmative", False),
+        "thondai vali": ("I have a sore throat.", "தொண்டை வலி இருக்கிறது.", "affirmative", False),
+        "enaku thondai vali illa": ("I do not have a sore throat.", "எனக்கு தொண்டை வலி இல்லை.", "negative", False),
+        "enaku vaandhi": ("I have vomiting.", "எனக்கு வாந்தி வருகிறது.", "affirmative", False),
+        "enaku vaandhi varudhu": ("I have vomiting.", "எனக்கு வாந்தி வருகிறது.", "affirmative", False),
+        "enaku vaandhi illa": ("I do not have vomiting.", "எனக்கு வாந்தி இல்லை.", "negative", False),
+        "enaku thala suthudhu": ("I feel dizzy.", "எனக்கு தலை சுற்றுகிறது.", "affirmative", False),
+        "thala suthudhu": ("I feel dizzy.", "தலை சுற்றுகிறது.", "affirmative", False),
+        "enaku mayakkam illa": ("I do not feel dizzy.", "எனக்கு மயக்கம் இல்லை.", "negative", False),
+
+        "enaku udambu mudiyala": ("I am not feeling well.", "எனக்கு உடம்பு முடியவில்லை.", "negative", False),
+        "enakku udambu mudiyala": ("I am not feeling well.", "எனக்கு உடம்பு முடியவில்லை.", "negative", False),
+        "udambu mudiyala": ("I am not feeling well.", "உடம்பு முடியவில்லை.", "negative", False),
+        "enaku udambu seri illa": ("I am not feeling well.", "எனக்கு உடம்பு சரியில்லை.", "negative", False),
+        "enaku udambu seri illai": ("I am not feeling well.", "எனக்கு உடம்பு சரியில்லை.", "negative", False),
+        "enaku udambu vali": ("I have body pain.", "எனக்கு உடம்பு வலி இருக்கிறது.", "affirmative", False),
+
+        # ── HIGH-RISK CLINICAL SYMPTOMS (is_high_risk = True -> Triggers Cues) ──
+        # 1. Chest Pain
+        "enaku nenji vali irukku": ("I have chest pain.", "எனக்கு நெஞ்சு வலி இருக்கிறது.", "affirmative", True),
+        "enaku nenji vali": ("I have chest pain.", "எனக்கு நெஞ்சு வலி இருக்கிறது.", "affirmative", True),
+        "nenji vali": ("I have chest pain.", "நெஞ்சு வலி இருக்கிறது.", "affirmative", True),
+        "enaku nenju vali irukku": ("I have chest pain.", "எனக்கு நெஞ்சு வலி இருக்கிறது.", "affirmative", True),
+        "enaku nenju vali": ("I have chest pain.", "எனக்கு நெஞ்சு வலி இருக்கிறது.", "affirmative", True),
+        "nenju vali": ("I have chest pain.", "நெஞ்சு வலி இருக்கிறது.", "affirmative", True),
+        "enaku nenji valikirathu": ("I have chest pain.", "எனக்கு நெஞ்சு வலிக்கிறது.", "affirmative", True),
+        "enaku nenji vali illa": ("I do not have chest pain.", "எனக்கு நெஞ்சு வலி இல்லை.", "negative", True),
+        "enaku nenji vali illai": ("I do not have chest pain.", "எனக்கு நெஞ்சு வலி இல்லை.", "negative", True),
+        "enaku nenju vali illa": ("I do not have chest pain.", "எனக்கு நெஞ்சு வலி இல்லை.", "negative", True),
+        "enaku nenju vali illai": ("I do not have chest pain.", "எனக்கு நெஞ்சு வலி இல்லை.", "negative", True),
+        "nenji vali illa": ("I do not have chest pain.", "நெஞ்சு வலி இல்லை.", "negative", True),
+        "nenji vali illai": ("I do not have chest pain.", "நெஞ்சு வலி இல்லை.", "negative", True),
+
+        # 2. Breathing Difficulties
+        "enaku moochu thinaral": ("I have difficulty breathing.", "எனக்கு மூச்சுத்திணறல் இருக்கிறது.", "affirmative", True),
+        "enaku moochu thinaral irukku": ("I have difficulty breathing.", "எனக்கு மூச்சுத்திணறல் இருக்கிறது.", "affirmative", True),
+        "moochu thinaral": ("I have difficulty breathing.", "மூச்சுத்திணறல் இருக்கிறது.", "affirmative", True),
+        "moochu vida mudiyala": ("I cannot breathe properly.", "மூச்சு விட முடியவில்லை.", "affirmative", True),
+        "enaku moochu thinaral illa": ("I do not have difficulty breathing.", "எனக்கு மூச்சுத்திணறல் இல்லை.", "negative", True),
+        "enaku moochu thinaral illai": ("I do not have difficulty breathing.", "எனக்கு மூச்சுத்திணறல் இல்லை.", "negative", True),
+
+        # 3. Severe Bleeding
+        "enaku ratham varudhu": ("I have severe bleeding.", "எனக்கு அதிக ரத்தம் வருகிறது.", "affirmative", True),
+        "ratham varudhu": ("I have bleeding.", "ரத்தம் வருகிறது.", "affirmative", True),
+        "ratham varala": ("I do not have bleeding.", "ரத்தம் வரவில்லை.", "negative", True),
+
+        # 4. Collapse / Loss of consciousness
+        "enaku mayakkam irukku": ("I feel like collapsing and fainting.", "எனக்கு மயக்கம் இருக்கிறது.", "affirmative", True),
+        "mayakkam potuten": ("I fainted and collapsed.", "மயங்கி விழுந்துவிட்டேன்.", "affirmative", True),
     },
 
     # ── HINDI (hi) ───────────────────────────────────────────
     "hi": {
-        "meri tabiyat kharab hai": ("I am not feeling well.", "मेरी तबीयत खराब है।", "negative"),
-        "tabiyat theek nahi hai": ("I am not feeling well.", "तबीयत ठीक नहीं है।", "negative"),
-        "appointment hai": ("I have an appointment.", "मेरा अपॉइंटमेंट है।", "affirmative"),
-        "appointment nahi hai": ("I do not have an appointment.", "मेरा अपॉइंटमेंट नहीं है।", "negative"),
-        "letter hai": ("I have the appointment letter.", "मेरे पास पत्र है।", "affirmative"),
-        "letter nahi hai": ("I do not have the appointment letter.", "मेरे पास पत्र नहीं है।", "negative"),
-        "nhs number hai": ("I have my NHS number.", "मेरे पास NHS नंबर है।", "affirmative"),
-        "nhs number nahi hai": ("I do not have my NHS number.", "मेरे पास NHS नंबर नहीं है।", "negative"),
-        "mujhe seene me dard hai": ("I have chest pain.", "मुझे सीने में दर्द है।", "affirmative"),
-        "mujhe seene me dard nahi hai": ("I do not have chest pain.", "मुझे सीने में दर्द नहीं है।", "negative"),
-        "mujhe sar dard hai": ("I have a headache.", "मुझे सिरदर्द है।", "affirmative"),
-        "mujhe sar dard nahi hai": ("I do not have a headache.", "मुझे सिरदर्द नहीं है।", "negative"),
-        "mujhe bukhar hai": ("I have a fever.", "मुझे बुखार है।", "affirmative"),
-        "mujhe bukhar nahi hai": ("I do not have a fever.", "मुझे बुखार नहीं है।", "negative"),
-        "mujhe khansi hai": ("I have a cough.", "मुझे खांसी है।", "affirmative"),
-        "mujhe khansi nahi hai": ("I do not have a cough.", "मुझे खांसी नहीं है।", "negative"),
-        "mujhe chakkar aa rahe hai": ("I feel dizzy.", "मुझे चक्कर आ रहे हैं।", "affirmative"),
-        "chakkar nahi aa rahe": ("I do not feel dizzy.", "चक्कर नहीं आ रहे हैं।", "negative"),
-        "saans lene me takleef hai": ("I have difficulty breathing.", "मुझे सांस लेने में तकलीफ है।", "affirmative"),
-        "saans lene me takleef nahi hai": ("I do not have difficulty breathing.", "सांस लेने में तकलीफ नहीं है।", "negative"),
-        "mujhe ulti ho rahi hai": ("I have vomiting.", "मुझे उल्टी हो रही है।", "affirmative"),
-        "ulti nahi hai": ("I do not have vomiting.", "उल्टी नहीं है।", "negative"),
-        "pet me dard hai": ("I have stomach pain.", "पेट में दर्द है।", "affirmative"),
-        "pet me dard nahi hai": ("I do not have stomach pain.", "पेट में दर्द नहीं है।", "negative"),
+        "haan": ("Yes.", "हाँ।", "affirmative", False),
+        "nahi": ("No.", "नहीं।", "negative", False),
+        "appointment hai": ("I have an appointment.", "मेरा अपॉइंटमेंट है।", "affirmative", False),
+        "appointment nahi hai": ("I do not have an appointment.", "मेरा अपॉइंटमेंट नहीं है।", "negative", False),
+        "letter hai": ("I have the appointment letter.", "मेरे पास पत्र है।", "affirmative", False),
+        "letter nahi hai": ("I do not have the appointment letter.", "मेरे पास पत्र नहीं है।", "negative", False),
+        "nhs number hai": ("I have my NHS number.", "मेरे पास NHS नंबर है।", "affirmative", False),
+        "nhs number nahi hai": ("I do not have my NHS number.", "मेरे पास NHS नंबर नहीं है।", "negative", False),
+
+        # Routine Non-Critical (No Cues)
+        "meri tabiyat kharab hai": ("I am not feeling well.", "मेरी तबीयत खराब है।", "negative", False),
+        "tabiyat theek nahi hai": ("I am not feeling well.", "तबीयत ठीक नहीं है।", "negative", False),
+        "mujhe sar dard hai": ("I have a headache.", "मुझे सिरदर्द है।", "affirmative", False),
+        "sar dard": ("I have a headache.", "सिरदर्द है।", "affirmative", False),
+        "mujhe sar dard nahi hai": ("I do not have a headache.", "मुझे सिरदर्द नहीं है।", "negative", False),
+        "mujhe bukhar hai": ("I have a fever.", "मुझे बुखार है।", "affirmative", False),
+        "bukhar": ("I have a fever.", "बुखार है।", "affirmative", False),
+        "mujhe bukhar nahi hai": ("I do not have a fever.", "मुझे बुखार नहीं है।", "negative", False),
+        "pairo me dard": ("I have leg pain.", "पैरों में दर्द है।", "affirmative", False),
+        "mujhe pairo me dard hai": ("I have leg pain.", "मुझे पैरों में दर्द है।", "affirmative", False),
+        "pairo me dard nahi hai": ("I do not have leg pain.", "पैरों में दर्द नहीं है।", "negative", False),
+        "haath me dard": ("I have arm pain.", "हाथ में दर्द है।", "affirmative", False),
+        "mujhe khansi hai": ("I have a cough.", "मुझे खांसी है।", "affirmative", False),
+        "mujhe khansi nahi hai": ("I do not have a cough.", "मुझे खांसी नहीं है।", "negative", False),
+        "mujhe chakkar aa rahe hai": ("I feel dizzy.", "मुझे चक्कर आ रहे हैं।", "affirmative", False),
+        "chakkar nahi aa rahe": ("I do not feel dizzy.", "चक्कर नहीं आ रहे हैं।", "negative", False),
+        "mujhe ulti ho rahi hai": ("I have vomiting.", "मुझे उल्टी हो रही है।", "affirmative", False),
+        "pet me dard": ("I have stomach pain.", "पेट में दर्द है।", "affirmative", False),
+        "pet me dard nahi hai": ("I do not have stomach pain.", "पेट में दर्द नहीं है।", "negative", False),
+        "kamar dard": ("I have back pain.", "कमर दर्द है।", "affirmative", False),
+
+        # High-Risk (Triggers Cues)
+        "mujhe seene me dard hai": ("I have chest pain.", "मुझे सीने में दर्द है।", "affirmative", True),
+        "seene me dard": ("I have chest pain.", "सीने में दर्द है।", "affirmative", True),
+        "mujhe seene me dard nahi hai": ("I do not have chest pain.", "मुझे सीने में दर्द नहीं है।", "negative", True),
+        "seene me dard nahi hai": ("I do not have chest pain.", "सीने में दर्द नहीं है।", "negative", True),
+        "saans lene me takleef hai": ("I have difficulty breathing.", "मुझे सांस लेने में तकलीफ है।", "affirmative", True),
+        "saans lene me takleef nahi hai": ("I do not have difficulty breathing.", "सांस लेने में कोई तकलीफ नहीं है।", "negative", True),
+        "khoon nikal raha hai": ("I have bleeding.", "खून निकल रहा है।", "affirmative", True),
+        "khoon nahi nikal raha": ("I do not have bleeding.", "खून नहीं निकल रहा है।", "negative", True),
     },
 
     # ── MALAYALAM (ml) ───────────────────────────────────────
     "ml": {
-        "enikku sugamilla": ("I am not feeling well.", "എനിക്ക് സുഖമില്ല.", "negative"),
-        "appointment undu": ("I have an appointment.", "എനിക്ക് അപ്പോയിന്റ്മെന്റ് ഉണ്ട്.", "affirmative"),
-        "appointment illa": ("I do not have an appointment.", "എനിക്ക് അപ്പോയിന്റ്മെന്റ് ഇല്ല.", "negative"),
-        "letter undu": ("I have my letter.", "എന്റെ കൈവശം കത്തുണ്ട്.", "affirmative"),
-        "letter illa": ("I do not have my letter.", "കൈവശം കട്ടില്ല.", "negative"),
-        "enikku nenjuvedhana undu": ("I have chest pain.", "എനിക്ക് നെഞ്ചുവേദനയുണ്ട്.", "affirmative"),
-        "enikku nenjuvedhana illa": ("I do not have chest pain.", "എനിക്ക് നെഞ്ചുവേദനയില്ല.", "negative"),
-        "enikku thalavedhana undu": ("I have a headache.", "എനിക്ക് തലവേദനയുണ്ട്.", "affirmative"),
-        "enikku thalavedhana illa": ("I do not have a headache.", "എനിക്ക് തലവേദനയില്ല.", "negative"),
-        "enikku pani undu": ("I have a fever.", "എനിക്ക് പനിയുണ്ട്.", "affirmative"),
-        "enikku pani illa": ("I do not have a fever.", "എനിക്ക് പനിയില്ല.", "negative"),
-        "enikku thalakarakkam undu": ("I feel dizzy.", "എനിക്ക് തലകറക്കമുണ്ട്.", "affirmative"),
-        "enikku thalakarakkam illa": ("I do not feel dizzy.", "എനിക്ക് തലകറക്കമില്ല.", "negative"),
-        "shwasam muttal undu": ("I have difficulty breathing.", "എനിക്ക് ശ്വാസംമുട്ടലുണ്ട്.", "affirmative"),
-        "shwasam muttal illa": ("I do not have difficulty breathing.", "എനിക്ക് ശ്വാസംമുട്ടലില്ല.", "negative"),
+        "athe": ("Yes.", "അതെ.", "affirmative", False),
+        "alla": ("No.", "അല്ല.", "negative", False),
+        "appointment undu": ("I have an appointment.", "എനിക്ക് അപ്പോയിന്റ്മെന്റ് ഉണ്ട്.", "affirmative", False),
+        "appointment illa": ("I do not have an appointment.", "എനിക്ക് അപ്പോയിന്റ്മെന്റ് ഇല്ല.", "negative", False),
+        "letter undu": ("I have my letter.", "കൈവശം കത്തുണ്ട്.", "affirmative", False),
+        "letter illa": ("I do not have my letter.", "കൈവശം കട്ടില്ല.", "negative", False),
+
+        # Routine (No cues)
+        "enikku sugamilla": ("I am not feeling well.", "എനിക്ക് സുഖമില്ല.", "negative", False),
+        "enikku thalavedhana undu": ("I have a headache.", "എനിക്ക് തലവേദനയുണ്ട്.", "affirmative", False),
+        "thalavedhana": ("I have a headache.", "തലവേദനയുണ്ട്.", "affirmative", False),
+        "enikku thalavedhana illa": ("I do not have a headache.", "എനിക്ക് തലവേദനയില്ല.", "negative", False),
+        "enikku pani undu": ("I have a fever.", "എനിക്ക് പനിയുണ്ട്.", "affirmative", False),
+        "pani": ("I have a fever.", "പനിയുണ്ട്.", "affirmative", False),
+        "enikku pani illa": ("I do not have a fever.", "എനിക്ക് പനിയില്ല.", "negative", False),
+        "kaalvedhana": ("I have leg pain.", "കാൽവേദനയുണ്ട്.", "affirmative", False),
+        "enikku kaalvedhana undu": ("I have leg pain.", "എനിക്ക് കാൽവേദനയുണ്ട്.", "affirmative", False),
+        "enikku kaalvedhana illa": ("I do not have leg pain.", "എനിക്ക് കാൽവേദനയില്ല.", "negative", False),
+        "enikku thalakarakkam undu": ("I feel dizzy.", "എനിക്ക് തലകറക്കമുണ്ട്.", "affirmative", False),
+
+        # High-Risk (Triggers cues)
+        "enikku nenjuvedhana undu": ("I have chest pain.", "എനിക്ക് നെഞ്ചുവേദനയുണ്ട്.", "affirmative", True),
+        "nenjuvedhana": ("I have chest pain.", "നെഞ്ചുവേദനയുണ്ട്.", "affirmative", True),
+        "enikku nenjuvedhana illa": ("I do not have chest pain.", "എനിക്ക് നെഞ്ചുവേദനയില്ല.", "negative", True),
+        "shwasam muttal undu": ("I have difficulty breathing.", "എനിക്ക് ശ്വാസംമുട്ടലുണ്ട്.", "affirmative", True),
+        "shwasam muttal illa": ("I do not have difficulty breathing.", "എനിക്ക് ശ്വാസംമുട്ടലില്ല.", "negative", True),
+        "chora varunnu": ("I have bleeding.", "രക്തസ്രാവമുണ്ട്.", "affirmative", True),
     },
 
     # ── URDU (ur) ────────────────────────────────────────────
     "ur": {
-        "meri tabiyat theek nahi hai": ("I am not feeling well.", "میری طبیعت ٹھیک نہیں ہے۔", "negative"),
-        "appointment hai": ("I have an appointment.", "میرا اپائنٹمنٹ ہے۔", "affirmative"),
-        "appointment nahi hai": ("I do not have an appointment.", "میرا اپائنٹمنٹ نہیں ہے۔", "negative"),
-        "mere seene me dard hai": ("I have chest pain.", "میرے سینے میں درد ہے۔", "affirmative"),
-        "mere seene me dard nahi hai": ("I do not have chest pain.", "میرے سینے میں درد نہیں ہے۔", "negative"),
-        "mujhe sar dard hai": ("I have a headache.", "مجھے سر میں درد ہے۔", "affirmative"),
-        "mujhe sar dard nahi hai": ("I do not have a headache.", "مجھے سر میں درد نہیں ہے۔", "negative"),
-        "mujhe bukhar hai": ("I have a fever.", "مجھے بخار ہے۔", "affirmative"),
-        "mujhe bukhar nahi hai": ("I do not have a fever.", "مجھے بخار نہیں ہے۔", "negative"),
-        "chakkar aa rahe hain": ("I feel dizzy.", "چکر آ رہے ہیں۔", "affirmative"),
-        "saans lene me dushwari hai": ("I have difficulty breathing.", "سانس لینے میں دشواری ہو رہی ہے۔", "affirmative"),
-        "saans lene me dushwari nahi hai": ("I do not have difficulty breathing.", "سانس لینے میں کوئی دشواری نہیں ہے۔", "negative"),
+        "haan": ("Yes.", "ہاں۔", "affirmative", False),
+        "nahi": ("No.", "نہیں۔", "negative", False),
+        "appointment hai": ("I have an appointment.", "میرا اپائنٹمنٹ ہے۔", "affirmative", False),
+        "appointment nahi hai": ("I do not have an appointment.", "میرا اپائنٹمنٹ نہیں ہے۔", "negative", False),
+
+        # Routine (No cues)
+        "meri tabiyat theek nahi hai": ("I am not feeling well.", "میری طبیعت ٹھیک نہیں ہے۔", "negative", False),
+        "mujhe sar dard hai": ("I have a headache.", "مجھے سر میں درد ہے۔", "affirmative", False),
+        "sar dard": ("I have a headache.", "سر میں درد ہے۔", "affirmative", False),
+        "mujhe sar dard nahi hai": ("I do not have a headache.", "مجھے سر میں درد نہیں ہے۔", "negative", False),
+        "mujhe bukhar hai": ("I have a fever.", "مجھے بخار ہے۔", "affirmative", False),
+        "bukhar": ("I have a fever.", "بخار ہے۔", "affirmative", False),
+        "mujhe bukhar nahi hai": ("I do not have a fever.", "مجھے بخار نہیں ہے۔", "negative", False),
+        "taango me dard": ("I have leg pain.", "ٹانگوں میں درد ہے۔", "affirmative", False),
+        "taango me dard nahi hai": ("I do not have leg pain.", "ٹانگوں میں درد نہیں ہے۔", "negative", False),
+
+        # High-Risk (Triggers cues)
+        "mere seene me dard hai": ("I have chest pain.", "میرے سینے میں درد ہے۔", "affirmative", True),
+        "seene me dard": ("I have chest pain.", "سینے میں درد ہے۔", "affirmative", True),
+        "mere seene me dard nahi hai": ("I do not have chest pain.", "میرے سینے میں درد نہیں ہے۔", "negative", True),
+        "saans lene me dushwari hai": ("I have difficulty breathing.", "سانس لینے میں دشواری ہو رہی ہے۔", "affirmative", True),
+        "saans lene me dushwari nahi hai": ("I do not have difficulty breathing.", "سانس لینے میں کوئی دشواری نہیں ہے۔", "negative", True),
+        "khoon beh raha hai": ("I have bleeding.", "خون بہہ رہا ہے۔", "affirmative", True),
     },
 
     # ── BENGALI (bn) ─────────────────────────────────────────
     "bn": {
-        "amar shorir bhalo nei": ("I am not feeling well.", "আমার শরীর ভালো নেই।", "negative"),
-        "appointment ache": ("I have an appointment.", "আমার অ্যাপয়েন্টমেন্ট আছে।", "affirmative"),
-        "appointment nei": ("I do not have an appointment.", "আমার অ্যাপয়েন্টমেন্ট নেই।", "negative"),
-        "amar buke betha korche": ("I have chest pain.", "আমার বুকে ব্যথা করছে।", "affirmative"),
-        "amar buke betha nei": ("I do not have chest pain.", "আমার বুকে ব্যথা নেই।", "negative"),
-        "amar matha betha korche": ("I have a headache.", "আমার মাথা ব্যথা করছে।", "affirmative"),
-        "amar matha betha nei": ("I do not have a headache.", "আমার মাথা ব্যথা নেই।", "negative"),
-        "amar jor ache": ("I have a fever.", "আমার জ্বর আছে।", "affirmative"),
-        "amar jor nei": ("I do not have a fever.", "আমার জ্বর নেই।", "negative"),
-        "amar matha ghorachhe": ("I feel dizzy.", "আমার মাথা ঘোরাচ্ছে।", "affirmative"),
-        "shash nite koshto hochhe": ("I have difficulty breathing.", "শ্বাস নিতে কষ্ট হচ্ছে।", "affirmative"),
-        "shashkoshto nei": ("I do not have difficulty breathing.", "শ্বাসকষ্ট নেই।", "negative"),
+        "haa": ("Yes.", "হ্যাঁ।", "affirmative", False),
+        "na": ("No.", "না।", "negative", False),
+        "appointment ache": ("I have an appointment.", "আমার অ্যাপয়েন্টমেন্ট আছে।", "affirmative", False),
+        "appointment nei": ("I do not have an appointment.", "আমার অ্যাপয়েন্টমেন্ট নেই।", "negative", False),
+
+        # Routine (No cues)
+        "amar shorir bhalo nei": ("I am not feeling well.", "আমার শরীর ভালো নেই।", "negative", False),
+        "amar matha betha korche": ("I have a headache.", "আমার মাথা ব্যথা করছে।", "affirmative", False),
+        "matha betha": ("I have a headache.", "মাথা ব্যথা করছে।", "affirmative", False),
+        "amar matha betha nei": ("I do not have a headache.", "আমার মাথা ব্যথা নেই।", "negative", False),
+        "amar jor ache": ("I have a fever.", "আমার জ্বর আছে।", "affirmative", False),
+        "jor": ("I have a fever.", "জ্বর আছে।", "affirmative", False),
+        "amar jor nei": ("I do not have a fever.", "আমার জ্বর নেই।", "negative", False),
+        "paye betha": ("I have leg pain.", "পায়ে ব্যথা করছে।", "affirmative", False),
+        "paye betha nei": ("I do not have leg pain.", "পায়ে ব্যথা নেই।", "negative", False),
+
+        # High-Risk (Triggers cues)
+        "amar buke betha korche": ("I have chest pain.", "আমার বুকে ব্যথা করছে।", "affirmative", True),
+        "buke betha": ("I have chest pain.", "বুকে ব্যথা করছে।", "affirmative", True),
+        "amar buke betha nei": ("I do not have chest pain.", "আমার বুকে ব্যথা নেই।", "negative", True),
+        "shash nite koshto hochhe": ("I have difficulty breathing.", "শ্বাস নিতে কষ্ট হচ্ছে।", "affirmative", True),
+        "shashkoshto nei": ("I do not have difficulty breathing.", "শ্বাসকষ্ট নেই।", "negative", True),
+        "rokto porche": ("I have bleeding.", "রক্ত পড়ছে।", "affirmative", True),
     },
 
     # ── ARABIC (ar) ──────────────────────────────────────────
     "ar": {
-        "ana lastu bikhayr": ("I am not feeling well.", "أنا لست بخير.", "negative"),
-        "andi mawid": ("I have an appointment.", "لدي موعد.", "affirmative"),
-        "laysa li mawid": ("I do not have an appointment.", "ليس لدي موعد.", "negative"),
-        "andi waja fi sadri": ("I have chest pain.", "عندي ألم في الصدر.", "affirmative"),
-        "ma andi waja fi sadri": ("I do not have chest pain.", "ليس لدي ألم في الصدر.", "negative"),
-        "andi suda": ("I have a headache.", "عندي صداع.", "affirmative"),
-        "ma andi suda": ("I do not have a headache.", "ليس لدي صداع.", "negative"),
-        "andi humma": ("I have a fever.", "عندي حمى.", "affirmative"),
-        "ma andi humma": ("I do not have a fever.", "ليس لدي حمى.", "negative"),
-        "ashur bidawkha": ("I feel dizzy.", "أشعر بدوخة.", "affirmative"),
-        "la ashur bidawkha": ("I do not feel dizzy.", "لا أشعر بدوخة.", "negative"),
-        "andi suuba fi tanaffus": ("I have difficulty breathing.", "عندي صعوبة في التنفس.", "affirmative"),
-        "la yujad suuba fi tanaffus": ("I do not have difficulty breathing.", "لا توجد صعوبة في التنفس.", "negative"),
+        "naam": ("Yes.", "نعم.", "affirmative", False),
+        "la": ("No.", "لا.", "negative", False),
+        "andi mawid": ("I have an appointment.", "لدي موعد.", "affirmative", False),
+        "laysa li mawid": ("I do not have an appointment.", "ليس لدي موعد.", "negative", False),
+
+        # Routine (No cues)
+        "ana lastu bikhayr": ("I am not feeling well.", "أنا لست بخير.", "negative", False),
+        "andi suda": ("I have a headache.", "عندي صداع.", "affirmative", False),
+        "suda": ("I have a headache.", "صداع.", "affirmative", False),
+        "ma andi suda": ("I do not have a headache.", "ليس لدي صداع.", "negative", False),
+        "andi humma": ("I have a fever.", "عندي حمى.", "affirmative", False),
+        "humma": ("I have a fever.", "حمى.", "affirmative", False),
+        "ma andi humma": ("I do not have a fever.", "ليس لدي حمى.", "negative", False),
+        "waja fi rijli": ("I have leg pain.", "ألم في رجلي.", "affirmative", False),
+        "alam fi alrijl": ("I have leg pain.", "ألم في الرجل.", "affirmative", False),
+
+        # High-Risk (Triggers cues)
+        "andi waja fi sadri": ("I have chest pain.", "عندي ألم في الصدر.", "affirmative", True),
+        "alam fi al sadr": ("I have chest pain.", "ألم في الصدر.", "affirmative", True),
+        "ma andi waja fi sadri": ("I do not have chest pain.", "ليس لدي ألم في الصدر.", "negative", True),
+        "andi suuba fi tanaffus": ("I have difficulty breathing.", "عندي صعوبة في التنفس.", "affirmative", True),
+        "la yujad suuba fi tanaffus": ("I do not have difficulty breathing.", "لا توجد صعوبة في التنفس.", "negative", True),
+        "nazif": ("I have bleeding.", "نزيف.", "affirmative", True),
     },
 
     # ── POLISH (pl) ──────────────────────────────────────────
     "pl": {
-        "zle sie czuje": ("I am not feeling well.", "Źle się czuję.", "negative"),
-        "mam wizyte": ("I have an appointment.", "Mam umówioną wizytę.", "affirmative"),
-        "nie mam wizyty": ("I do not have an appointment.", "Nie mam umówionej wizyty.", "negative"),
-        "mam bol w klatce piersiowej": ("I have chest pain.", "Mam ból w klatce piersiowej.", "affirmative"),
-        "nie mam bolu w klatce piersiowej": ("I do not have chest pain.", "Nie mam bólu w klatce piersiowej.", "negative"),
-        "boli mnie glowa": ("I have a headache.", "Boli mnie głowa.", "affirmative"),
-        "nie boli mnie glowa": ("I do not have a headache.", "Nie boli mnie głowa.", "negative"),
-        "mam goraczke": ("I have a fever.", "Mam gorączkę.", "affirmative"),
-        "nie mam goraczki": ("I do not have a fever.", "Nie mam gorączki.", "negative"),
-        "kreci mi sie w glowie": ("I feel dizzy.", "Kręci mi się w głowie.", "affirmative"),
-        "trudno mi sie oddycha": ("I have difficulty breathing.", "Trudno mi się oddycha.", "affirmative"),
-        "nie mam problemow z oddychaniem": ("I do not have difficulty breathing.", "Nie mam trudności z oddychaniem.", "negative"),
+        "tak": ("Yes.", "Tak.", "affirmative", False),
+        "nie": ("No.", "Nie.", "negative", False),
+        "mam wizyte": ("I have an appointment.", "Mam umówioną wizytę.", "affirmative", False),
+        "nie mam wizyty": ("I do not have an appointment.", "Nie mam umówionej wizyty.", "negative", False),
+
+        # Routine (No cues)
+        "zle sie czuje": ("I am not feeling well.", "Źle się czuję.", "negative", False),
+        "boli mnie glowa": ("I have a headache.", "Boli mnie głowa.", "affirmative", False),
+        "nie boli mnie glowa": ("I do not have a headache.", "Nie boli mnie głowa.", "negative", False),
+        "mam goraczke": ("I have a fever.", "Mam gorączkę.", "affirmative", False),
+        "nie mam goraczki": ("I do not have a fever.", "Nie mam gorączki.", "negative", False),
+        "boli mnie noga": ("I have leg pain.", "Boli mnie noga.", "affirmative", False),
+        "nie boli mnie noga": ("I do not have leg pain.", "Nie boli mnie noga.", "negative", False),
+
+        # High-Risk (Triggers cues)
+        "mam bol w klatce piersiowej": ("I have chest pain.", "Mam ból w klatce piersiowej.", "affirmative", True),
+        "nie mam bolu w klatce piersiowej": ("I do not have chest pain.", "Nie mam bólu w klatce piersiowej.", "negative", True),
+        "trudno mi sie oddycha": ("I have difficulty breathing.", "Trudno mi się oddycha.", "affirmative", True),
+        "nie mam problemow z oddychaniem": ("I do not have difficulty breathing.", "Nie mam trudności z oddychaniem.", "negative", True),
+        "krwawie": ("I am bleeding.", "Krwawię.", "affirmative", True),
     },
 
     # ── ROMANIAN (ro) ────────────────────────────────────────
     "ro": {
-        "nu ma simt bine": ("I am not feeling well.", "Nu mă simt bine.", "negative"),
-        "am o programare": ("I have an appointment.", "Am o programare.", "affirmative"),
-        "nu am programare": ("I do not have an appointment.", "Nu am programare.", "negative"),
-        "am dureri in piept": ("I have chest pain.", "Am dureri în piept.", "affirmative"),
-        "nu am dureri in piept": ("I do not have chest pain.", "Nu am dureri în piept.", "negative"),
-        "ma doare capul": ("I have a headache.", "Mă doare capul.", "affirmative"),
-        "nu ma doare capul": ("I do not have a headache.", "Nu mă doare capul.", "negative"),
-        "am febra": ("I have a fever.", "Am febră.", "affirmative"),
-        "nu am febra": ("I do not have a fever.", "Nu am febră.", "negative"),
-        "am ameteli": ("I feel dizzy.", "Am amețeli.", "affirmative"),
-        "respir greu": ("I have difficulty breathing.", "Respir greu.", "affirmative"),
-        "nu am probleme cu respiratia": ("I do not have difficulty breathing.", "Nu am dificultăți de respirație.", "negative"),
+        "da": ("Yes.", "Da.", "affirmative", False),
+        "nu": ("No.", "Nu.", "negative", False),
+        "am o programare": ("I have an appointment.", "Am o programare.", "affirmative", False),
+        "nu am programare": ("I do not have an appointment.", "Nu am programare.", "negative", False),
+
+        # Routine (No cues)
+        "nu ma simt bine": ("I am not feeling well.", "Nu mă simt bine.", "negative", False),
+        "ma doare capul": ("I have a headache.", "Mă doare capul.", "affirmative", False),
+        "nu ma doare capul": ("I do not have a headache.", "Nu mă doare capul.", "negative", False),
+        "am febra": ("I have a fever.", "Am febră.", "affirmative", False),
+        "nu am febra": ("I do not have a fever.", "Nu am febră.", "negative", False),
+        "ma doare piciorul": ("I have leg pain.", "Mă doare piciorul.", "affirmative", False),
+        "nu ma doare piciorul": ("I do not have leg pain.", "Nu mă doare piciorul.", "negative", False),
+
+        # High-Risk (Triggers cues)
+        "am dureri in piept": ("I have chest pain.", "Am dureri în piept.", "affirmative", True),
+        "nu am dureri in piept": ("I do not have chest pain.", "Nu am dureri în piept.", "negative", True),
+        "respir greu": ("I have difficulty breathing.", "Respir greu.", "affirmative", True),
+        "nu am probleme cu respiratia": ("I do not have difficulty breathing.", "Nu am dificultăți de respirație.", "negative", True),
+        "sangerez": ("I have bleeding.", "Sângerez.", "affirmative", True),
     },
 
     # ── SOMALI (so) ──────────────────────────────────────────
     "so": {
-        "ma fiicni": ("I am not feeling well.", "Ma fiicni, waan xanuunsanahay.", "negative"),
-        "ballan baan leeyahay": ("I have an appointment.", "Ballan baan leeyahay.", "affirmative"),
-        "ballan ma lihi": ("I do not have an appointment.", "Ballan ma lihi.", "negative"),
-        "laabta ayaa i xanuunaysa": ("I have chest pain.", "Laabta ayaa i xanuunaysa.", "affirmative"),
-        "xabad xanuun ma qabo": ("I do not have chest pain.", "Xabad xanuun ma qabo.", "negative"),
-        "madaxaa i xanuunaya": ("I have a headache.", "Madaxaa i xanuunaya.", "affirmative"),
-        "madax xanuun ma qabo": ("I do not have a headache.", "Madax xanuun ma qabo.", "negative"),
-        "qandho ayaan qabaa": ("I have a fever.", "Qandho ayaan qabaa.", "affirmative"),
-        "qandho ma qabo": ("I do not have a fever.", "Qandho ma qabo.", "negative"),
-        "wareer ayaan dareemayaa": ("I feel dizzy.", "Wareer ayaan dareemayaa.", "affirmative"),
-        "neefsashada ayaa igu adag": ("I have difficulty breathing.", "Neefsashada ayaa igu adag.", "affirmative"),
-        "neefsashada iguma adka": ("I do not have difficulty breathing.", "Neefsashada iguma adka.", "negative"),
+        "haa": ("Yes.", "Haa.", "affirmative", False),
+        "maya": ("No.", "Maya.", "negative", False),
+        "ballan baan leeyahay": ("I have an appointment.", "Ballan baan leeyahay.", "affirmative", False),
+        "ballan ma lihi": ("I do not have an appointment.", "Ballan ma lihi.", "negative", False),
+
+        # Routine (No cues)
+        "ma fiicni": ("I am not feeling well.", "Ma fiicni, waan xanuunsanahay.", "negative", False),
+        "madaxaa i xanuunaya": ("I have a headache.", "Madaxaa i xanuunaya.", "affirmative", False),
+        "madax xanuun ma qabo": ("I do not have a headache.", "Madax xanuun ma qabo.", "negative", False),
+        "qandho ayaan qabaa": ("I have a fever.", "Qandho ayaan qabaa.", "affirmative", False),
+        "qandho ma qabo": ("I do not have a fever.", "Qandho ma qabo.", "negative", False),
+        "lugta ayaa i xanuunaysa": ("I have leg pain.", "Lugta ayaa i xanuunaysa.", "affirmative", False),
+        "lug xanuun ma qabo": ("I do not have leg pain.", "Lug xanuun ma qabo.", "negative", False),
+
+        # High-Risk (Triggers cues)
+        "laabta ayaa i xanuunaysa": ("I have chest pain.", "Laabta ayaa i xanuunaysa.", "affirmative", True),
+        "xabad xanuun ma qabo": ("I do not have chest pain.", "Xabad xanuun ma qabo.", "negative", True),
+        "neefsashada ayaa igu adag": ("I have difficulty breathing.", "Neefsashada ayaa igu adag.", "affirmative", True),
+        "neefsashada iguma adka": ("I do not have difficulty breathing.", "Neefsashada iguma adka.", "negative", True),
+        "dhiig ayaa iga socda": ("I have bleeding.", "Dhiig ayaa iga socda.", "affirmative", True),
     }
 }
 
@@ -849,15 +1012,25 @@ def translate_patient():
     lang_negs = NEGATION_TOKENS_BY_LANG.get(lang_code, set())
     has_negation = bool(input_tokens & lang_negs)
 
-    # 1. Priority 1: Check Comprehensive Multilingual Symptoms & Opposite Words Lookup
+    # 1. Priority 1: Check Comprehensive Multilingual Lookup
     lang_symptoms = COMMON_SYMPTOMS_LOOKUP.get(lang_code, {})
     if norm_input in lang_symptoms:
-        eng_trans, native_script, polarity = lang_symptoms[norm_input]
-        
-        if polarity == "negative" or has_negation:
-            review_cue = "Negative wording detected — confirm that the negation has been preserved."
-        else:
-            review_cue = "Communication cue: symptom-related information present. Confirm meaning with the patient."
+        entry = lang_symptoms[norm_input]
+        eng_trans = entry[0]
+        native_script = entry[1]
+        polarity = entry[2]
+        is_high_risk = entry[3] if len(entry) > 3 else False
+
+        review_cue = None
+        comm_cue = None
+
+        # Communication Cue / Meaning Check ONLY for genuine High-Risk symptoms
+        if is_high_risk:
+            comm_cue = "symptom_related"
+            if polarity == "negative" or has_negation:
+                review_cue = "Negative wording detected — confirm that the negation has been preserved."
+            else:
+                review_cue = "Communication cue: symptom-related information present. Confirm meaning with the patient."
 
         return jsonify({
             "original": raw_text,
@@ -869,7 +1042,7 @@ def translate_patient():
             "status": "needs_review",
             "warning": "Prepared phrase — confirm meaning with the speaker.",
             "polarity": polarity,
-            "communication_cue": "symptom_related",
+            "communication_cue": comm_cue,
             "review_cue": review_cue,
             "requires_staff_review": True,
             "clinical_urgency": None
@@ -901,19 +1074,22 @@ def translate_patient():
         translated_text = matched_rule.get("english_review", raw_text)
         native_text = matched_rule.get("native_script", raw_text)
         rule_polarity = matched_rule.get("polarity", "neutral")
-        intent = matched_rule.get("intent", "")
-        
-        is_symptom = "SYMPTOM" in intent or any(w in translated_text.lower() for w in SYMPTOM_KEYWORDS_EN)
-        
-        if rule_polarity == "negative" or has_negation:
-            polarity = "negative"
-            review_cue = "Negative wording detected — confirm that the negation has been preserved."
-        elif is_symptom:
-            polarity = "affirmative"
-            review_cue = "Communication cue: symptom-related information present. Confirm meaning with the patient."
+
+        # High-risk detection strictly on critical terms
+        is_high_risk = any(w in translated_text.lower() for w in HIGH_RISK_KEYWORDS)
+
+        review_cue = None
+        comm_cue = None
+        if is_high_risk:
+            comm_cue = "symptom_related"
+            if rule_polarity == "negative" or has_negation:
+                polarity = "negative"
+                review_cue = "Negative wording detected — confirm that the negation has been preserved."
+            else:
+                polarity = "affirmative"
+                review_cue = "Communication cue: symptom-related information present. Confirm meaning with the patient."
         else:
-            polarity = "neutral"
-            review_cue = None
+            polarity = rule_polarity
 
         return jsonify({
             "original": raw_text,
@@ -925,7 +1101,7 @@ def translate_patient():
             "status": "needs_review",
             "warning": "Prepared phrase — confirm meaning with the speaker.",
             "polarity": polarity,
-            "communication_cue": "symptom_related" if is_symptom else None,
+            "communication_cue": comm_cue,
             "review_cue": review_cue,
             "requires_staff_review": True,
             "clinical_urgency": None
@@ -940,20 +1116,25 @@ def translate_patient():
 
     translated_text = res.text
     trans_lower = translated_text.lower()
-    
+
     has_english_negation = bool(re.search(r'\b(no|not|neither|never|without)\b', trans_lower))
     is_negative = has_negation or has_english_negation or getattr(res, "is_negative", False)
-    is_symptom = any(w in trans_lower for w in SYMPTOM_KEYWORDS_EN)
 
-    if is_negative:
-        polarity = "negative"
-        review_cue = "Negative wording detected — confirm that the negation has been preserved."
-    elif is_symptom:
-        polarity = "affirmative"
-        review_cue = "Communication cue: symptom-related information present. Confirm meaning with the patient."
+    # High-risk detection strictly on critical terms
+    is_high_risk = any(w in trans_lower for w in HIGH_RISK_KEYWORDS)
+
+    review_cue = None
+    comm_cue = None
+    if is_high_risk:
+        comm_cue = "symptom_related"
+        if is_negative:
+            polarity = "negative"
+            review_cue = "Negative wording detected — confirm that the negation has been preserved."
+        else:
+            polarity = "affirmative"
+            review_cue = "Communication cue: symptom-related information present. Confirm meaning with the patient."
     else:
-        polarity = "neutral"
-        review_cue = None
+        polarity = "negative" if is_negative else "neutral"
 
     return jsonify({
         "original": raw_text,
@@ -965,7 +1146,7 @@ def translate_patient():
         "status": getattr(res, "status", "needs_review"),
         "warning": getattr(res, "warning", None),
         "polarity": polarity,
-        "communication_cue": "symptom_related" if is_symptom else None,
+        "communication_cue": comm_cue,
         "review_cue": review_cue,
         "requires_staff_review": True,
         "clinical_urgency": None
