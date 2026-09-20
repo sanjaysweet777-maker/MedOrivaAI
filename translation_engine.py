@@ -99,7 +99,7 @@ def script_matches(text, language):
         for c in text:
             cp = ord(c)
 
-            # Allow common whitespace, digits, ASCII punctuation, and shared Indic dandas
+            # Allow common whitespace, digits, ASCII characters (like NHS), punctuation, and shared Indic dandas
             if cp in SHARED_INDIC_PUNCTUATION or cp < 0x0080 or unicodedata.category(c).startswith(('P', 'Z', 'N')):
                 continue
 
@@ -133,7 +133,6 @@ def numeric_response(text):
     return bool(NUMERIC_ONLY_PATTERN.match(cleaned))
 
 def convert_arabic_digits(text):
-    arabic_digits = "٠١٢٣٤٥٦ desert"
     arabic_digits = "٠١٢٣٤٥٦٧٨٩"
     for i, c in enumerate(arabic_digits):
         text = text.replace(c, str(i))
@@ -229,7 +228,7 @@ def online(text, source, target):
         if not translated:
             return unavailable('empty_translation')
 
-        # Priority 6 Fix: Reject unchanged cross-language outputs (e.g. English -> Polish 'Hello' -> 'Hello')
+        # Reject unchanged cross-language outputs (e.g. English -> Polish 'Hello' -> 'Hello')
         if source != target and translated.lower() == clean_input.lower() and not numeric_response(clean_input):
             return unavailable('unchanged_echo')
 
@@ -264,7 +263,7 @@ def online(text, source, target):
 
 # ============================================================
 # PREPARED CLINICAL STAFF LOOKUP (All 9 Languages)
-# Pure Malayalam characters without Tamil mixing
+# Pure Malayalam & Pure Urdu without Devanagari contamination
 # ============================================================
 STAFF_LOOKUP = {
     "Do you have an appointment?": {
@@ -306,7 +305,7 @@ STAFF_LOOKUP = {
         "ml": "നിങ്ങളുടെ NHS നമ്പർ ഉണ്ടോ?",
         "pl": "Czy ma Pan/Pani swój numer NHS?",
         "ar": "هل لديك رقم NHS الخاص بك؟",
-        "ur": "کیا آپ کے پاس آپ کا NHS नंबर ہے؟",
+        "ur": "کیا آپ کے پاس آپ کا NHS نمبر ہے؟",
         "bn": "আপনার কি NHS নম্বর আছে?",
         "so": "Ma haysataa lambarkaaga NHS?",
         "ro": "Aveți numărul dumneavoastră NHS?"
