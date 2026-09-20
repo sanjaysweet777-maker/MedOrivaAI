@@ -504,7 +504,7 @@ def translate_patient():
             "medical_alert": False,
             "is_negative": None,
             "status": "needs_review",
-            "warning": "Prepared phrase — confirm meaning with the speaker."
+            "warning": "Prepared phrase — confirm meaning with the speaker." # <-- This line controls dictionary phrase warnings
         }), 200
 
     res = patient_translation(raw_text, lang_code)
