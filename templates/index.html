@@ -320,7 +320,7 @@
         <span class="num">1</span>
         <span>Select Communication Intake Context</span>
       </div>
-      <p class="card-hint">Context locks standardized prompts and guidance for the duration of the patient exchange.</p>
+      <p class="card-hint">The selected context provides structured prompts; free-text input remains available.</p>
       
       <div class="ctx-grid-enhanced">
         <div class="ctx-card" data-ctx="Reception" onclick="selectCtx(this)">
@@ -735,7 +735,7 @@ function runUnderstandingCheck() {
     const errorHtml = `
       <div class="msg-row system" style="display: flex; width: 100%; margin-bottom: 12px; justify-content: center;">
         <div style="max-width: 80%; background: #fff1f2; border: 1.5px solid #fecdd3; border-radius: 8px; padding: 12px 16px; color: #9f1239; font-size: 13px;">
-          <strong>Verification Unavailable:</strong> No verified confirmation prompts found for "${langKey || 'Unselected Language'}". Understanding check halted without cross-language fallback.
+          <strong>Verification Unavailable:</strong> configured confirmation prompts found for "${langKey || 'Unselected Language'}". Understanding check halted without cross-language fallback.
         </div>
       </div>
     `;
