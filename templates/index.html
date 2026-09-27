@@ -432,7 +432,7 @@
       </div>
 
       <div class="inset-info-callout">
-        <strong>Communication Support Notice:</strong> MedOriva AI is designed to support structured multilingual communication across defined primary-care workflows[cite: 1]. It does not replace qualified professional interpreters for complex, sensitive or high-risk communication and does not provide diagnosis, clinical triage or treatment advice[cite: 1].
+        <strong>Communication Support Notice:</strong> MedOriva AI is designed to support structured multilingual communication across defined primary-care workflows. It does not replace qualified professional interpreters for complex, sensitive or high-risk communication and does not provide diagnosis, clinical triage or treatment advice.
       </div>
     </div>
 
@@ -623,8 +623,16 @@
 
 <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 
-<!-- ═══ MULTILINGUAL CONFIRMATION ENGINE (CANONICAL + RTL) ═════════════════ -->
+<!-- ═══ MULTILINGUAL CONFIRMATION & BRIDGING ENGINE ═════════════════════════ -->
 <script>
+// Safe HTML sanitizer fallback
+function escapeHtml(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
 const VERIFY_CONFIG = {
   "Tamil": {
     code: "ta", dir: "ltr",
@@ -709,6 +717,8 @@ const VERIFY_CONFIG = {
   }
 };
 
+let activeGuidedTouchSelection = null;
+
 function getCanonicalLanguage() {
   if (typeof selectedLang !== 'undefined' && selectedLang) {
     return selectedLang;
@@ -739,6 +749,46 @@ function openGuidedTouch() {
   window.open(`/guided-touch?context=${encodeURIComponent(ctx)}&lang=${encodeURIComponent(lang)}`, "_blank", "width=850,height=920");
 }
 
+// ── Real-time Guided Touch Bridge (Receives responses from patient screen) ──
+window.addEventListener("message", function(event) {
+  if (event.origin !== window.location.origin) return;
+  if (event.data && event.data.type === "MEDORIVA_PATIENT_TOUCH") {
+    activeGuidedTouchSelection = event.data;
+
+    const chatArea = document.getElementById("chatArea");
+    const emptyChat = document.getElementById("emptyChat");
+    if (emptyChat) emptyChat.style.display = "none";
+
+    const msgHtml = `
+      <div class="msg-row patient" style="display: flex; width: 100%; margin-bottom: 12px; justify-content: flex-start;">
+        <div style="max-width: 76%; background: #ffffff; border: 1.5px solid #86efac; border-radius: 12px 12px 12px 2px; padding: 14px 18px; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+          <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #15803d; margin-bottom: 4px; font-weight: 700;">
+            Patient Response (Guided Touch · ${escapeHtml(event.data.lang)})
+          </div>
+          <div style="font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 6px;">
+            ${escapeHtml(event.data.native)}
+          </div>
+          <div style="font-size: 13.5px; color: #475569; border-top: 1px solid #e2e8f0; padding-top: 6px;">
+            <strong style="color: #334155;">English Meaning:</strong> ${escapeHtml(event.data.english)}
+          </div>
+          <div style="margin-top: 8px; font-size: 11px; color: #0F6E56; font-weight: 600;">
+            ✓ Confirmed via Understanding Check on patient terminal
+          </div>
+        </div>
+      </div>
+    `;
+
+    chatArea.insertAdjacentHTML("beforeend", msgHtml);
+    chatArea.scrollTop = chatArea.scrollHeight;
+
+    // Refresh summary if open
+    const panel = document.getElementById("administrative-summary-panel");
+    if (panel && panel.style.display === "block") {
+      generateAndShowSummary();
+    }
+  }
+});
+
 // ── Deterministic Administrative Summary Generator ──
 function generateSafeSummary() {
   const now = new Date();
@@ -747,12 +797,16 @@ function generateSafeSummary() {
   const lang = getCanonicalLanguage() || "Tamil";
   const sideCtx = document.getElementById("sideCtx");
   const ctxName = (sideCtx && sideCtx.textContent !== "—") ? sideCtx.textContent : "Routine Reception & Arrival";
+  
+  const purpose = activeGuidedTouchSelection 
+    ? activeGuidedTouchSelection.english 
+    : ctxName;
 
   return [
     "[MedOriva Administrative Communication Summary]",
     `Date/time: ${dateStr}`,
     `Language selected: ${lang}`,
-    `Purpose selected: ${ctxName}`,
+    `Purpose selected: ${purpose}`,
     "Patient confirmation: Confirmed through Understanding Check",
     "Clinical assessment: Not performed",
     "Source: Patient communication through MedOriva workspace",
@@ -864,7 +918,7 @@ function patientConfirmsCheck(cardId, isYes, langKey) {
       `;
     } else {
       card.innerHTML = `
-        <span style="display: inline-flex; align-items: center; gap: 6px; background: #fef2f2; color: #b91c1c; border: 1px solid #fca5a5; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">
+        <span style="display: inline-flex; align-items: center; gap: 6px; background: #fef2f2; color: #b91c1c; border: 1.5px solid #fca5a5; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">
           ⚠ Correction required
         </span>
       `;
