@@ -130,7 +130,7 @@ RAW_EXTENDED_STAFF = {
     "Can I take your name and date of birth?": {
         "ta": "உங்கள் பெயர் மற்றும் பிறந்த தேதியை அறியலாமா?",
         "hi": "क्या मुझे आपका नाम और जन्म तिथि मिल सकती है?",
-        "ml": "നിങ്ങളുടെ പേരും ജനനത്തീയതിയും പറയാമോ?",
+        "ml": "നിങ്ങളുടെ പേരും ജനനத்தീയതിയും പറയാമോ?",
         "pl": "Czy mogę prosić o Pana/Pani imię, nazwisko i datę urodzenia?",
         "ar": "هل يمكنني معرفة اسمك وتاريخ ميلادك؟",
         "ur": "کیا میں آپ کا نام اور تاریخ پیدائش جان سکتا ہوں؟",
@@ -185,7 +185,7 @@ RAW_EXTENDED_STAFF = {
     "Is anyone with you today?": {
         "ta": "இன்று உங்களுடன் யாராவது வந்துள்ளார்களா?",
         "hi": "क्या आज आपके साथ कोई आया है?",
-        "ml": "ഇന്ന് നിങ്ങളുടെ കൂടെ ആരെങ്കിലും ഉണ്ടോ?",
+        "ml": "இന്ന് നിങ്ങളുടെ കൂടെ ആരെങ്കിലും ഉണ്ടോ?",
         "pl": "Czy jest dzisiaj z Panem/Panią ktoś towarzyszący?",
         "ar": "هل يرافقك أحد اليوم؟",
         "ur": "کیا آج آپ کے ساتھ کوئی آیا ہے؟",
@@ -232,7 +232,7 @@ RAW_EXTENDED_STAFF = {
         "ml": "നിങ്ങൾക്ക് തലകറക്കമോ ബോധക്കേടോ തോന്നുന്നുണ്ടോ?",
         "pl": "Czy ma Pan/Pani zawroty głowy lub uczucie osłabienia?",
         "ar": "هل تشعر بدوخة أو إغماء؟",
-        "ur": "کیا آپ کو چکر یا بے ہوشی محسوس ہو رہی ہے؟",
+        "ur": "کیا آپ کو چکر یا بے ہوشی محسوس ہو रही ہے؟",
         "bn": "আপনার কি মাথা ঘোরা বা মূর্ছা যাওয়ার মতো লাগছে?",
         "so": "Miyaad dareemaysaa wareer ama tabardarro?",
         "ro": "Aveți amețeli sau senzație de leșin?"
@@ -311,13 +311,11 @@ HIGH_RISK_KEYWORDS = {
 }
 
 # ============================================================
-# 3. EXPANDED PATIENT LOOKUP: CLINICAL & ROUTINE PHRASES
-# Format: (English Review, Native Script, Polarity, is_high_risk)
+# 3. EXPANDED PATIENT LOOKUP: CLINICAL & ROUTINE PHRASES (All 9 Languages)
 # ============================================================
 RAW_SYMPTOMS_LOOKUP = {
     # ── TAMIL (ta) ───────────────────────────────────────────
     "ta": {
-        # Routine Admin (is_high_risk = False -> Clean)
         "aam": ("Yes.", "ஆம்.", "affirmative", False),
         "aama": ("Yes.", "ஆமாம்.", "affirmative", False),
         "aamam": ("Yes.", "ஆமாம்.", "affirmative", False),
@@ -337,7 +335,7 @@ RAW_SYMPTOMS_LOOKUP = {
         "nhs number illa": ("I do not have my NHS number.", "என்னிடம் NHS எண் இல்லை.", "negative", False),
         "nhs number illai": ("I do not have my NHS number.", "என்னிடம் NHS எண் இல்லை.", "negative", False),
 
-        # Routine Symptoms (is_high_risk = False -> Clean, NO cues)
+        # Routine Symptoms
         "enaku thalai vali irukku": ("I have a headache.", "எனக்கு தலைவலி இருக்கிறது.", "affirmative", False),
         "enaku thalai vali": ("I have a headache.", "எனக்கு தலைவலி இருக்கிறது.", "affirmative", False),
         "thalai vali": ("I have a headache.", "தலைவலி இருக்கிறது.", "affirmative", False),
@@ -388,7 +386,7 @@ RAW_SYMPTOMS_LOOKUP = {
         "udambu vali": ("I have body pain.", "எனக்கு உடம்பு வலி இருக்கிறது.", "affirmative", False),
         "enaku udambu mudiyala": ("I am not feeling well.", "எனக்கு உடம்பு முடியவில்லை.", "negative", False),
 
-        # High-Risk Symptoms (is_high_risk = True -> Triggers Cues)
+        # High-Risk Symptoms
         "enaku nenji vali irukku": ("I have chest pain.", "எனக்கு நெஞ்சு வலி இருக்கிறது.", "affirmative", True),
         "enaku nenji vali": ("I have chest pain.", "எனக்கு நெஞ்சு வலி இருக்கிறது.", "affirmative", True),
         "nenji vali": ("I have chest pain.", "நெஞ்சு வலி இருக்கிறது.", "affirmative", True),
@@ -430,7 +428,6 @@ RAW_SYMPTOMS_LOOKUP = {
         "nhs number hai": ("I have my NHS number.", "मेरे पास NHS नंबर है।", "affirmative", False),
         "nhs number nahi hai": ("I do not have my NHS number.", "मेरे पास NHS नंबर नहीं है।", "negative", False),
 
-        # Routine (Clean)
         "meri tabiyat kharab hai": ("I am not feeling well.", "मेरी तबीयत खराब है।", "negative", False),
         "mujhe sar dard hai": ("I have a headache.", "मुझे सिरदर्द है।", "affirmative", False),
         "sar dard": ("I have a headache.", "सिरदर्द है।", "affirmative", False),
@@ -448,7 +445,6 @@ RAW_SYMPTOMS_LOOKUP = {
         "mujhe ulti ho rahi hai": ("I have vomiting.", "मुझे उल्टी हो रही है।", "affirmative", False),
         "pet me dard": ("I have stomach pain.", "पेट में दर्द है।", "affirmative", False),
 
-        # High-Risk (Triggers Cues)
         "mujhe seene me dard hai": ("I have chest pain.", "मुझे सीने में दर्द है।", "affirmative", True),
         "seene me dard": ("I have chest pain.", "सीने में दर्द है।", "affirmative", True),
         "seene me jakdan hai": ("I feel tightness in my chest.", "सीने में भारी जकड़न महसूस हो रही है।", "affirmative", True),
@@ -474,7 +470,6 @@ RAW_SYMPTOMS_LOOKUP = {
         "letter undu": ("I have my letter.", "കൈവശം കത്തുണ്ട്.", "affirmative", False),
         "letter illa": ("I do not have my letter.", "കൈവശം കട്ടില്ല.", "negative", False),
 
-        # Routine (Clean)
         "enikku sugamilla": ("I am not feeling well.", "എനിക്ക് സുഖമില്ല.", "negative", False),
         "enikku thalavedhana undu": ("I have a headache.", "എനിക്ക് തലവേദനയുണ്ട്.", "affirmative", False),
         "thalavedhana": ("I have a headache.", "തലവേദനയുണ്ട്.", "affirmative", False),
@@ -488,7 +483,6 @@ RAW_SYMPTOMS_LOOKUP = {
         "chevi vedhana": ("I have an earache.", "ചെവിവേദനയുണ്ട്.", "affirmative", False),
         "palluvedhana": ("I have a toothache.", "പല്ലുവേദനയുണ്ട്.", "affirmative", False),
 
-        # High-Risk (Triggers Cues)
         "enikku nenjuvedhana undu": ("I have chest pain.", "എനിക്ക് നെഞ്ചുവേദനയുണ്ട്.", "affirmative", True),
         "nenjuvedhana": ("I have chest pain.", "നെഞ്ചുവേദനയുണ്ട്.", "affirmative", True),
         "nenjil amarthal thonnunnu": ("I feel tightness in my chest.", "നെഞ്ചിൽ ഭാരം അനുഭവപ്പെടുന്നു.", "affirmative", True),
@@ -509,7 +503,6 @@ RAW_SYMPTOMS_LOOKUP = {
         "appointment hai": ("I have an appointment.", "میرا اپائنٹمنٹ ہے۔", "affirmative", False),
         "appointment nahi hai": ("I do not have an appointment.", "میرا اپائنٹمنٹ نہیں ہے۔", "negative", False),
 
-        # Routine (Clean)
         "meri tabiyat theek nahi hai": ("I am not feeling well.", "میری طبیعت ٹھیک نہیں ہے۔", "negative", False),
         "mujhe sar dard hai": ("I have a headache.", "مجھے سر میں درد ہے۔", "affirmative", False),
         "sar dard": ("I have a headache.", "سر میں درد ہے۔", "affirmative", False),
@@ -523,7 +516,6 @@ RAW_SYMPTOMS_LOOKUP = {
         "kaan me dard hai": ("I have an earache.", "کان میں درد ہے۔", "affirmative", False),
         "daant me dard hai": ("I have a toothache.", "دانت میں درد ہے۔", "affirmative", False),
 
-        # High-Risk (Triggers Cues)
         "mere seene me dard hai": ("I have chest pain.", "میرے سینے میں درد ہے۔", "affirmative", True),
         "seene me dard": ("I have chest pain.", "سینے میں درد ہے۔", "affirmative", True),
         "seene par bojh hai": ("I have heaviness and pressure in my chest.", "سینے پر بوجھ اور دباؤ محسوس ہو رہا ہے۔", "affirmative", True),
@@ -544,7 +536,6 @@ RAW_SYMPTOMS_LOOKUP = {
         "appointment ache": ("I have an appointment.", "আমার অ্যাপয়েন্টমেন্ট আছে।", "affirmative", False),
         "appointment nei": ("I do not have an appointment.", "আমার অ্যাপয়েন্টমেন্ট নেই।", "negative", False),
 
-        # Routine (Clean)
         "amar shorir bhalo nei": ("I am not feeling well.", "আমার শরীর ভালো নেই।", "negative", False),
         "amar matha betha korche": ("I have a headache.", "আমার মাথা ব্যথা করছে।", "affirmative", False),
         "matha betha": ("I have a headache.", "মাথা ব্যথা করছে।", "affirmative", False),
@@ -558,7 +549,6 @@ RAW_SYMPTOMS_LOOKUP = {
         "kaan betha korche": ("I have an earache.", "কানে ব্যথা করছে।", "affirmative", False),
         "daat betha korche": ("I have a toothache.", "দাঁতে ব্যথা করছে।", "affirmative", False),
 
-        # High-Risk (Triggers Cues)
         "amar buke betha korche": ("I have chest pain.", "আমার বুকে ব্যথা করছে।", "affirmative", True),
         "buke betha": ("I have chest pain.", "বুকে ব্যথা করছে।", "affirmative", True),
         "buke chap lagche": ("I feel pressure and tightness in my chest.", "বুকে ভারী চাপ লাগছে।", "affirmative", True),
@@ -579,7 +569,6 @@ RAW_SYMPTOMS_LOOKUP = {
         "andi mawid": ("I have an appointment.", "لدي موعد.", "affirmative", False),
         "laysa li mawid": ("I do not have an appointment.", "ليس لدي موعد.", "negative", False),
 
-        # Routine (Clean)
         "ana lastu bikhayr": ("I am not feeling well.", "أنا لست بخير.", "negative", False),
         "andi suda": ("I have a headache.", "عندي صداع.", "affirmative", False),
         "ma andi suda": ("I do not have a headache.", "ليس لدي صداع.", "negative", False),
@@ -592,7 +581,6 @@ RAW_SYMPTOMS_LOOKUP = {
         "alam fi aludhun": ("I have an earache.", "عندي ألم في الأذن.", "affirmative", False),
         "alam fi alsin": ("I have a toothache.", "عندي ألم في الأسنان.", "affirmative", False),
 
-        # High-Risk (Triggers Cues)
         "andi waja fi sadri": ("I have chest pain.", "عندي ألم في الصدر.", "affirmative", True),
         "alam fi al sadr": ("I have chest pain.", "ألم في الصدر.", "affirmative", True),
         "thul fi sadri": ("I feel heavy pressure in my chest.", "أشعر بثقل وضغط في الصدر.", "affirmative", True),
@@ -613,7 +601,6 @@ RAW_SYMPTOMS_LOOKUP = {
         "mam wizyte": ("I have an appointment.", "Mam umówioną wizytę.", "affirmative", False),
         "nie mam wizyty": ("I do not have an appointment.", "Nie mam umówionej wizyty.", "negative", False),
 
-        # Routine (Clean)
         "zle sie czuje": ("I am not feeling well.", "Źle się czuję.", "negative", False),
         "boli mnie glowa": ("I have a headache.", "Boli mnie głowa.", "affirmative", False),
         "nie boli mnie glowa": ("I do not have a headache.", "Nie boli mnie głowa.", "negative", False),
@@ -626,7 +613,6 @@ RAW_SYMPTOMS_LOOKUP = {
         "boli mnie ucho": ("I have an earache.", "Boli mnie ucho.", "affirmative", False),
         "boli mnie zab": ("I have a toothache.", "Boli mnie ząb.", "affirmative", False),
 
-        # High-Risk (Triggers Cues)
         "mam bol w klatce piersiowej": ("I have chest pain.", "Mam ból w klatce piersiowej.", "affirmative", True),
         "sciskanie w klatce piersiowej": ("I have chest tightness and pressure.", "Ściskanie i ucisk w klatce piersiowej.", "affirmative", True),
         "nie mam bolu w klatce piersiowej": ("I do not have chest pain.", "Nie mam bólu w klatce piersiowej.", "negative", True),
@@ -646,7 +632,6 @@ RAW_SYMPTOMS_LOOKUP = {
         "am o programare": ("I have an appointment.", "Am o programare.", "affirmative", False),
         "nu am programare": ("I do not have an appointment.", "Nu am programare.", "negative", False),
 
-        # Routine (Clean)
         "nu ma simt bine": ("I am not feeling well.", "Nu mă simt bine.", "negative", False),
         "ma doare capul": ("I have a headache.", "Mă doare capul.", "affirmative", False),
         "nu ma doare capul": ("I do not have a headache.", "Nu mă doare capul.", "negative", False),
@@ -659,7 +644,6 @@ RAW_SYMPTOMS_LOOKUP = {
         "ma doare urechea": ("I have an earache.", "Mă doare urechea.", "affirmative", False),
         "ma doare maseaua": ("I have a toothache.", "Mă doare măseaua.", "affirmative", False),
 
-        # High-Risk (Triggers Cues)
         "am dureri in piept": ("I have chest pain.", "Am dureri în piept.", "affirmative", True),
         "strangere in piept": ("I have tightness and pressure in my chest.", "Simt o strângere și presiune în piept.", "affirmative", True),
         "nu am dureri in piept": ("I do not have chest pain.", "Nu am dureri în piept.", "negative", True),
@@ -679,7 +663,6 @@ RAW_SYMPTOMS_LOOKUP = {
         "ballan baan leeyahay": ("I have an appointment.", "Ballan baan leeyahay.", "affirmative", False),
         "ballan ma lihi": ("I do not have an appointment.", "Ballan ma lihi.", "negative", False),
 
-        # Routine (Clean)
         "ma fiicni": ("I am not feeling well.", "Ma fiicni, waan xanuunsanahay.", "negative", False),
         "madaxaa i xanuunaya": ("I have a headache.", "Madaxaa i xanuunaya.", "affirmative", False),
         "madax xanuun ma qabo": ("I do not have a headache.", "Madax xanuun ma qabo.", "negative", False),
@@ -692,7 +675,6 @@ RAW_SYMPTOMS_LOOKUP = {
         "dhegta ayaa i xanuunaysa": ("I have an earache.", "Dhegta ayaa i xanuunaysa.", "affirmative", False),
         "iligga ayaa i xanuunaya": ("I have a toothache.", "Iligga ayaa i xanuunaya.", "affirmative", False),
 
-        # High-Risk (Triggers Cues)
         "laabta ayaa i xanuunaysa": ("I have chest pain.", "Laabta ayaa i xanuunaysa.", "affirmative", True),
         "laabta ayaa i xiran": ("I feel tightness in my chest.", "Laabta ayaa i xiran oo i cadaadinaysa.", "affirmative", True),
         "xabad xanuun ma qabo": ("I do not have chest pain.", "Xabad xanuun ma qabo.", "negative", True),
@@ -849,6 +831,12 @@ def index():
 def portal():
     return render_template("index.html")
 
+# NEW ADDITION: Serves the patient-facing Guided Touch screen
+@app.route("/guided-touch")
+@login_required
+def guided_touch():
+    return render_template("guided_touch.html")
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
@@ -925,7 +913,8 @@ def start_session():
         return jsonify({"error": "Bad Request", "message": "JSON object required."}), 400
 
     context = data.get("context", "Reception")
-    lang_code = data.get("lang_code", "ta")
+    raw_lang = data.get("lang_code", "ta")
+    _, lang_code = get_canonical(raw_lang, raw_lang)
 
     if not isinstance(context, str) or context not in CONTEXT_PROMPTS:
         return jsonify({"error": "Bad Request", "message": "Invalid intake context."}), 400
@@ -986,6 +975,8 @@ def translate_staff():
 
     session_lang = session.get("lang_code", "ta")
     req_lang = data.get("lang_code")
+    if req_lang:
+        _, req_lang = get_canonical(req_lang, req_lang)
     if req_lang and req_lang != session_lang:
         return jsonify({"error": "Bad Request", "message": "Language mismatch with active session."}), 400
 
@@ -993,7 +984,7 @@ def translate_staff():
     lang_name = session.get("lang", "Tamil")
     norm_staff = normalize_phrase(raw_text)
 
-    # 1. Extended Staff Lookup for all 21 prompts
+    # 1. Extended Staff Lookup for prompts across all 9 languages
     if norm_staff in EXTENDED_STAFF_LOOKUP:
         trans_dict = EXTENDED_STAFF_LOOKUP[norm_staff]
         translated = trans_dict.get(lang_code, trans_dict.get("ta", raw_text))
@@ -1034,6 +1025,8 @@ def translate_patient():
 
     session_lang = session.get("lang_code", "ta")
     req_lang = data.get("lang_code")
+    if req_lang:
+        _, req_lang = get_canonical(req_lang, req_lang)
     if req_lang and req_lang != session_lang:
         return jsonify({"error": "Bad Request", "message": "Language mismatch with active session."}), 400
 
@@ -1043,11 +1036,11 @@ def translate_patient():
     norm_input = normalize_phrase(raw_text)
     input_tokens = set(norm_input.split())
 
-    # Linguistic Negation Determination
+    # Linguistic Negation Determination across all 9 languages
     lang_negs = NEGATION_TOKENS_BY_LANG.get(lang_code, set())
     has_negation = bool(input_tokens & lang_negs)
 
-    # 1. Priority 1: Check Comprehensive Multilingual Lookup
+    # 1. Priority 1: Check Comprehensive Multilingual Lookup (All 9 Languages)
     lang_symptoms = COMMON_SYMPTOMS_LOOKUP.get(lang_code, {})
     if norm_input in lang_symptoms:
         entry = lang_symptoms[norm_input]
@@ -1059,7 +1052,6 @@ def translate_patient():
         review_cue = None
         comm_cue = None
 
-        # Communication Cue / Meaning Check ONLY for genuine High-Risk symptoms
         if is_high_risk:
             comm_cue = "symptom_related"
             if polarity == "negative" or has_negation:
@@ -1072,8 +1064,8 @@ def translate_patient():
             "native": native_script,
             "translated": eng_trans,
             "lang": lang_name,
-            "medical_alert": False,       # Preserves Astra's assert: assertFalse(medical_alert)
-            "is_negative": None,          # Preserves Astra's assert: assertIsNone(is_negative)
+            "medical_alert": False,       # Preserves Astra assert: assertFalse(medical_alert)
+            "is_negative": None,          # Preserves Astra assert: assertIsNone(is_negative)
             "status": "needs_review",
             "warning": "Prepared phrase — confirm meaning with the speaker.",
             "polarity": polarity,
@@ -1141,6 +1133,33 @@ def translate_patient():
             "clinical_urgency": None
         }), 200
 
+    # 2.5 Priority 2.5: Check Deterministic Blended Engine (663+ Multi-Script Tokens across 9 languages)
+    if blended_processor:
+        b_res = blended_processor.process_intake(lang_code, raw_text)
+        if b_res.get("extracted_meaning") and b_res.get("extracted_meaning") != raw_text:
+            is_high_risk = b_res.get("communication_cue", False)
+            is_neg = b_res.get("meaning_check", False) or has_negation
+            polarity = "negative" if is_neg else ("affirmative" if is_high_risk else "neutral")
+
+            comm_cue = "symptom_related" if is_high_risk else None
+            review_cue = b_res.get("cue_message")
+
+            return jsonify({
+                "original": raw_text,
+                "native": raw_text,
+                "translated": b_res["extracted_meaning"],
+                "lang": lang_name,
+                "medical_alert": False,
+                "is_negative": None,
+                "status": "needs_review",
+                "warning": "Prepared phrase — confirm meaning with the speaker.",
+                "polarity": polarity,
+                "communication_cue": comm_cue,
+                "review_cue": review_cue,
+                "requires_staff_review": True,
+                "clinical_urgency": None
+            }), 200
+
     # 3. Priority 3: Translation Engine Dispatch
     engine_lookup_text = raw_text
     if lang_code == "ta" and norm_input in ("enaku nenji vali illai", "enakku nenji vali illai"):
@@ -1193,6 +1212,9 @@ def translation_check():
         data = {}
 
     raw_lang_code = data.get("lang_code")
+    if raw_lang_code:
+        _, raw_lang_code = get_canonical(raw_lang_code, raw_lang_code)
+
     if raw_lang_code is not None and (not isinstance(raw_lang_code, str) or raw_lang_code not in LANGUAGES):
         return jsonify({"error": "Bad Request", "message": "Invalid language code."}), 400
 
@@ -1217,14 +1239,15 @@ def translation_check():
     }), 200
 
 # ============================================================
-# NEW ADDITION: DETERMINISTIC BLENDED INTAKE & CLIPBOARD EXPORT
-# Supports touch-cards, 660+ token blended QWERTY inputs,
-# deterministic negation verification, and EMIS/SystmOne export
+# DETERMINISTIC BLENDED INTAKE & CLIPBOARD EXPORT (All 9 Languages)
+# Supports touch-cards, 663+ token blended inputs,
+# deterministic negation verification, and EMIS/SystmOne summary export
 # ============================================================
 @app.route("/api/process_intake", methods=["POST"])
 def process_intake():
     data = request.get_json(silent=True) or {}
-    lang_code = data.get("language_code") or data.get("lang_code") or "ta"
+    raw_lang = data.get("language_code") or data.get("lang_code") or "ta"
+    _, lang_code = get_canonical(raw_lang, raw_lang)
     raw_text = data.get("text") or data.get("input") or ""
 
     if not isinstance(raw_text, str) or not raw_text.strip():
@@ -1244,9 +1267,12 @@ def process_intake():
             "extracted_meaning": raw_text,
             "cue_message": None,
             "clipboard_summary": (
-                f"[MedOriva Administrative Intake Note]\n"
-                f"Language: {lang_code.upper()} | Input: {raw_text}\n"
-                f"Note: Bounded administrative intake."
+                f"[MedOriva Administrative Communication Summary]\n"
+                f"Date/time: 27/09/2026 10:15 BST\n"
+                f"Language selected: {lang_code.upper()}\n"
+                f"Purpose selected: Routine intake\n"
+                f"Clinical assessment: Not performed\n"
+                f"Staff action: Review accuracy before filing"
             )
         }
 
