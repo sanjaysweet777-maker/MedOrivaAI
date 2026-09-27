@@ -341,7 +341,7 @@
           <span class="title">Appointment &amp; Admin</span>
           <span class="desc">Prescription administration, sample/document logistics, and routine appointment clarifications.</span>
         </div>
-        <div class="ctx-card" data-ctx="Basic Symptoms" onclick="selectCtx(this)">
+        <div class="ctx-card" data-ctx="Reason for Contact" onclick="selectCtx(this)">
           <span class="icon">🧭</span>
           <span class="title">Care Navigation &amp; Reason for Visit</span>
           <span class="desc">Captures patient-described reason for contact with staff review cues. Does not perform clinical triage.</span>
@@ -518,7 +518,7 @@
         </div>
         <div style="display: flex; align-items: center; gap: 14px;">
           <button type="button" onclick="generateAndShowSummary()" style="background: #ffffff; border: 1.5px solid #cbd5e1; color: #0f172a; padding: 4px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 700; cursor: pointer;">
-            📋 Record Summary
+            📋 Prepare Administrative Outcome
           </button>
           <div style="font-size: 11.5px; color: #64748b;">
             Staff: <strong>Right (Green)</strong> | Patient: <strong>Left (White)</strong>
@@ -529,16 +529,16 @@
       <!-- Bounded Administrative Summary Verification Panel (Staff Controlled) -->
       <div id="administrative-summary-panel" class="admin-summary-box">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <strong style="font-size: 12px; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px;">Staff Verification &amp; Administrative Record Summary</strong>
+          <strong style="font-size: 12px; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px;">Staff Verification &amp; Administrative Outcome</strong>
           <button type="button" onclick="closeSummaryPanel()" style="background: transparent; border: none; font-size: 15px; cursor: pointer; color: #64748b;">✕</button>
         </div>
         <p style="font-size: 11.5px; color: #64748b; margin: 0 0 8px 0;">
-          Review the administrative outcome below before copying into local practice records:
+          Review the minimum administrative outcome below. Copy it only when local practice policy requires a record:
         </p>
         <pre id="summary-preview-text" style="background: #ffffff; border: 1px solid #cbd5e1; padding: 10px; font-family: monospace; font-size: 11.5px; white-space: pre-wrap; color: #1e293b; border-radius: 6px; margin: 0 0 10px 0;"></pre>
         <div style="display: flex; align-items: center; gap: 12px;">
           <button type="button" id="copy-summary-btn" onclick="handleCopySummary()" style="background: #0F6E56; color: #ffffff; border: none; padding: 7px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer;">
-            Copy Administrative Summary
+            Copy Administrative Outcome
           </button>
           <span id="copy-status-message" role="status" aria-live="polite" style="font-size: 12px; font-weight: 600;"></span>
         </div>
@@ -554,7 +554,7 @@
 
       <!-- Alert Banner -->
       <div class="alert-banner" id="alertBanner" style="display:none">
-        <span>ℹ️ Recognised symptom phrase identified — staff-facing communication cue. Follow practice protocol.</span>
+        <span>ℹ️ Symptom-related wording is present. Confirm meaning with the patient and apply the practice's normal staff-led process.</span>
         <button onclick="dismissAlert()">✕</button>
       </div>
 
@@ -603,7 +603,7 @@
                 <strong style="font-size: 14px; color: #92400e;">Staff-Led Understanding Check</strong>
               </div>
               <p style="margin: 0; font-size: 12.5px; color: #78350f; line-height: 1.4;">
-                Displays a prepared confirmation prompt and records confirmation or correction for staff review.
+                Displays a prepared confirmation prompt and shows the confirmation or correction during the active session.
               </p>
             </div>
             <button type="button" class="action-btn amber" onclick="runUnderstandingCheck()" id="confirmBtn" style="white-space: nowrap; padding: 12px 22px; font-weight: 700; cursor: pointer; border-radius: 6px;">
@@ -612,7 +612,7 @@
           </div>
 
           <div class="input-hint" style="margin-top: 8px;">
-            Displays a prepared confirmation prompt and records confirmation or correction for staff review.
+            Displays a prepared confirmation prompt and shows the confirmation or correction during the active session.
           </div>
         </div>
       </div>
@@ -718,6 +718,10 @@ const VERIFY_CONFIG = {
 };
 
 let activeGuidedTouchSelection = null;
+window.MedorivaOutcomeState = window.MedorivaOutcomeState || {
+  lastOutcome: null,
+  confirmation: null
+};
 
 function getCanonicalLanguage() {
   if (typeof selectedLang !== 'undefined' && selectedLang) {
@@ -754,6 +758,8 @@ window.addEventListener("message", function(event) {
   if (event.origin !== window.location.origin) return;
   if (event.data && event.data.type === "MEDORIVA_PATIENT_TOUCH") {
     activeGuidedTouchSelection = event.data;
+    window.MedorivaOutcomeState.lastOutcome = event.data.english || null;
+    window.MedorivaOutcomeState.confirmation = "confirmed";
 
     const chatArea = document.getElementById("chatArea");
     const emptyChat = document.getElementById("emptyChat");
@@ -798,27 +804,35 @@ function generateSafeSummary() {
   const sideCtx = document.getElementById("sideCtx");
   const ctxName = (sideCtx && sideCtx.textContent !== "—") ? sideCtx.textContent : "Routine Reception & Arrival";
   
-  const purpose = activeGuidedTouchSelection 
-    ? activeGuidedTouchSelection.english 
-    : ctxName;
+  const outcomeState = window.MedorivaOutcomeState || {};
+  const purpose = activeGuidedTouchSelection
+    ? activeGuidedTouchSelection.english
+    : outcomeState.lastOutcome;
+
+  if (!purpose || outcomeState.confirmation !== "confirmed") {
+    return null;
+  }
 
   return [
-    "[MedOriva Administrative Communication Summary]",
+    "[MedOriva Staff-Reviewed Administrative Outcome]",
     `Date/time: ${dateStr}`,
     `Language selected: ${lang}`,
-    `Purpose selected: ${purpose}`,
+    `Administrative outcome: ${purpose}`,
     "Patient confirmation: Confirmed through Understanding Check",
     "Clinical assessment: Not performed",
-    "Source: Patient communication through MedOriva workspace",
-    "Staff action: Review accuracy before filing into local record"
+    `Session context: ${ctxName}`,
+    "Staff action: Copy only if required by local practice policy"
   ].join("\n");
 }
 
 function generateAndShowSummary() {
   const panel = document.getElementById("administrative-summary-panel");
   const preview = document.getElementById("summary-preview-text");
+  const copyButton = document.getElementById("copy-summary-btn");
   if (panel && preview) {
-    preview.textContent = generateSafeSummary();
+    const summary = generateSafeSummary();
+    preview.textContent = summary || "No confirmed administrative outcome is available. Complete a patient response and a successful Understanding Check before preparing an outcome for the local record.";
+    if (copyButton) copyButton.disabled = !summary;
     panel.style.display = "block";
   }
 }
@@ -908,6 +922,8 @@ function patientConfirmsCheck(cardId, isYes, langKey) {
   const card = document.getElementById(cardId);
   const config = VERIFY_CONFIG[langKey];
   if (!config) return;
+
+  window.MedorivaOutcomeState.confirmation = isYes ? "confirmed" : "correction_required";
 
   if (card) {
     if (isYes) {

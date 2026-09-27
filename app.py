@@ -42,7 +42,10 @@ if not env_secret:
 else:
     app.secret_key = env_secret
 
-cookie_secure = os.environ.get("COOKIE_SECURE", "false").lower() in ("true", "1", "yes")
+hosted_https_default = os.environ.get("RENDER", "").lower() in ("true", "1", "yes")
+cookie_secure = os.environ.get(
+    "COOKIE_SECURE", "true" if hosted_https_default else "false"
+).lower() in ("true", "1", "yes")
 app.config["SESSION_COOKIE_SECURE"] = cookie_secure
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
@@ -100,14 +103,14 @@ CONTEXT_PROMPTS = {
         "Please wait in the waiting area.",
         "The appointment will take about 15 minutes."
     ],
-    "Basic Symptoms": [
-        "Where is your pain?",
-        "How long have you had this?",
-        "Do you have a fever?",
-        "Are you having difficulty breathing?",
-        "Do you feel dizzy or faint?",
-        "Do you have chest pain?",
-        "When did the symptoms start?"
+    "Reason for Contact": [
+        "Good morning. How can I help you?",
+        "Do you have an appointment?",
+        "Do you have your appointment letter?",
+        "Do you need an interpreter?",
+        "Please fill in this form.",
+        "Please wait in the waiting area.",
+        "Can I take your name and date of birth?"
     ]
 }
 
@@ -813,6 +816,19 @@ def add_security_headers(response):
     response.headers["Pragma"] = "no-cache"
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline'; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src 'self' https://fonts.gstatic.com data:; "
+        "img-src 'self' data: https://images.unsplash.com; "
+        "connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
+    )
+    forwarded_proto = request.headers.get("X-Forwarded-Proto", "").lower()
+    if request.is_secure or forwarded_proto == "https":
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     return response
 
 def reset_translation_session():
@@ -1245,22 +1261,35 @@ def translation_check():
     }), 200
 
 # ============================================================
-# DETERMINISTIC BLENDED INTAKE & CLIPBOARD EXPORT (All 9 Languages)
-# Supports touch-cards, 663+ token blended inputs,
-# deterministic negation verification, and EMIS/SystmOne summary export
+# DETERMINISTIC BLENDED INTAKE SUPPORT (All 9 Languages)
+# Supports touch cards, configured blended inputs and neutral meaning checks.
+# Any administrative outcome is reviewed and copied manually by authorised staff;
+# this prototype has no direct connection to EMIS Web or SystmOne.
 # ============================================================
 @app.route("/api/process_intake", methods=["POST"])
+@login_required
 def process_intake():
+    if not session.get("active"):
+        return jsonify({"error": "Conflict", "message": "No active session."}), 409
+
     data = request.get_json(silent=True) or {}
-    raw_lang = data.get("language_code") or data.get("lang_code") or "ta"
+    if not isinstance(data, dict):
+        return jsonify({"error": "Bad Request", "message": "JSON object required."}), 400
+
+    raw_lang = data.get("language_code") or data.get("lang_code") or session.get("lang_code", "ta")
     if isinstance(raw_lang, str):
         _, lang_code = get_canonical(raw_lang, raw_lang)
     else:
-        lang_code = "ta"
+        return jsonify({"error": "Bad Request", "message": "Invalid language code."}), 400
+
+    session_lang = session.get("lang_code")
+    if lang_code not in LANGUAGES or lang_code != session_lang:
+        return jsonify({"error": "Bad Request", "message": "Language mismatch with active session."}), 400
+
     raw_text = data.get("text") or data.get("input") or ""
 
-    if not isinstance(raw_text, str) or not raw_text.strip():
-        return jsonify({"error": "Bad Request", "message": "Text input cannot be empty."}), 400
+    if not isinstance(raw_text, str) or not raw_text.strip() or len(raw_text) > 2000:
+        return jsonify({"error": "Bad Request", "message": "Invalid text input."}), 400
 
     if blended_processor:
         result = blended_processor.process_intake(lang_code, raw_text)
@@ -1280,7 +1309,8 @@ def process_intake():
                 f"Language selected: {lang_code.upper()}\n"
                 f"Purpose selected: Routine intake\n"
                 f"Clinical assessment: Not performed\n"
-                f"Staff action: Review accuracy before filing"
+                f"Confirmation status: Staff confirmation required\n"
+                f"Staff action: Review and record only if required by local practice policy"
             )
         }
 
