@@ -21,10 +21,10 @@ class BlendedLanguageProcessor:
     def normalize(self, text: str) -> str:
         if not text:
             return ""
-        text = text.lower().strip()
+        text = text.lower()
         text = re.sub(r'[^\w\s]', ' ', text)
         text = re.sub(r'\s+', ' ', text)
-        return text
+        return text.strip()
 
     def detect_negation(self, lang_code: str, norm_text: str) -> bool:
         key = self._get_lang_key(lang_code)
