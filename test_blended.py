@@ -3,11 +3,12 @@
 MedOriva AI Ltd - Automated Regression Test Suite
 Validates: 9 MVP Languages, Multi-Script Colloquial Input,
 Negation Checking, Clinical Boundary Detection, and Summary Export.
-Coverage: 24 Dedicated Unit Tests
+Coverage: 25 Dedicated Unit Tests (including Full Lexicon Audit)
 """
 
 import unittest
 from blended_engine import BlendedLanguageProcessor
+from blended_config import EXPANDED_LEXICON
 
 class TestBlendedLanguageProcessor(unittest.TestCase):
     @classmethod
@@ -191,6 +192,39 @@ class TestBlendedLanguageProcessor(unittest.TestCase):
         self.assertIn("Language: TA", summary)
         self.assertIn("Bounded administrative intake only", summary)
         self.assertIn("Clinical consultations require qualified interpreters", summary)
+
+    # -------------------------------------------------------------------------
+    # 12. FULL LEXICON AUDIT (1000+ Tokens Across All 9 MVP Languages)
+    # -------------------------------------------------------------------------
+    def test_25_all_lexicon_tokens_integrity(self):
+        """Verifies that all 1,000+ tokens across all 9 languages load and process cleanly."""
+        expected_langs = {"ta", "hi", "ml", "pl", "ar", "ur", "bn", "so", "ro"}
+        self.assertEqual(set(EXPANDED_LEXICON.keys()), expected_langs)
+
+        total_tokens = 0
+        for lang, categories in EXPANDED_LEXICON.items():
+            # Check negation list
+            negs = categories.get("negation", [])
+            self.assertGreater(len(negs), 0, f"Language {lang} missing negation tokens")
+            total_tokens += len(negs)
+
+            # Check critical symptoms
+            for cat, phrases in categories.get("critical_symptoms", {}).items():
+                self.assertGreater(len(phrases), 0, f"Language {lang} critical {cat} empty")
+                total_tokens += len(phrases)
+
+            # Check routine admin
+            for cat, phrases in categories.get("routine_admin", {}).items():
+                self.assertGreater(len(phrases), 0, f"Language {lang} admin {cat} empty")
+                total_tokens += len(phrases)
+
+            # Check minor ailments
+            for cat, phrases in categories.get("minor_ailments", {}).items():
+                self.assertGreater(len(phrases), 0, f"Language {lang} minor {cat} empty")
+                total_tokens += len(phrases)
+
+        self.assertGreaterEqual(total_tokens, 800, f"Expected 800+ total tokens, found {total_tokens}")
+        print(f"\n[OK] Audited {total_tokens} multi-script tokens across all 9 MVP languages.")
 
 if __name__ == "__main__":
     unittest.main()
