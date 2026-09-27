@@ -1,10 +1,14 @@
 import json
+import hmac
 import logging
 import os
 import re
 import secrets
+import threading
+import time
 import unicodedata
 import uuid
+from collections import defaultdict, deque
 from urllib.parse import urlparse
 from flask import Flask, flash, jsonify, redirect, render_template, request, session, url_for
 from flask_login import LoginManager, UserMixin, current_user, login_required, login_user, logout_user
@@ -49,6 +53,8 @@ cookie_secure = os.environ.get(
 app.config["SESSION_COOKIE_SECURE"] = cookie_secure
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["SESSION_COOKIE_NAME"] = "medoriva_session"
+app.config["SESSION_REFRESH_EACH_REQUEST"] = False
 
 # ============================================================
 # CANONICAL LANGUAGE MAPPING (All 9 Approved MVP Languages)
@@ -778,8 +784,46 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-DEMO_EMAIL = os.environ.get("DEMO_EMAIL", "demo@medoriva.com").strip().lower()
-DEMO_PASSWORD = os.environ.get("DEMO_PASSWORD", "medoriva2026").strip()
+configured_demo_email = os.environ.get("DEMO_EMAIL", "").strip().lower()
+configured_demo_password = os.environ.get("DEMO_PASSWORD", "").strip()
+allow_public_demo = os.environ.get("ALLOW_PUBLIC_DEMO", "false").lower() in ("true", "1", "yes")
+
+# Public sample credentials are available only when explicitly enabled for local
+# fictional-data demonstrations. Hosted deployments must provide private values.
+DEMO_EMAIL = configured_demo_email or "demo@medoriva.com"
+DEMO_PASSWORD = configured_demo_password or "medoriva2026"
+PRIVATE_DEMO_CONFIGURED = bool(configured_demo_email and configured_demo_password)
+PUBLIC_DEMO = bool(allow_public_demo and not hosted_https_default and not PRIVATE_DEMO_CONFIGURED)
+
+if hosted_https_default and not PRIVATE_DEMO_CONFIGURED:
+    logger.error("Private assessor credentials are not configured for the hosted deployment.")
+if PRIVATE_DEMO_CONFIGURED and len(DEMO_PASSWORD) < 12:
+    logger.warning("DEMO_PASSWORD should contain at least 12 characters.")
+
+LOGIN_WINDOW_SECONDS = 10 * 60
+LOGIN_MAX_FAILURES = 5
+login_failures = defaultdict(deque)
+login_failures_lock = threading.Lock()
+
+def login_rate_key():
+    # Do not trust client-supplied forwarding headers for this prototype.
+    return request.remote_addr or "unknown"
+
+def login_is_limited(key):
+    now = time.monotonic()
+    with login_failures_lock:
+        attempts = login_failures[key]
+        while attempts and now - attempts[0] > LOGIN_WINDOW_SECONDS:
+            attempts.popleft()
+        return len(attempts) >= LOGIN_MAX_FAILURES
+
+def record_login_failure(key):
+    with login_failures_lock:
+        login_failures[key].append(time.monotonic())
+
+def clear_login_failures(key):
+    with login_failures_lock:
+        login_failures.pop(key, None)
 
 class User(UserMixin):
     def __init__(self, email):
@@ -803,6 +847,11 @@ def unauthorized():
 
 @app.before_request
 def enforce_security_checks():
+    if request.method in ("POST", "PUT", "PATCH", "DELETE"):
+        fetch_site = request.headers.get("Sec-Fetch-Site", "").lower()
+        if fetch_site == "cross-site":
+            return jsonify({"error": "Forbidden", "message": "Cross-site request rejected."}), 403
+
     origin = request.headers.get("Origin")
     if origin:
         parsed_origin = urlparse(origin)
@@ -816,6 +865,9 @@ def add_security_headers(response):
     response.headers["Pragma"] = "no-cache"
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["X-Permitted-Cross-Domain-Policies"] = "none"
+    response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+    response.headers["Cross-Origin-Resource-Policy"] = "same-origin"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     response.headers["Content-Security-Policy"] = (
@@ -824,7 +876,8 @@ def add_security_headers(response):
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
         "font-src 'self' https://fonts.gstatic.com data:; "
         "img-src 'self' data: https://images.unsplash.com; "
-        "connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
+        "connect-src 'self'; object-src 'none'; frame-ancestors 'self'; "
+        "base-uri 'self'; form-action 'self'; upgrade-insecure-requests"
     )
     forwarded_proto = request.headers.get("X-Forwarded-Proto", "").lower()
     if request.is_secure or forwarded_proto == "https":
@@ -858,7 +911,20 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for('portal'))
 
+    credentials_available = PRIVATE_DEMO_CONFIGURED or PUBLIC_DEMO or app.config.get("TESTING", False)
+    if not credentials_available:
+        if request.is_json:
+            return jsonify({"status": "unavailable", "message": "Private demonstration access is not configured."}), 503
+        return render_template('login.html', public_demo=False, configuration_error=True), 503
+
     if request.method == 'POST':
+        rate_key = login_rate_key()
+        if login_is_limited(rate_key):
+            if request.is_json:
+                return jsonify({"status": "error", "message": "Too many sign-in attempts. Please try again later."}), 429
+            flash('Too many sign-in attempts. Please try again later.', 'error')
+            return render_template('login.html', public_demo=PUBLIC_DEMO, configuration_error=False), 429
+
         if request.is_json:
             data = request.get_json(silent=True) or {}
             email = str(data.get('email') or data.get('username') or '').strip().lower()
@@ -867,7 +933,10 @@ def login():
             email = str(request.form.get('email') or request.form.get('username') or '').strip().lower()
             password = str(request.form.get('password') or '').strip()
 
-        if email == DEMO_EMAIL and password == DEMO_PASSWORD:
+        email_match = hmac.compare_digest(email, DEMO_EMAIL)
+        password_match = hmac.compare_digest(password, DEMO_PASSWORD)
+        if email_match and password_match:
+            clear_login_failures(rate_key)
             user = User(email)
             login_user(user, remember=False)
 
@@ -879,12 +948,14 @@ def login():
                 return redirect(next_url)
             return redirect(url_for('portal'))
 
+        record_login_failure(rate_key)
+
         if request.is_json:
             return jsonify({"status": "error", "message": "Invalid email or password"}), 401
 
         flash('Invalid email or password', 'error')
 
-    return render_template('login.html')
+    return render_template('login.html', public_demo=PUBLIC_DEMO, configuration_error=False)
 
 @app.route('/logout')
 @login_required
@@ -899,9 +970,9 @@ def logout():
 @app.route("/api/contact", methods=["POST"])
 def submit_contact():
     return jsonify({
-        "status": "unavailable",
-        "message": "Automated message delivery is currently disabled. Please contact the team directly via email at sanjaythillai@gmail.com or telephone +447778095553."
-    }), 503
+        "status": "retired",
+        "message": "The website does not collect contact-form data. Please use the displayed direct email link and do not include patient-identifiable information."
+    }), 410
 
 @app.route("/api/ping", methods=["GET"])
 def ping():
