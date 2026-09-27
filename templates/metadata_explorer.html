@@ -377,7 +377,7 @@ let SYNTHETIC_RECORDS = [
     verification: "Confirmed via Understanding Check",
     status_code: "status-confirmed",
     simulated_action: "Simulated action: Patient check-in logged",
-    summary: "[MedOriva Administrative Communication Summary]\nDate/time: 27/09/2026 10:14 BST\nLanguage selected: Tamil\nPurpose selected: Appointment Check-in\nPatient confirmation: Confirmed through Understanding Check\nClinical assessment: Not performed\nSource: Patient communication through MedOriva workspace (Simulated)\nStaff action: Review accuracy before filing into local record"
+    summary: "[MedOriva Staff-Reviewed Administrative Outcome]\nDate/time: 27/09/2026 10:14 BST\nLanguage selected: Tamil\nAdministrative outcome: Appointment Check-in\nPatient confirmation: Confirmed through Understanding Check\nClinical assessment: Not performed\nSource: Synthetic demonstration event\nStaff action: Copy only if required by local practice policy"
   },
   {
     event_id: "SYNTH-0927-02",
@@ -388,7 +388,7 @@ let SYNTHETIC_RECORDS = [
     verification: "Confirmed via Understanding Check",
     status_code: "status-confirmed",
     simulated_action: "Simulated action: Specimen logged for lab run",
-    summary: "[MedOriva Administrative Communication Summary]\nDate/time: 27/09/2026 10:48 BST\nLanguage selected: Polish\nPurpose selected: Sample or document handover\nPatient confirmation: Confirmed through Understanding Check\nClinical assessment: Not performed\nSource: Patient communication through MedOriva workspace (Simulated)\nStaff action: Review accuracy before filing into local record"
+    summary: "[MedOriva Staff-Reviewed Administrative Outcome]\nDate/time: 27/09/2026 10:48 BST\nLanguage selected: Polish\nAdministrative outcome: Sample or document handover\nPatient confirmation: Confirmed through Understanding Check\nClinical assessment: Not performed\nSource: Synthetic demonstration event\nStaff action: Copy only if required by local practice policy"
   },
   {
     event_id: "SYNTH-0927-03",
@@ -399,7 +399,7 @@ let SYNTHETIC_RECORDS = [
     verification: "Staff-Led Verification Loop",
     status_code: "status-confirmed",
     simulated_action: "Simulated action: Prescription status confirmed",
-    summary: "[MedOriva Administrative Communication Summary]\nDate/time: 27/09/2026 11:05 BST\nLanguage selected: Arabic\nPurpose selected: Prescription query or collection\nPatient confirmation: Confirmed through Understanding Check\nClinical assessment: Not performed\nSource: Patient communication through MedOriva workspace (Simulated)\nStaff action: Review accuracy before filing into local record"
+    summary: "[MedOriva Staff-Reviewed Administrative Outcome]\nDate/time: 27/09/2026 11:05 BST\nLanguage selected: Arabic\nAdministrative outcome: Prescription query or collection\nPatient confirmation: Confirmed through Understanding Check\nClinical assessment: Not performed\nSource: Synthetic demonstration event\nStaff action: Copy only if required by local practice policy"
   },
   {
     event_id: "SYNTH-0927-04",
@@ -410,7 +410,7 @@ let SYNTHETIC_RECORDS = [
     verification: "Safety Escalation Initiated",
     status_code: "status-esc",
     simulated_action: "Simulated action: Face-to-face interpreter flagged",
-    summary: "[MedOriva Administrative Communication Summary]\nDate/time: 27/09/2026 11:32 BST\nLanguage selected: Somali\nPurpose selected: Professional interpreter requested\nPatient confirmation: Confirmed through Understanding Check\nClinical assessment: Not performed (Interpreter required for consultation)\nSource: Patient communication through MedOriva workspace (Simulated)\nStaff action: Escalate to practice telephone/face-to-face translation service"
+    summary: "[MedOriva Staff-Reviewed Administrative Outcome]\nDate/time: 27/09/2026 11:32 BST\nLanguage selected: Somali\nAdministrative outcome: Professional interpreter requested\nPatient confirmation: Confirmed through Understanding Check\nClinical assessment: Not performed\nSource: Synthetic demonstration event\nStaff action: Escalate to the practice's qualified-interpreter pathway"
   }
 ];
 
@@ -495,7 +495,7 @@ function simulateNewEvent() {
     verification: "Confirmed via Understanding Check",
     status_code: "status-confirmed",
     simulated_action: "Simulated action: Reception guidance presented",
-    summary: `[MedOriva Administrative Communication Summary]\nDate/time: ${pad(now.getUTCDate())}/${pad(now.getUTCMonth()+1)}/${now.getUTCFullYear()} ${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())} BST\nLanguage selected: ${pick.name.split(' ')[0]}\nPurpose selected: ${pick.cat}\nPatient confirmation: Confirmed through Understanding Check\nClinical assessment: Not performed\nSource: Patient communication through MedOriva workspace (Simulated)\nStaff action: Review accuracy before filing into local record`
+    summary: `[MedOriva Staff-Reviewed Administrative Outcome]\nDate/time: ${pad(now.getUTCDate())}/${pad(now.getUTCMonth()+1)}/${now.getUTCFullYear()} ${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())} BST\nLanguage selected: ${pick.name.split(' ')[0]}\nAdministrative outcome: ${pick.cat}\nPatient confirmation: Confirmed through Understanding Check\nClinical assessment: Not performed\nSource: Synthetic demonstration event\nStaff action: Copy only if required by local practice policy`
   });
 
   selectedIndex = 0;
