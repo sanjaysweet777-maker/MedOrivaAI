@@ -1,11 +1,22 @@
 # blended_engine.py
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from blended_config import EXPANDED_LEXICON
 
 class BlendedLanguageProcessor:
     def __init__(self):
         self.lexicon = EXPANDED_LEXICON
+
+    def _get_lang_key(self, lang_code: str) -> str:
+        """Normalizes any incoming language string (e.g. 'Tamil', 'ta-IN', 'ta') to the 2-letter key."""
+        if not lang_code:
+            return "ta"
+        clean = str(lang_code).strip().lower().split('-')[0].split('_')[0]
+        name_map = {
+            "tamil": "ta", "hindi": "hi", "malayalam": "ml", "polish": "pl",
+            "arabic": "ar", "urdu": "ur", "bengali": "bn", "somali": "so", "romanian": "ro"
+        }
+        return name_map.get(clean, clean)
 
     def normalize(self, text: str) -> str:
         if not text:
@@ -16,51 +27,64 @@ class BlendedLanguageProcessor:
         return text
 
     def detect_negation(self, lang_code: str, norm_text: str) -> bool:
-        tokens = self.lexicon.get(lang_code, {}).get("negation", [])
+        key = self._get_lang_key(lang_code)
+        tokens = self.lexicon.get(key, {}).get("negation", [])
         words = norm_text.split()
         for token in tokens:
             if " " in token:
-                if token in norm_text:
+                # Multi-word negation phrase check
+                if re.search(r'\b' + re.escape(token) + r'\b', norm_text):
                     return True
             else:
+                # Single-word exact token match
                 if token in words:
                     return True
         return False
 
-    def scan_critical(self, lang_code: str, norm_text: str):
-        crit_dict = self.lexicon.get(lang_code, {}).get("critical_symptoms", {})
-        for cat, phrases in crit_dict.items():
+    def _scan_category(self, section_dict: dict, norm_text: str):
+        """Scans a section dictionary using word boundaries, prioritising longer phrases first."""
+        all_candidates = []
+        for cat, phrases in section_dict.items():
             for p in phrases:
-                if p in norm_text:
-                    return cat, p
+                all_candidates.append((cat, p))
+        
+        # Sort by phrase length descending (longest match wins)
+        all_candidates.sort(key=lambda x: len(x[1]), reverse=True)
+
+        for cat, p in all_candidates:
+            if re.search(r'\b' + re.escape(p) + r'\b', norm_text):
+                return cat, p
         return None, None
+
+    def scan_critical(self, lang_code: str, norm_text: str):
+        key = self._get_lang_key(lang_code)
+        crit_dict = self.lexicon.get(key, {}).get("critical_symptoms", {})
+        return self._scan_category(crit_dict, norm_text)
 
     def scan_routine_admin(self, lang_code: str, norm_text: str):
-        admin_dict = self.lexicon.get(lang_code, {}).get("routine_admin", {})
-        for cat, phrases in admin_dict.items():
-            for p in phrases:
-                if p in norm_text:
-                    return cat, p
-        return None, None
+        key = self._get_lang_key(lang_code)
+        admin_dict = self.lexicon.get(key, {}).get("routine_admin", {})
+        return self._scan_category(admin_dict, norm_text)
 
     def scan_minor_ailments(self, lang_code: str, norm_text: str):
-        minor_dict = self.lexicon.get(lang_code, {}).get("minor_ailments", {})
-        for cat, phrases in minor_dict.items():
-            for p in phrases:
-                if p in norm_text:
-                    return cat, p
-        return None, None
+        key = self._get_lang_key(lang_code)
+        minor_dict = self.lexicon.get(key, {}).get("minor_ailments", {})
+        return self._scan_category(minor_dict, norm_text)
 
     def process_intake(self, lang_code: str, raw_text: str) -> dict:
+        key = self._get_lang_key(lang_code)
         norm = self.normalize(raw_text)
-        has_neg = self.detect_negation(lang_code, norm)
-        crit_cat, _ = self.scan_critical(lang_code, norm)
-        admin_cat, _ = self.scan_routine_admin(lang_code, norm)
-        minor_cat, _ = self.scan_minor_ailments(lang_code, norm)
+        has_neg = self.detect_negation(key, norm)
+        crit_cat, _ = self.scan_critical(key, norm)
+        admin_cat, _ = self.scan_routine_admin(key, norm)
+        minor_cat, _ = self.scan_minor_ailments(key, norm)
+
+        # Standard ISO UTC timestamp
+        ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
 
         response = {
-            "timestamp": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
-            "language_code": lang_code,
+            "timestamp": ts,
+            "language_code": key,
             "raw_input": raw_text,
             "normalized_input": norm,
             "communication_cue": False,
@@ -110,7 +134,7 @@ class BlendedLanguageProcessor:
 
         response["clipboard_summary"] = (
             f"[MedOriva Administrative Intake Note]\n"
-            f"Language: {lang_code.upper()} (Colloquial QWERTY) | Time: {response['timestamp']}\n"
+            f"Language: {key.upper()} (Colloquial QWERTY) | Time: {response['timestamp']}\n"
             f"Patient Input: \"{raw_text}\"\n"
             f"Administrative Interpretation: {response['extracted_meaning']}\n"
             f"Safety Protocol: {status_tag} | Negation State: {neg_tag}\n"
