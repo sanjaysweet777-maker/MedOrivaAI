@@ -510,7 +510,7 @@
         }
         .demo-row { display: flex; align-items: center; gap: 12px; font-size: 13px; }
         .demo-tag { font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 4px 8px; border-radius: 4px; width: 120px; text-align: center; }
-        .tag-clinical { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .tag-complex { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
         .tag-plain { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
         .demo-text { color: #cbd5e1; font-family: monospace; font-size: 12.5px; }
 
@@ -785,7 +785,7 @@
         </div>
         <h1>Structured Multilingual Access &amp; Care Navigation for Primary Care</h1>
         <p>
-            Census 2021 recorded 5.1 million residents in England and Wales whose main language was not English, including over 1.04 million who speak English not well or not at all<sup>[1]</sup>. MedOriva AI equips receptionists, care navigators, and administrative teams with structured, context-guided communication across <strong>9 core community languages</strong> (Tamil, Hindi, Malayalam, Polish, Arabic, Urdu, Bengali, Somali, and Romanian). It facilitates routine intake and care-navigation requests while preserving escalation to qualified interpreters where communication is uncertain, sensitive, or clinically significant.
+            Census 2021 recorded 5.1 million residents in England and Wales whose main language was not English, including over 1.04 million who speak English not well or not at all<sup>[1]</sup>. The current MedOriva AI MVP equips receptionists, care navigators, and administrative teams with structured, context-guided communication across <strong>9 configured community-language pathways</strong> (Tamil, Hindi, Malayalam, Polish, Arabic, Urdu, Bengali, Somali, and Romanian). Its post-endorsement go-to-market architecture will provide staged access to 130+ provider-supported languages, while MedOriva-specific colloquial mappings and workflow rules expand progressively according to customer requirements.
         </p>
         
         <div class="hero-actions">
@@ -872,7 +872,7 @@
                         <div class="check-icon">✓</div>
                         <div>
                             <div class="check-title">Understanding Check Complete</div>
-                            <div class="check-desc">Patient confirmed selection: 'Confirm / Change' verified. Conversation records are not stored persistently in the database.</div>
+                            <div class="check-desc">Patient confirmed selection: 'Confirm / Change' verified. The application does not create a persistent duplicate conversation transcript.</div>
                         </div>
                     </div>
                 </div>
@@ -907,8 +907,8 @@
             <div class="floating-badge badge-bottom-right">
                 <div class="f-icon green">✓</div>
                 <div>
-                    <div class="f-title">Staff Verification &amp; Record Summary</div>
-                    <div class="f-sub">Clean preview for practice record systems</div>
+                    <div class="f-title">Staff Verification &amp; Administrative Outcome</div>
+                    <div class="f-sub">Optional staff-reviewed copy where local policy requires a record</div>
                 </div>
             </div>
 
@@ -970,7 +970,7 @@
                     </li>
                     <li class="compare-item">
                         <span class="compare-tag-good">Staff Verification:</span>
-                        <span>Displays clear confirmation prompts and records confirmation or correction without autonomous clinical decision-making.</span>
+                        <span>Displays clear confirmation prompts and shows confirmation or correction during the active session without autonomous clinical decision-making.</span>
                     </li>
                     <li class="compare-item">
                         <span class="compare-tag-good">Transparent Model:</span>
@@ -1001,8 +1001,8 @@
         <div class="pipeline-step">
             <div class="step-num">03</div>
             <div class="step-content">
-                <h4>Understanding Check &amp; Summary</h4>
-                <p>Explicit 'Confirm / Change' verification and formatted summary preview for staff records.</p>
+                <h4>Understanding Check &amp; Outcome</h4>
+                <p>Explicit 'Confirm / Change' verification and an optional minimum administrative outcome for staff review.</p>
             </div>
         </div>
     </div>
@@ -1066,18 +1066,18 @@
                     Complex healthcare phrasing can reduce clarity when translated without simplification or workflow context. MedOriva AI applies a founder-developed rule-based layer to simplify complex administrative expressions into plain English before multilingual processing.
                 </p>
                 <div style="font-size: 12px; color: var(--accent-teal); font-weight: 700;">
-                    ✓ 15+ Rule Library · Does not generate diagnosis, treatment or triage recommendations · Standardised Intake
+                    ✓ 207 Deterministic Rule Records · 666 Exact Input Variants · 60 Automated Tests · No Diagnosis, Treatment or Triage Recommendations
                 </div>
             </div>
             <div class="spotlight-demo">
                 <div class="demo-row">
-                    <span class="demo-tag tag-clinical">Clinical Phrasing</span>
-                    <span class="demo-text">"require further diagnostic evaluation"</span>
+                    <span class="demo-tag tag-complex">Complex Administrative Phrasing</span>
+                    <span class="demo-text">"we will facilitate your request"</span>
                 </div>
                 <div style="color: var(--accent-teal); text-align: center; font-size: 11px;">⬇ Plain-language rule simplification</div>
                 <div class="demo-row">
                     <span class="demo-tag tag-plain">Plain Language</span>
-                    <span class="demo-text" style="color: #6ee7b7; font-weight: bold;">"need more tests"</span>
+                    <span class="demo-text" style="color: #6ee7b7; font-weight: bold;">"we will help with your request"</span>
                 </div>
             </div>
         </div>
@@ -1114,9 +1114,9 @@
                         <td class="comp-medoriva">Detects recognised negation patterns across all 9 languages and displays a communication confirmation for staff review.</td>
                     </tr>
                     <tr>
-                        <td class="comp-feature">Symptom Statement Recognition</td>
-                        <td class="comp-free">Translates text only; provides no staff notification or workflow integration.</td>
-                        <td class="comp-medoriva">Facilitates patient statements for staff review under local protocol without determining clinical risk or urgency.</td>
+                        <td class="comp-feature">Meaning-Sensitive Patient Statements</td>
+                        <td class="comp-free">Translates text without a structured staff-verification workflow.</td>
+                        <td class="comp-medoriva">Presents patient-originated wording for staff review under local protocol without determining clinical risk or urgency.</td>
                     </tr>
                     <tr>
                         <td class="comp-feature">Staff Verification Loop</td>
@@ -1192,7 +1192,7 @@
                     <div class="pricing-annual">£1,188 billed annually</div>
                     <ul class="pricing-features">
                         <li>Everything in Small Tier</li>
-                        <li>Multi-Terminal Staff &amp; Tablet Support</li>
+                        <li>Planned Paired Staff &amp; Patient Display Rollout</li>
                         <li>Multi-Script Token Recognition (9 Languages)</li>
                         <li>Understanding Check Confirmation Loop</li>
                         <li>Priority Front-Desk Onboarding</li>
@@ -1228,13 +1228,13 @@
             <div class="safety-text">
                 <h3>Governance &amp; Assurance Roadmap</h3>
                 <p>
-                    <strong>Intended Purpose Notice:</strong> MedOriva AI is currently intended to support administrative and staff-directed routine multilingual communication between healthcare staff and patients. It may assist staff in communicating selected prepared symptom-related expressions but does not diagnose, determine urgency or risk, perform clinical triage, recommend treatment or replace professional clinical judgement or qualified interpreting where required. Regulatory classification and applicable NHS assurance requirements will be reviewed as the product and intended use develop.
+                    <strong>Intended Purpose Notice:</strong> MedOriva AI is currently intended to support administrative and staff-directed routine multilingual communication between healthcare staff and patients. It may translate a patient's own stated reason for contacting the practice for staff review, but it does not ask diagnostic questions, diagnose, determine urgency or risk, perform clinical triage, recommend treatment or replace professional clinical judgement or qualified interpreting where required. Regulatory classification and applicable NHS assurance requirements will be reviewed as the product and intended use develop.
                 </p>
                 <p>
                     DCB0129 applicability and clinical-risk-management requirements form part of the pre-deployment assurance roadmap.
                 </p>
                 <p style="font-size: 13px; color: #94a3b8;">
-                    The underlying translation provider supports 130+ languages; MedOriva's healthcare-specific workflow validation will expand progressively beyond the current MVP languages.
+                    The commercial go-to-market architecture will support access to 130+ translation-provider languages. Nine language pathways currently contain MedOriva-specific configuration; deeper colloquial mappings and workflow testing will expand progressively according to customer requirements.
                 </p>
             </div>
             <div class="safety-stats">
@@ -1244,15 +1244,15 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-number">130+</div>
-                    <div class="stat-label">Provider-Supported Languages</div>
+                    <div class="stat-label">Go-to-Market Provider-Supported Languages</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number">Fast</div>
                     <div class="stat-label">Local Phrase Handling</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">RAM</div>
-                    <div class="stat-label">Application-Level Non-Persistence</div>
+                    <div class="stat-number">MIN</div>
+                    <div class="stat-label">No Application Transcript Database</div>
                 </div>
             </div>
         </div>
@@ -1270,7 +1270,7 @@
                     <span class="faq-toggle">+</span>
                 </div>
                 <div class="faq-answer">
-                    Conversation transcripts and patient identifiers are designed not to be persistently stored in the MedOriva application database after the active session. Hosting infrastructure and third-party translation-provider processing are governed separately under their applicable technical and contractual controls.
+                    MedOriva does not intentionally retain complete conversation transcripts in an application conversation database after the active session. Where local policy requires documentation, authorised staff may review and copy only the minimum relevant administrative outcome into the practice's authorised record system. Hosting infrastructure, technical logging and third-party translation-provider processing remain subject to approved deployment configuration, contractual controls and the practice's DPIA.
                 </div>
             </div>
             <div class="faq-item">
@@ -1279,7 +1279,7 @@
                     <span class="faq-toggle">+</span>
                 </div>
                 <div class="faq-answer">
-                    No. MedOriva AI is designed to facilitate routine, administrative front-desk interactions (such as check-in, arrival confirmation, care-navigation request capture, and prescription queries). It preserves escalation to qualified professional interpreters whenever communication is clinically complex, sensitive, or high risk.
+                    No. MedOriva AI supports routine front-line administrative and care-navigation interactions, including check-in, arrival confirmation, prescription administration, document or sample logistics, wayfinding and reason-for-contact capture. It preserves escalation to qualified professional interpreters whenever communication is clinically complex, sensitive, uncertain or high risk.
                 </div>
             </div>
             <div class="faq-item">
@@ -1438,7 +1438,7 @@
             <h4>1. Application-Level Non-Storage Design</h4>
             <p>MedOriva AI does not persist conversational transcripts to application databases. Third-party translation provider processing and hosting infrastructure are governed separately under applicable operational agreements.</p>
             <h4>2. Data Minimisation Principle</h4>
-            <p>In accordance with Article 5(1)(c) of the UK GDPR, data processing is strictly limited to real-time communication payloads required during an ongoing reception exchange.</p>
+            <p>The architecture is designed around the Article 5(1)(c) data-minimisation principle by limiting application processing to communication content required for the active interaction.</p>
             <h4>3. Staff Account Administration</h4>
             <p>Authorized staff credentials and signed session authentication cookies are processed under legitimate operational governance.</p>
         </div>
@@ -1481,7 +1481,7 @@
             <ul>
                 <li><strong>Non-Clinical Staff Communication Guidance:</strong> Standardised intake prompts provide structured operational facilitation under local practice protocols.</li>
                 <li><strong>Negation Handling:</strong> Recognises negative qualifiers across all 9 languages (e.g., "illai", "nahi", "nie", "la", "nu") to help prevent communication misunderstandings.</li>
-                <li><strong>Understanding Check:</strong> Displays prepared multilingual confirmation prompts and records confirmation or correction.</li>
+                <li><strong>Understanding Check:</strong> Displays prepared multilingual confirmation prompts and shows confirmation or correction during the active session.</li>
             </ul>
         </div>
     </div>
