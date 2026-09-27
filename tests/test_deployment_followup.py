@@ -3,6 +3,7 @@ import unittest
 from unittest.mock import Mock, patch
 import requests
 import translation_engine as engine
+import app as app_module
 from app import app
 
 class DeploymentTranslationTests(unittest.TestCase):
@@ -52,7 +53,7 @@ class DeploymentRoutes(unittest.TestCase):
     def setUp(self):
         app.config.update(TESTING=True,SECRET_KEY='test-key')
         self.client=app.test_client()
-        self.client.post('/login',json={'email':'demo@medoriva.com','password':'medoriva2026'})
+        self.client.post('/login',json={'email':app_module.DEMO_EMAIL,'password':app_module.DEMO_PASSWORD})
     def test_connection_check_auth_and_fixed_sample(self):
         self.assertEqual(app.test_client().post('/api/translation_check',json={}).status_code,401)
         with patch('app.online',return_value=engine.Translation('உங்களுக்கு முன்பதிவு செய்யப்பட்ட சந்திப்பு உள்ளதா?',source='google_cloud',status='needs_review')) as online:

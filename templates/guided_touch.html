@@ -2,7 +2,7 @@
 <html lang="ta">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>MedOriva — Patient Terminal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,7 +34,6 @@
     min-height: 100vh; 
     display: flex; 
     flex-direction: column;
-    user-select: none;
   }
 
   /* Header Bar */
@@ -142,12 +141,26 @@
     min-height: 74px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.02);
     transition: transform 0.1s ease, border-color 0.1s ease;
+    width: 100%;
+    font: inherit;
+    color: inherit;
+    appearance: none;
   }
 
   .touch-tile:active {
     border-color: var(--primary);
     background: #f0fdf4;
     transform: scale(0.99);
+  }
+
+  .touch-tile:focus-visible,
+  .tts-btn:focus-visible,
+  .btn-esc:focus-visible,
+  .btn-confirm:focus-visible,
+  .btn-change:focus-visible,
+  .lang-dropdown:focus-visible {
+    outline: 3px solid #38bdf8;
+    outline-offset: 3px;
   }
 
   .tile-icon { 
@@ -331,41 +344,41 @@
 
   <!-- Large, Single-Hand Touch Target Cards -->
   <div class="cards-grid">
-    <div class="touch-tile" onclick="openVerification(0)">
+    <button type="button" class="touch-tile" onclick="openVerification(0)">
       <span class="tile-icon">🏛️</span>
-      <div class="tile-native" id="tileNative0">இன்று எனக்கு அப்பாயிண்ட்மென்ட் உள்ளது</div>
+      <span class="tile-native" id="tileNative0">இன்று எனக்கு அப்பாயிண்ட்மென்ட் உள்ளது</span>
       <span class="tile-arrow">›</span>
-    </div>
+    </button>
 
-    <div class="touch-tile" onclick="openVerification(1)">
+    <button type="button" class="touch-tile" onclick="openVerification(1)">
       <span class="tile-icon">📅</span>
-      <div class="tile-native" id="tileNative1">புதிய அப்பாயிண்ட்மென்ட் அல்லது நேரம் மாற்ற வேண்டும்</div>
+      <span class="tile-native" id="tileNative1">புதிய அப்பாயிண்ட்மென்ட் அல்லது நேரம் மாற்ற வேண்டும்</span>
       <span class="tile-arrow">›</span>
-    </div>
+    </button>
 
-    <div class="touch-tile" onclick="openVerification(2)">
+    <button type="button" class="touch-tile" onclick="openVerification(2)">
       <span class="tile-icon">💊</span>
-      <div class="tile-native" id="tileNative2">மருந்துச் சீட்டு அல்லது மாத்திரைகள் பெற வந்தேன்</div>
+      <span class="tile-native" id="tileNative2">மருந்துச் சீட்டு அல்லது மாத்திரைகள் பெற வந்தேன்</span>
       <span class="tile-arrow">›</span>
-    </div>
+    </button>
 
-    <div class="touch-tile" onclick="openVerification(3)">
+    <button type="button" class="touch-tile" onclick="openVerification(3)">
       <span class="tile-icon">🧪</span>
-      <div class="tile-native" id="tileNative3">பரிசோதனை மாதிரி அல்லது படிவம் ஒப்படைக்க</div>
+      <span class="tile-native" id="tileNative3">பரிசோதனை மாதிரி அல்லது படிவம் ஒப்படைக்க</span>
       <span class="tile-arrow">›</span>
-    </div>
+    </button>
 
-    <div class="touch-tile" onclick="openVerification(4)">
+    <button type="button" class="touch-tile" onclick="openVerification(4)">
       <span class="tile-icon">📋</span>
-      <div class="tile-native" id="tileNative4">மருத்துவமனை கடிதம் அல்லது பரிசோதனை விவரம்</div>
+      <span class="tile-native" id="tileNative4">மருத்துவமனை கடிதம் அல்லது பரிசோதனை விவரம்</span>
       <span class="tile-arrow">›</span>
-    </div>
+    </button>
 
-    <div class="touch-tile" onclick="openVerification(5)">
+    <button type="button" class="touch-tile" onclick="openVerification(5)">
       <span class="tile-icon">📝</span>
-      <div class="tile-native" id="tileNative5">புதிய நோயாளி பதிவு அல்லது முகவரி மாற்றம்</div>
+      <span class="tile-native" id="tileNative5">புதிய நோயாளி பதிவு அல்லது முகவரி மாற்றம்</span>
       <span class="tile-arrow">›</span>
-    </div>
+    </button>
   </div>
 
   <!-- Immediate Human Help Option -->
@@ -379,7 +392,7 @@
 </main>
 
 <!-- Verification Modal: Confirm / Change Check -->
-<div class="modal-overlay" id="verifyModal">
+<div class="modal-overlay" id="verifyModal" role="dialog" aria-modal="true" aria-labelledby="modalVerifyTitle">
   <div class="verify-card" id="verifyCard">
     <div class="verify-title" id="modalVerifyTitle">உறுதிப்படுத்தவும்</div>
     <div class="verify-text-native" id="modalSelectedNative">—</div>
@@ -666,17 +679,8 @@ function submitConfirmedAnswer() {
   const selectedTile = data.tiles[currentSelectedIndex];
   const toast = document.getElementById("toastBanner");
 
-  // Broadcast English meaning directly to the receptionist's screen in the background
-  if (window.opener && !window.opener.closed) {
-    window.opener.postMessage({
-      type: "MEDORIVA_PATIENT_TOUCH",
-      english: selectedTile.eng,
-      native: selectedTile.native,
-      lang: currentLangKey
-    }, window.location.origin);
-  }
-
-  // Record administrative interaction in the backend
+  // Validate the bounded response through the active authenticated session.
+  // The application does not retain a conversation transcript or patient record.
   fetch("/api/process_intake", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -687,8 +691,22 @@ function submitConfirmedAnswer() {
       mode: "guided_touch"
     })
   })
-  .then(res => res.json())
+  .then(async res => {
+    const payload = await res.json();
+    if (!res.ok) throw new Error(payload.message || "Unable to process selection");
+    return payload;
+  })
   .then(resp => {
+    // Share the confirmed selection with the staff window only after the
+    // authenticated session has accepted the bounded response.
+    if (window.opener && !window.opener.closed) {
+      window.opener.postMessage({
+        type: "MEDORIVA_PATIENT_TOUCH",
+        english: selectedTile.eng,
+        native: selectedTile.native,
+        lang: currentLangKey
+      }, window.location.origin);
+    }
     closeVerification();
     toast.textContent = data.toast_msg;
     toast.style.display = "block";
@@ -696,7 +714,7 @@ function submitConfirmedAnswer() {
   })
   .catch(err => {
     closeVerification();
-    toast.textContent = data.toast_msg;
+    toast.textContent = `⚠ ${data.esc_label}`;
     toast.style.display = "block";
     setTimeout(() => { toast.style.display = "none"; }, 5000);
   });

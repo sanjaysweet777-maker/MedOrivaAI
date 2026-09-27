@@ -3,6 +3,7 @@ import unittest
 from unittest.mock import patch, Mock
 import requests
 import translation_engine as engine
+import app as app_module
 from app import app
 
 class TranslationTests(unittest.TestCase):
@@ -106,7 +107,7 @@ class Routes(unittest.TestCase):
     def setUp(self):
         app.config.update(TESTING=True,SECRET_KEY='test-key')
         self.client=app.test_client()
-        self.client.post('/login',json={'email':'demo@medoriva.com','password':'medoriva2026'})
+        self.client.post('/login',json={'email':app_module.DEMO_EMAIL,'password':app_module.DEMO_PASSWORD})
 
     def start(self,code='ta',context='Reason for Contact'):
         return self.client.post('/api/start_session',json={'context':context,'lang_code':code})
@@ -158,6 +159,8 @@ class Routes(unittest.TestCase):
         for path in ['/','/portal','/static/css/public.css','/static/css/style.css','/static/js/app.js']:
             with self.client.get(path) as response: self.assertEqual(response.status_code,200)
         anonymous=app.test_client();self.assertEqual(anonymous.get('/login').status_code,200)
+        login_page=anonymous.get('/login').get_data(as_text=True)
+        self.assertNotIn('Demo Access Credentials:',login_page)
         self.assertEqual(anonymous.post('/api/translate_staff',json={'text':'hello'}).status_code,401)
         self.assertEqual(anonymous.post('/api/process_intake',json={'text':'hello','lang_code':'ta'}).status_code,401)
 
@@ -174,10 +177,32 @@ class Routes(unittest.TestCase):
             self.assertNotIn('nenji',str(dict(session)))
 
     def test_contact_does_not_claim_delivery(self):
-        self.assertEqual(self.client.post('/api/contact',json={'name':'Test'}).status_code,503)
+        self.assertEqual(self.client.post('/api/contact',json={'name':'Test'}).status_code,410)
 
     def test_cross_origin_rejected(self):
         self.assertEqual(self.client.post('/api/start_session',json={},headers={'Origin':'https://other.invalid'}).status_code,403)
+        self.assertEqual(self.client.post('/api/start_session',json={},headers={'Sec-Fetch-Site':'cross-site'}).status_code,403)
+
+    def test_security_headers(self):
+        response=self.client.get('/portal')
+        self.assertEqual(response.headers.get('X-Content-Type-Options'),'nosniff')
+        self.assertEqual(response.headers.get('Cross-Origin-Opener-Policy'),'same-origin')
+        self.assertIn("object-src 'none'",response.headers.get('Content-Security-Policy',''))
+        self.assertEqual(response.headers.get('Permissions-Policy'),'camera=(), microphone=(), geolocation=()')
+
+    def test_guided_touch_keeps_zoom_and_keyboard_access(self):
+        page=self.client.get('/guided-touch').get_data(as_text=True)
+        self.assertNotIn('user-scalable=no',page)
+        self.assertNotIn('maximum-scale=1.0',page)
+        self.assertIn('type="button" class="touch-tile"',page)
+
+    def test_login_rate_limit(self):
+        app_module.login_failures.clear()
+        anonymous=app.test_client()
+        for _ in range(app_module.LOGIN_MAX_FAILURES):
+            self.assertEqual(anonymous.post('/login',json={'email':'wrong@example.com','password':'wrong'}).status_code,401)
+        self.assertEqual(anonymous.post('/login',json={'email':'wrong@example.com','password':'wrong'}).status_code,429)
+        app_module.login_failures.clear()
 
 
 if __name__=='__main__':unittest.main()

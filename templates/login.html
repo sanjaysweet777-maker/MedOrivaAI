@@ -38,8 +38,12 @@
             <div class="subtitle">Multilingual communication workspace</div>
             
             <div class="badge-container">
-                <span class="pilot-badge">Demonstration access</span>
+                <span class="pilot-badge">Private assessor demonstration</span>
             </div>
+
+            {% if configuration_error %}
+                <div class="alert">Private demonstration access is temporarily unavailable because secure reviewer credentials have not been configured.</div>
+            {% endif %}
 
             {% with messages = get_flashed_messages() %}
                 {% if messages %}
@@ -47,16 +51,16 @@
                 {% endif %}
             {% endwith %}
 
-            <form method="POST" action="/login">
+            <form method="POST" action="/login" {% if configuration_error %}aria-disabled="true"{% endif %}>
                 <div class="form-group">
                     <label for="email">Email Address</label>
-                    <input type="email" id="email" name="email" value="{{ 'demo@medoriva.com' if public_demo else '' }}" required autocomplete="email">
+                    <input type="email" id="email" name="email" value="{{ 'demo@medoriva.com' if public_demo else '' }}" required autocomplete="username" {% if configuration_error %}disabled{% endif %}>
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" value="{{ 'medoriva2026' if public_demo else '' }}" required autocomplete="current-password">
+                    <input type="password" id="password" name="password" value="{{ 'medoriva2026' if public_demo else '' }}" required autocomplete="current-password" {% if configuration_error %}disabled{% endif %}>
                 </div>
-                <button type="submit">Sign In</button>
+                <button type="submit" {% if configuration_error %}disabled{% endif %}>Sign In</button>
             </form>
 
             {% if public_demo %}<div class="demo-box">
