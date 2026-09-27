@@ -333,9 +333,6 @@
 </div>
 
 <script>
-// =============================================================================
-// COMPREHENSIVE MULTILINGUAL LEXICON (9 MVP LANGUAGES)
-// =============================================================================
 const GUIDED_LEXICON = {
   "Tamil": {
     code: "ta", bcp47: "ta-IN", dir: "ltr",
@@ -616,6 +613,16 @@ function submitConfirmedAnswer() {
 
   const selectedTile = data.tiles[currentSelectedIndex];
   const toast = document.getElementById("toastBanner");
+
+  // Broadcast confirmed selection directly to the receptionist's screen
+  if (window.opener && !window.opener.closed) {
+    window.opener.postMessage({
+      type: "MEDORIVA_PATIENT_TOUCH",
+      english: selectedTile.eng,
+      native: selectedTile.native,
+      lang: currentLangKey
+    }, window.location.origin);
+  }
 
   // Post confirmed administrative selection to the backend
   fetch("/api/process_intake", {
