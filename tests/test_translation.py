@@ -108,13 +108,19 @@ class Routes(unittest.TestCase):
         self.client=app.test_client()
         self.client.post('/login',json={'email':'demo@medoriva.com','password':'medoriva2026'})
 
-    def start(self,code='ta',context='Basic Symptoms'):
+    def start(self,code='ta',context='Reason for Contact'):
         return self.client.post('/api/start_session',json={'context':context,'lang_code':code})
 
     def test_all_contexts_have_prepared_prompts(self):
-        for context in ('Reception','Appointment','Basic Symptoms'):
+        for context in ('Reception','Appointment','Reason for Contact'):
             for code in engine.LANGUAGES:
                 d=self.start(code,context).get_json();self.assertTrue(d['prepared_prompts'])
+
+    def test_reason_for_contact_does_not_interrogate_symptoms(self):
+        prompts=self.start(context='Reason for Contact').get_json()['prepared_prompts']
+        joined=' '.join(prompts).lower()
+        for term in ('chest pain','difficulty breathing','fever','dizzy','where is your pain','symptoms start'):
+            self.assertNotIn(term,joined)
 
     def test_requires_active_session(self):
         self.assertEqual(self.client.post('/api/translate_staff',json={'text':'Hello'}).status_code,409)
@@ -153,6 +159,14 @@ class Routes(unittest.TestCase):
             with self.client.get(path) as response: self.assertEqual(response.status_code,200)
         anonymous=app.test_client();self.assertEqual(anonymous.get('/login').status_code,200)
         self.assertEqual(anonymous.post('/api/translate_staff',json={'text':'hello'}).status_code,401)
+        self.assertEqual(anonymous.post('/api/process_intake',json={'text':'hello','lang_code':'ta'}).status_code,401)
+
+    def test_process_intake_requires_active_matching_session(self):
+        self.assertEqual(self.client.post('/api/process_intake',json={'text':'appointment','lang_code':'ta'}).status_code,409)
+        self.start(code='ta')
+        self.assertEqual(self.client.post('/api/process_intake',json={'text':'appointment','lang_code':'hi'}).status_code,400)
+        self.assertEqual(self.client.post('/api/process_intake',json={'text':'x'*2001,'lang_code':'ta'}).status_code,400)
+        self.assertEqual(self.client.post('/api/process_intake',json={'text':'appointment','lang_code':'ta'}).status_code,200)
 
     def test_transcripts_not_in_session(self):
         self.start();self.client.post('/api/translate_patient',json={'text':'enaku nenji vali irukku'})
