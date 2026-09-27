@@ -94,22 +94,22 @@ class BlendedLanguageProcessor:
             "clipboard_summary": ""
         }
 
-        # Priority 1: Critical Symptom Trigger
+        # Priority 1: selected symptom-related wording for neutral staff review
         if crit_cat:
             cat_name = crit_cat.replace("_", " ").title()
             response["communication_cue"] = True
             if has_neg:
                 response["meaning_check"] = True
-                response["extracted_meaning"] = f"Patient indicates NO {cat_name} (Negated report for staff review)"
+                response["extracted_meaning"] = f"Negative wording detected with {cat_name} wording"
                 response["cue_message"] = (
-                    "Negative wording detected alongside symptom terms. "
-                    "Confirm with patient that negation was intended and preserved."
+                    "Negative wording detected — confirm that the negative meaning "
+                    "has been preserved."
                 )
             else:
-                response["extracted_meaning"] = f"Patient reports potential {cat_name}"
+                response["extracted_meaning"] = f"Symptom-related wording present: {cat_name}"
                 response["cue_message"] = (
                     "Communication cue: symptom-related information present. "
-                    "Confirm meaning directly with patient. Follow standard practice urgent care protocols."
+                    "Confirm meaning with the patient and apply the practice's normal staff-led process."
                 )
 
         # Priority 2: Routine Administrative Intake (Clean by default)
@@ -128,17 +128,18 @@ class BlendedLanguageProcessor:
         else:
             response["extracted_meaning"] = raw_text
 
-        # Format Note for EMIS Web / SystmOne One-Click Clipboard Export
-        status_tag = "CRITICAL CUE FLAGGED" if response["communication_cue"] else "ROUTINE DIRECT"
-        neg_tag = "NEGATION CONFIRMED" if has_neg else "AFFIRMATIVE"
+        # Produce a temporary staff-review output. This is not an EHR integration,
+        # and it must not claim that a patient confirmation has occurred.
+        cue_tag = "COMMUNICATION CUE — STAFF REVIEW" if response["communication_cue"] else "ROUTINE COMMUNICATION"
+        neg_tag = "NEGATIVE WORDING DETECTED — CONFIRMATION REQUIRED" if has_neg else "NO NEGATION DETECTED"
 
         response["clipboard_summary"] = (
-            f"[MedOriva Administrative Intake Note]\n"
+            f"[MedOriva Temporary Staff Review]\n"
             f"Language: {key.upper()} (Colloquial QWERTY) | Time: {response['timestamp']}\n"
-            f"Patient Input: \"{raw_text}\"\n"
             f"Administrative Interpretation: {response['extracted_meaning']}\n"
-            f"Safety Protocol: {status_tag} | Negation State: {neg_tag}\n"
-            f"Note: Bounded administrative intake only. Clinical consultations require qualified interpreters."
+            f"Review state: {cue_tag} | Negation state: {neg_tag}\n"
+            f"Confirmation status: Not recorded by this processing step\n"
+            f"Note: Staff must verify meaning and record only what local practice policy requires."
         )
 
         return response
