@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MedOriva AI — Privacy-Minimising Metadata Prototype (Synthetic Demonstrator)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #0F6E56;
+    --primary-dark: #092e26;
+    --primary-light: #14b8a6;
+    --bg-dark: #030712;
+    --bg-card: #0b1329;
+    --bg-card-hover: #101c3d;
+    --border: #1a2849;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --accent-teal: #00A882;
+    --accent-blue: #38bdf8;
+    --accent-warning: #f59e0b;
+    --accent-danger: #f87171;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+  body { background: var(--bg-dark); color: var(--text-main); line-height: 1.5; min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* Mandatory Permanent Warning Banner */
+  .synth-warning-banner {
+    background: #7c2d12;
+    border-bottom: 2px solid #ea580c;
+    color: #ffedd5;
+    padding: 10px 20px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 10000;
+  }
+
+  /* Header Bar */
+  .header-bar {
+    background: #040814;
+    border-bottom: 1px solid var(--border);
+    padding: 14px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .brand-title { font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 10px; color: #fff; }
+  .badge-proto {
+    background: rgba(14, 116, 144, 0.2);
+    border: 1px solid rgba(14, 116, 144, 0.4);
+    color: var(--accent-blue);
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  /* Main Layout */
+  .main-container {
+    max-width: 1240px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 28px 24px 60px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* Context Intro Box */
+  .context-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px 26px;
+  }
+  .context-box h1 { font-size: 21px; font-weight: 800; margin-bottom: 8px; color: #fff; }
+  .context-box p { font-size: 13.5px; color: var(--text-muted); line-height: 1.6; margin-bottom: 12px; }
+  .assurance-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag-item {
+    background: #030610;
+    border: 1px solid #1e293b;
+    color: #cbd5e1;
+    font-size: 11.5px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+
+  /* Architecture Comparison Strip */
+  .arch-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .arch-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .arch-card.red { border-left: 4px solid var(--accent-danger); }
+  .arch-card.teal { border-left: 4px solid var(--accent-teal); }
+  .arch-title { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+  .arch-title.red { color: #fca5a5; }
+  .arch-title.teal { color: #6ee7b7; }
+  .arch-list { list-style: none; font-size: 12.5px; color: var(--text-muted); display: flex; flex-direction: column; gap: 6px; }
+  .arch-list li::before { content: "• "; color: #64748b; }
+
+  /* Controls & Metrics Header */
+  .ledger-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 6px;
+  }
+  .ledger-stats {
+    display: flex;
+    gap: 16px;
+  }
+  .stat-pill {
+    background: #040814;
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #cbd5e1;
+  }
+  .stat-pill strong { color: var(--accent-teal); font-size: 13px; }
+
+  .actions-group { display: flex; gap: 10px; }
+  .btn-action {
+    background: #0F6E56;
+    color: #fff;
+    border: none;
+    padding: 9px 16px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .btn-action:hover { background: #0a5240; }
+  .btn-export {
+    background: #030610;
+    border: 1px solid var(--border);
+    color: #cbd5e1;
+    padding: 9px 16px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-export:hover { border-color: var(--accent-teal); color: #fff; }
+
+  /* Ledger Table */
+  .table-wrapper {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow-x: auto;
+  }
+  table.ledger-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    text-align: left;
+  }
+  table.ledger-table th {
+    background: #040814;
+    color: #94a3b8;
+    padding: 12px 16px;
+    font-weight: 700;
+    border-bottom: 1px solid var(--border);
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+  }
+  table.ledger-table td {
+    padding: 13px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    color: #cbd5e1;
+    vertical-align: middle;
+  }
+  table.ledger-table tr:hover { background: var(--bg-card-hover); cursor: pointer; }
+  table.ledger-table tr.selected { background: rgba(15, 110, 86, 0.18); border-left: 3px solid var(--accent-teal); }
+
+  .badge-status {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 10.5px;
+    font-weight: 700;
+  }
+  .status-confirmed { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3); }
+  .status-esc { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+  .status-pending { background: rgba(245, 158, 11, 0.15); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3); }
+
+  /* Inspector Panel (Bottom Split) */
+  .inspector-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 4px;
+  }
+  .panel-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding-bottom: 8px;
+  }
+  .panel-header h3 { font-size: 13px; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  pre.json-view, pre.summary-view {
+    background: #030610;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: #38bdf8;
+    line-height: 1.5;
+    max-height: 240px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+  }
+  pre.summary-view { color: #a7f3d0; }
+
+  @media(max-width: 768px) {
+    .arch-grid, .inspector-grid { grid-template-columns: 1fr; }
+    .ledger-header { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- Mandatory Permanent Warning Banner -->
+  <div class="synth-warning-banner">
+    Synthetic Future-State Demonstrator — No NHS, Practice or Patient Data
+  </div>
+
+  <header class="header-bar">
+    <div class="brand-title">
+      <svg width="22" height="22" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="36" height="36" rx="8" fill="#0F6E56"/>
+        <path d="M8 22 Q13 12 18 18 Q23 24 28 14" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <circle cx="18" cy="10" r="3.5" fill="#14b8a6"/>
+      </svg>
+      <span>MedOriva AI · Privacy-Minimising Metadata Prototype</span>
+    </div>
+    <span class="badge-proto">Planned Assurance Exhibit</span>
+  </header>
+
+  <main class="main-container">
+
+    <!-- Prototype Purpose & Governance Framing -->
+    <div class="context-box">
+      <h1>Future Operational Assurance &amp; Privacy-Minimising Metadata</h1>
+      <p>
+        MedOriva has developed this illustrative front-end prototype to demonstrate how operational demand, language frequency, and workflow completion could be audited during future organisation-approved deployments without routinely retaining raw patient conversational transcripts. This demonstrator operates entirely with <strong>synthetic demonstration records</strong> and has not processed live NHS patient, staff, or practice data.
+      </p>
+      <div class="assurance-tags">
+        <span class="tag-item">Designed to support future data-protection and clinical-safety assurance</span>
+        <span class="tag-item">Demonstration covering 9 configured languages</span>
+        <span class="tag-item">May support future safety monitoring, subject to formal assurance</span>
+        <span class="tag-item">Demo organisation: Synthetic GP site</span>
+      </div>
+    </div>
+
+    <!-- Data Boundary Separation Architecture -->
+    <div class="arch-grid">
+      <div class="arch-card red">
+        <div class="arch-title red">Ephemeral Interaction Payload (Not Persisted)</div>
+        <ul class="arch-list">
+          <li>Raw typed text, native input strings, and romanised variants</li>
+          <li>Real-time speech audio and TTS synthesis streams</li>
+          <li>Patient NHS numbers, dates of birth, names, or addresses</li>
+          <li>Consultation dialogue content and specific symptom accounts</li>
+          <li><strong>Processing state:</strong> Processed in volatile memory during active turn and cleared</li>
+        </ul>
+      </div>
+
+      <div class="arch-card teal">
+        <div class="arch-title teal">Future Operational Telemetry Schema (Synthetic Concept)</div>
+        <ul class="arch-list">
+          <li>Session reference hash and ISO UTC timestamp</li>
+          <li>Configured language selection (e.g. Tamil, Polish, Arabic)</li>
+          <li>Interaction method: Standard Typing vs. Guided Touch</li>
+          <li>Administrative purpose category &amp; Understanding Check outcome</li>
+          <li>Latency timing band and application build version</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Ledger Controls & Synthetic Record Table -->
+    <div>
+      <div class="ledger-header">
+        <div class="ledger-stats">
+          <div class="stat-pill">Dataset: <strong>Synthetic Demonstration Records</strong></div>
+          <div class="stat-pill">Privacy status: <strong>No direct patient identifiers in this schema</strong></div>
+          <div class="stat-pill">Configured MVP languages: <strong>9 Core Languages</strong></div>
+        </div>
+
+        <div class="actions-group">
+          <button class="btn-action" onclick="simulateNewEvent()">Simulate Interaction Event</button>
+          <button class="btn-export" onclick="exportSyntheticLedger()">Export Synthetic Ledger (.JSON)</button>
+        </div>
+      </div>
+
+      <div class="table-wrapper" style="margin-top: 14px;">
+        <table class="ledger-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Language</th>
+              <th>Method</th>
+              <th>Administrative Category</th>
+              <th>Verification State</th>
+              <th>Simulated Action</th>
+            </tr>
+          </thead>
+          <tbody id="ledgerBody">
+            <!-- Populated via JavaScript with explicitly labelled synthetic data -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Inspector Split (Schema Envelope vs. Administrative Record Summary) -->
+    <div class="inspector-grid">
+      <div class="panel-box">
+        <div class="panel-header">
+          <h3>Synthetic Telemetry Envelope (JSON)</h3>
+          <span style="font-size: 11px; color: var(--text-muted);">Event Schema</span>
+        </div>
+        <pre class="json-view" id="jsonEnvelope">// Select a synthetic record above to view the metadata envelope</pre>
+      </div>
+
+      <div class="panel-box">
+        <div class="panel-header">
+          <h3>Simulated Administrative Record Summary</h3>
+          <span style="font-size: 11px; color: var(--text-muted);">Local Practice Record Note</span>
+        </div>
+        <pre class="summary-view" id="summaryPreview">// Select a synthetic record above to view the simulated summary note</pre>
+      </div>
+    </div>
+
+  </main>
+
+<script>
+// Explicitly labelled synthetic records for demonstration
+let SYNTHETIC_RECORDS = [
+  {
+    event_id: "SYNTH-0927-01",
+    timestamp: "2026-09-27 10:14:02 UTC",
+    language: "Tamil (ta)",
+    method: "Guided Touch",
+    category: "Appointment Clarification",
+    verification: "Confirmed via Understanding Check",
+    status_code: "status-confirmed",
+    simulated_action: "Simulated action: Patient check-in logged",
+    summary: "[MedOriva Administrative Communication Summary]\nDate/time: 27/09/2026 10:14 BST\nLanguage selected: Tamil\nPurpose selected: Appointment Check-in\nPatient confirmation: Confirmed through Understanding Check\nClinical assessment: Not performed\nSource: Patient communication through MedOriva workspace (Simulated)\nStaff action: Review accuracy before filing into local record"
+  },
+  {
+    event_id: "SYNTH-0927-02",
+    timestamp: "2026-09-27 10:48:19 UTC",
+    language: "Polish (pl)",
+    method: "Guided Touch",
+    category: "Sample / Specimen Handover",
+    verification: "Confirmed via Understanding Check",
+    status_code: "status-confirmed",
+    simulated_action: "Simulated action: Specimen logged for lab run",
+    summary: "[MedOriva Administrative Communication Summary]\nDate/time: 27/09/2026 10:48 BST\nLanguage selected: Polish\nPurpose selected: Sample or document handover\nPatient confirmation: Confirmed through Understanding Check\nClinical assessment: Not performed\nSource: Patient communication through MedOriva workspace (Simulated)\nStaff action: Review accuracy before filing into local record"
+  },
+  {
+    event_id: "SYNTH-0927-03",
+    timestamp: "2026-09-27 11:05:41 UTC",
+    language: "Arabic (ar)",
+    method: "Standard Typing",
+    category: "Repeat Prescription Query",
+    verification: "Staff-Led Verification Loop",
+    status_code: "status-confirmed",
+    simulated_action: "Simulated action: Prescription status confirmed",
+    summary: "[MedOriva Administrative Communication Summary]\nDate/time: 27/09/2026 11:05 BST\nLanguage selected: Arabic\nPurpose selected: Prescription query or collection\nPatient confirmation: Confirmed through Understanding Check\nClinical assessment: Not performed\nSource: Patient communication through MedOriva workspace (Simulated)\nStaff action: Review accuracy before filing into local record"
+  },
+  {
+    event_id: "SYNTH-0927-04",
+    timestamp: "2026-09-27 11:32:10 UTC",
+    language: "Somali (so)",
+    method: "Guided Touch",
+    category: "Accredited Interpreter Request",
+    verification: "Safety Escalation Initiated",
+    status_code: "status-esc",
+    simulated_action: "Simulated action: Face-to-face interpreter flagged",
+    summary: "[MedOriva Administrative Communication Summary]\nDate/time: 27/09/2026 11:32 BST\nLanguage selected: Somali\nPurpose selected: Professional interpreter requested\nPatient confirmation: Confirmed through Understanding Check\nClinical assessment: Not performed (Interpreter required for consultation)\nSource: Patient communication through MedOriva workspace (Simulated)\nStaff action: Escalate to practice telephone/face-to-face translation service"
+  }
+];
+
+let selectedIndex = 0;
+
+function renderLedger() {
+  const tbody = document.getElementById("ledgerBody");
+  tbody.innerHTML = "";
+
+  SYNTHETIC_RECORDS.forEach((rec, idx) => {
+    const tr = document.createElement("tr");
+    if (idx === selectedIndex) tr.classList.add("selected");
+    tr.onclick = () => selectRecord(idx);
+
+    tr.innerHTML = `
+      <td style="font-family: monospace; font-size: 11.5px; color: #94a3b8;">${rec.timestamp}</td>
+      <td><strong>${rec.language}</strong></td>
+      <td>${rec.method}</td>
+      <td>${rec.category}</td>
+      <td><span class="badge-status ${rec.status_code}">${rec.verification}</span></td>
+      <td style="font-style: italic; color: #94a3b8;">${rec.simulated_action}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  updateInspector();
+}
+
+function selectRecord(idx) {
+  selectedIndex = idx;
+  renderLedger();
+}
+
+function updateInspector() {
+  const rec = SYNTHETIC_RECORDS[selectedIndex];
+  if (!rec) return;
+
+  const envelope = {
+    _notice: "SYNTHETIC DEMONSTRATION RECORD - NOT FROM NHS SYSTEM",
+    event_id: rec.event_id,
+    timestamp_utc: rec.timestamp,
+    session_metadata: {
+      synthetic_org_code: "SIM-GP-MOCK-01",
+      language_selected: rec.language,
+      interaction_modality: rec.method,
+      administrative_category: rec.category
+    },
+    verification_metrics: {
+      understanding_check_completed: true,
+      protocol_outcome: rec.verification,
+      human_staff_confirmation_logged: true
+    },
+    privacy_boundary: {
+      direct_patient_identifiers_retained: false,
+      conversational_transcripts_persisted: false,
+      storage_location: "Volatile memory payload cleared"
+    }
+  };
+
+  document.getElementById("jsonEnvelope").textContent = JSON.stringify(envelope, null, 2);
+  document.getElementById("summaryPreview").textContent = rec.summary;
+}
+
+function simulateNewEvent() {
+  const langs = [
+    { name: "Hindi (hi)", cat: "Arrival & Check-in" },
+    { name: "Urdu (ur)", cat: "Prescription Query" },
+    { name: "Bengali (bn)", cat: "Care Navigation Request" },
+    { name: "Romanian (ro)", cat: "Document Handover" }
+  ];
+  const pick = langs[Math.floor(Math.random() * langs.length)];
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  const timeStr = `${now.getUTCFullYear()}-${pad(now.getUTCMonth()+1)}-${pad(now.getUTCDate())} ${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())}:${pad(now.getUTCSeconds())} UTC`;
+
+  SYNTHETIC_RECORDS.unshift({
+    event_id: "SYNTH-" + Math.floor(1000 + Math.random() * 9000),
+    timestamp: timeStr,
+    language: pick.name,
+    method: "Guided Touch",
+    category: pick.cat,
+    verification: "Confirmed via Understanding Check",
+    status_code: "status-confirmed",
+    simulated_action: "Simulated action: Reception guidance presented",
+    summary: `[MedOriva Administrative Communication Summary]\nDate/time: ${pad(now.getUTCDate())}/${pad(now.getUTCMonth()+1)}/${now.getUTCFullYear()} ${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())} BST\nLanguage selected: ${pick.name.split(' ')[0]}\nPurpose selected: ${pick.cat}\nPatient confirmation: Confirmed through Understanding Check\nClinical assessment: Not performed\nSource: Patient communication through MedOriva workspace (Simulated)\nStaff action: Review accuracy before filing into local record`
+  });
+
+  selectedIndex = 0;
+  renderLedger();
+}
+
+function exportSyntheticLedger() {
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(SYNTHETIC_RECORDS, null, 2));
+  const downloadAnchor = document.createElement("a");
+  downloadAnchor.setAttribute("href", dataStr);
+  downloadAnchor.setAttribute("download", "medoriva_synthetic_demonstrator_ledger.json");
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
+}
+
+document.addEventListener("DOMContentLoaded", renderLedger);
+</script>
+</body>
+</html>
