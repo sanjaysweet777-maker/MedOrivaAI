@@ -1329,28 +1329,11 @@
             <p>Contact our founder-led team to discuss pilot evaluation and practice feedback.</p>
         </div>
         <div class="contact-wrapper">
-            <form id="contactForm" onsubmit="handleContact(event)">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="name">Full Name *</label>
-                        <input type="text" id="name" class="form-control" required placeholder="e.g. Practice Manager Jane Smith">
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Professional / Practice Email *</label>
-                        <input type="email" id="email" class="form-control" required placeholder="name@practice.nhs.uk">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="org">Practice / Healthcare Organisation *</label>
-                    <input type="text" id="org" class="form-control" required placeholder="e.g. Vale Drive Medical Practice, London">
-                </div>
-                <div class="form-group">
-                    <label for="message">Inquiry / Evaluation Context *</label>
-                    <textarea id="message" rows="4" class="form-control" required placeholder="Outline your practice setting, language mix, or areas of interest for an evaluation discussion..."></textarea>
-                </div>
-                <button type="submit" id="contactBtn" class="btn-primary" style="width: 100%; border: none; cursor: pointer;">Submit Evaluation Inquiry</button>
-                <div id="contactMsg" style="display:none; margin-top: 16px; padding: 12px; border-radius: 6px; font-size: 13px; text-align: center;"></div>
-            </form>
+            <div style="width:100%; text-align:center;">
+                <h3 style="margin-bottom:10px;">Speak directly with the founder</h3>
+                <p style="color:#475569; margin-bottom:18px;">The website does not collect inquiry-form data. Use the direct email link below for an evaluation discussion, and do not include patient-identifiable or confidential clinical information.</p>
+                <a class="btn-primary" style="display:inline-flex; justify-content:center; width:100%; text-decoration:none;" href="mailto:sanjaythillai@gmail.com?subject=MedOriva%20AI%20evaluation%20discussion">Email MedOriva AI</a>
+            </div>
         </div>
     </section>
 
@@ -1435,12 +1418,19 @@
             <button class="modal-close" onclick="closeModal('privacyModal')">&times;</button>
             <h3>Privacy notice</h3>
             <p><strong>Effective Date:</strong> September 2026</p>
-            <h4>1. Application-Level Non-Storage Design</h4>
-            <p>MedOriva AI does not persist conversational transcripts to application databases. Third-party translation provider processing and hosting infrastructure are governed separately under applicable operational agreements.</p>
-            <h4>2. Data Minimisation Principle</h4>
-            <p>The architecture is designed around the Article 5(1)(c) data-minimisation principle by limiting application processing to communication content required for the active interaction.</p>
-            <h4>3. Demonstration Access Administration</h4>
-            <p>A signed session authentication cookie controls access to the working demonstrator. Per-practice user accounts and role-based access controls form part of the controlled commercial deployment roadmap.</p>
+            <h4>1. Demonstration Boundary</h4>
+            <p>This is a working demonstration environment for fictional information only. Real patient-identifiable, confidential or clinical information must not be entered.</p>
+            <h4>2. Application-Level Non-Persistence</h4>
+            <p>MedOriva AI does not write conversational transcripts to an application database. Interaction text remains visible in the browser during the active session and is cleared from the interface when the session is ended or the page is refreshed.</p>
+            <h4>3. Translation and Hosting Processing</h4>
+            <p>Prepared prompts are served from the application. Other supported free-text requests may be transmitted securely through the hosting environment to Google Cloud Translation for processing. Provider and hosting processing, contracts, locations and safeguards require documented assessment before any live-patient use.</p>
+            <p>The public demonstration pages currently request presentation assets from Google Fonts and Unsplash. Those requests can disclose ordinary network information such as IP address and browser details to those providers, but no MedOriva conversation text is sent to them. Self-hosting these assets forms part of production hardening.</p>
+            <h4>4. Authentication and Cookies</h4>
+            <p>A signed, HTTP-only, same-site session cookie controls demonstration access and stores limited session state such as the selected context and language; conversational text is not placed in that cookie. Commercial deployment requires per-organisation accounts, role-based access and agreed retention controls.</p>
+            <h4>5. Live-Use Preconditions</h4>
+            <p>Before any organisation-approved live evaluation, MedOriva will complete the applicable controller/processor assessment, lawful-basis and special-category condition analysis, DPIA, supplier and international-transfer review, security testing, clinical-safety documentation and local approval process.</p>
+            <h4>6. Contact</h4>
+            <p>The website does not store contact-form submissions. Direct email opens the visitor's email service; messages are then handled by the relevant email providers. Do not send patient-identifiable information.</p>
         </div>
     </div>
 
@@ -1477,11 +1467,12 @@
         <div class="modal-content">
             <button class="modal-close" onclick="closeModal('dcbModal')">&times;</button>
             <h3>Clinical Safety &amp; Assurance Statement</h3>
-            <p>DCB0129 clinical risk management principles guide our technical development roadmap for pre-deployment assurance.</p>
+            <p><strong>Current status:</strong> DCB0129 applicability and DTAC evidence preparation are planned pre-deployment assurance activities. MedOriva does not currently claim DCB0129 conformity, completed DTAC assessment, NHS approval or clinical validation.</p>
             <ul>
                 <li><strong>Non-Clinical Staff Communication Guidance:</strong> Standardised intake prompts provide structured operational facilitation under local practice protocols.</li>
                 <li><strong>Negation Handling:</strong> Recognises negative qualifiers across all 9 languages (e.g., "illai", "nahi", "nie", "la", "nu") to help prevent communication misunderstandings.</li>
                 <li><strong>Understanding Check:</strong> Displays prepared multilingual confirmation prompts and shows confirmation or correction during the active session.</li>
+                <li><strong>Formal assurance before live use:</strong> Complete the applicable Clinical Risk Management Plan, Hazard Log, Clinical Safety Case Report and Clinical Safety Officer review, together with DTAC evidence across clinical safety, data protection, technical security, interoperability, and usability and accessibility.</li>
             </ul>
         </div>
     </div>
@@ -1508,44 +1499,6 @@
             if (e.target.classList.contains('modal')) { e.target.style.display = "none"; }
         };
 
-        function handleContact(e) {
-            e.preventDefault();
-            const btn = document.getElementById("contactBtn");
-            const msg = document.getElementById("contactMsg");
-
-            btn.disabled = true;
-            btn.innerText = "Submitting...";
-
-            fetch("/api/contact", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    name: document.getElementById("name").value,
-                    email: document.getElementById("email").value,
-                    organization: document.getElementById("org").value,
-                    message: document.getElementById("message").value
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                msg.style.display = "block";
-                msg.style.background = "rgba(239, 68, 68, 0.15)";
-                msg.style.color = "#fca5a5";
-                msg.style.border = "1px solid rgba(239, 68, 68, 0.4)";
-                msg.innerText = data.message || "Automated delivery disabled. Please contact sanjaythillai@gmail.com directly.";
-                btn.disabled = false;
-                btn.innerText = "Submit Evaluation Inquiry";
-            })
-            .catch(err => {
-                msg.style.display = "block";
-                msg.style.background = "rgba(239, 68, 68, 0.15)";
-                msg.style.color = "#fca5a5";
-                msg.style.border = "1px solid rgba(239, 68, 68, 0.4)";
-                msg.innerText = "Network error. Please email sanjaythillai@gmail.com directly.";
-                btn.disabled = false;
-                btn.innerText = "Submit Evaluation Inquiry";
-            });
-        }
     </script>
 </body>
 </html>
