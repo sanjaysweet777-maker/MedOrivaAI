@@ -65,7 +65,7 @@ remain outstanding. No claim of 100% translation accuracy is made.
 DEMONSTRATION
 1. Sign in and choose Reception plus a language. Try 'Do you have an appointment?'.
 2. Choose Appointment and try 'Do you need an interpreter?'.
-3. Choose Basic Symptoms and try 'Do you have chest pain?'.
+3. Choose Reason for Contact and try a routine care-navigation request.
 4. For Tamil, try 'enaku nenji vali irukku' and 'enaku nenji vali illa'.
 5. Try a longer romanised Tamil sentence. It must ask for native-script input,
    rather than dropping words to fit a stock sentence.
