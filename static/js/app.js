@@ -71,6 +71,10 @@ async function startSession() {
         }
 
         sessionId = data.session_id;
+        window.MedorivaOutcomeState = {
+            lastOutcome: null,
+            confirmation: null
+        };
         const currentContext = data.context || selectedContext;
         const currentLang = data.lang || selectedLang;
 
@@ -258,6 +262,10 @@ async function translatePatient() {
         const englishDisplay = isUnavailable 
             ? 'Translation unavailable — rephrase, use supported native-script input, or seek interpreter support.' 
             : data.translated;
+
+        window.MedorivaOutcomeState = window.MedorivaOutcomeState || {};
+        window.MedorivaOutcomeState.lastOutcome = isUnavailable ? null : englishDisplay;
+        window.MedorivaOutcomeState.confirmation = null;
 
         appendMessage('patient', {
             typedInput: text,
