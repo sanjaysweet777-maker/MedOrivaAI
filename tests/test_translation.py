@@ -107,7 +107,7 @@ class Routes(unittest.TestCase):
     def setUp(self):
         app.config.update(TESTING=True,SECRET_KEY='test-key')
         self.client=app.test_client()
-        self.client.post('/login',json={'email':'demo@medoriva.com','password':'medoriva2026'})
+        self.client.post('/login',json={'email':app_module.DEMO_EMAIL,'password':app_module.DEMO_PASSWORD})
 
     def start(self,code='ta',context='Reason for Contact'):
         return self.client.post('/api/start_session',json={'context':context,'lang_code':code})
