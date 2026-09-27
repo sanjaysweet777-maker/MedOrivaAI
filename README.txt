@@ -14,11 +14,13 @@ HOST ENVIRONMENT (set on Render; do not put secrets in GitHub or chat)
   DEMO_PASSWORD: a strong reviewer password
   GOOGLE_TRANSLATE_API_KEY: a key for an enabled Google Cloud Translation API
 
-Default credentials remain available for a public fictional-data demo. Overriding
-DEMO_EMAIL or DEMO_PASSWORD removes the public credential box. Set SECRET_KEY in
-hosted deployments: the development fallback is random per process, so it does not
-support stable multi-worker sessions. There is no production account-management,
-rate-limiting or clinical deployment assurance in this prototype.
+Hosted access is disabled unless both DEMO_EMAIL and DEMO_PASSWORD are configured.
+Public sample credentials are available only for local fictional-data development
+when ALLOW_PUBLIC_DEMO=true is explicitly set. Set SECRET_KEY in hosted deployments:
+the development fallback is random per process, so it does not support stable
+multi-worker sessions. The private demonstration includes a basic per-process login
+attempt limit; production still requires per-organisation accounts, centralised
+rate limiting, role-based access and formal deployment assurance.
 
 TRANSLATION BEHAVIOUR
 - 9 exact staff phrases x 9 languages are prepared demo entries, comprising five
@@ -48,9 +50,14 @@ TRANSLATION BEHAVIOUR
   requests go to Google Cloud; provider and host retention/processing settings
   must be reviewed before any real personal information is used. Closing a browser
   is not a guarantee of erasure from provider or hosting infrastructure.
+- Google states that Cloud Translation request text is held briefly in memory and is
+  not used to train its translation models. The Basic v2 endpoint used here is global;
+  it cannot be configured to keep processing within a specific region. This still
+  requires a DPIA, supplier/data-processing terms and transfer assessment before live use.
 - Context selects guided prompts; free text remains available. This is not a
   semantic topic-enforcement or clinical safety boundary.
-- Online contact submission is not connected and cannot falsely report delivery.
+- The website does not collect contact-form data. Its direct email link opens the
+  visitor's email service and warns against sending patient-identifiable information.
 
 CHECKS
   python -m unittest discover -s tests -v
@@ -78,7 +85,11 @@ ROADMAP AND CLAIMS
 Nine languages is MVP interface/provider scope, not nine clinically validated
 languages. 130+ provider-supported languages remains a commercial-launch target,
 subject to API availability/configuration and separate healthcare validation.
-NHS approval, DCB0129 conformity and DTAC assessment are not claimed.
+NHS approval, DCB0129 conformity and completed DTAC assessment are not claimed.
+Before organisation-approved live use, MedOriva must complete an applicability review,
+the required clinical-risk documentation and Clinical Safety Officer review, a DPIA and
+data-flow assessment, supplier/transfer due diligence, security testing, accessibility
+evidence and the organisation's approval process.
 
 Provider reference:
 https://docs.cloud.google.com/translate/docs/reference/rest/v2/translate
