@@ -63,9 +63,9 @@ CANONICAL_LANGUAGES = {
 }
 
 def get_canonical(raw_lang, raw_code=None):
-    if raw_code and str(raw_code).strip().lower() in CANONICAL_LANGUAGES:
+    if raw_code and isinstance(raw_code, str) and str(raw_code).strip().lower() in CANONICAL_LANGUAGES:
         return CANONICAL_LANGUAGES[str(raw_code).strip().lower()]
-    if raw_lang:
+    if raw_lang and isinstance(raw_lang, str):
         token = re.split(r'[\s\(\-_/]', str(raw_lang).strip())[0].lower()
         if token in CANONICAL_LANGUAGES:
             return CANONICAL_LANGUAGES[token]
@@ -130,7 +130,7 @@ RAW_EXTENDED_STAFF = {
     "Can I take your name and date of birth?": {
         "ta": "உங்கள் பெயர் மற்றும் பிறந்த தேதியை அறியலாமா?",
         "hi": "क्या मुझे आपका नाम और जन्म तिथि मिल सकती है?",
-        "ml": "നിങ്ങളുടെ പേരും ജനനத்தീയതിയും പറയാമോ?",
+        "ml": "നിങ്ങളുടെ പേരും ജനനത്തീയതിയും പറയാമോ?",
         "pl": "Czy mogę prosić o Pana/Pani imię, nazwisko i datę urodzenia?",
         "ar": "هل يمكنني معرفة اسمك وتاريخ ميلادك؟",
         "ur": "کیا میں آپ کا نام اور تاریخ پیدائش جان سکتا ہوں؟",
@@ -185,7 +185,7 @@ RAW_EXTENDED_STAFF = {
     "Is anyone with you today?": {
         "ta": "இன்று உங்களுடன் யாராவது வந்துள்ளார்களா?",
         "hi": "क्या आज आपके साथ कोई आया है?",
-        "ml": "இന്ന് നിങ്ങളുടെ കൂടെ ആരെങ്കിലും ഉണ്ടോ?",
+        "ml": "ഇന്ന് നിങ്ങളുടെ കൂടെ ആരെങ്കിലും ഉണ്ടോ?",
         "pl": "Czy jest dzisiaj z Panem/Panią ktoś towarzyszący?",
         "ar": "هل يرافقك أحد اليوم؟",
         "ur": "کیا آج آپ کے ساتھ کوئی آیا ہے؟",
@@ -831,7 +831,7 @@ def index():
 def portal():
     return render_template("index.html")
 
-# NEW ADDITION: Serves the patient-facing Guided Touch screen
+# Serves the patient-facing Guided Touch screen
 @app.route("/guided-touch")
 @login_required
 def guided_touch():
@@ -914,10 +914,14 @@ def start_session():
 
     context = data.get("context", "Reception")
     raw_lang = data.get("lang_code", "ta")
-    _, lang_code = get_canonical(raw_lang, raw_lang)
 
     if not isinstance(context, str) or context not in CONTEXT_PROMPTS:
         return jsonify({"error": "Bad Request", "message": "Invalid intake context."}), 400
+
+    if not isinstance(raw_lang, str):
+        return jsonify({"error": "Bad Request", "message": "Invalid language code."}), 400
+
+    _, lang_code = get_canonical(raw_lang, raw_lang)
 
     if not isinstance(lang_code, str) or lang_code not in LANGUAGES:
         return jsonify({"error": "Bad Request", "message": "Invalid language code."}), 400
@@ -975,7 +979,7 @@ def translate_staff():
 
     session_lang = session.get("lang_code", "ta")
     req_lang = data.get("lang_code")
-    if req_lang:
+    if req_lang and isinstance(req_lang, str):
         _, req_lang = get_canonical(req_lang, req_lang)
     if req_lang and req_lang != session_lang:
         return jsonify({"error": "Bad Request", "message": "Language mismatch with active session."}), 400
@@ -1025,7 +1029,7 @@ def translate_patient():
 
     session_lang = session.get("lang_code", "ta")
     req_lang = data.get("lang_code")
-    if req_lang:
+    if req_lang and isinstance(req_lang, str):
         _, req_lang = get_canonical(req_lang, req_lang)
     if req_lang and req_lang != session_lang:
         return jsonify({"error": "Bad Request", "message": "Language mismatch with active session."}), 400
@@ -1212,7 +1216,9 @@ def translation_check():
         data = {}
 
     raw_lang_code = data.get("lang_code")
-    if raw_lang_code:
+    if raw_lang_code is not None:
+        if not isinstance(raw_lang_code, str):
+            return jsonify({"error": "Bad Request", "message": "Invalid language code."}), 400
         _, raw_lang_code = get_canonical(raw_lang_code, raw_lang_code)
 
     if raw_lang_code is not None and (not isinstance(raw_lang_code, str) or raw_lang_code not in LANGUAGES):
@@ -1247,7 +1253,10 @@ def translation_check():
 def process_intake():
     data = request.get_json(silent=True) or {}
     raw_lang = data.get("language_code") or data.get("lang_code") or "ta"
-    _, lang_code = get_canonical(raw_lang, raw_lang)
+    if isinstance(raw_lang, str):
+        _, lang_code = get_canonical(raw_lang, raw_lang)
+    else:
+        lang_code = "ta"
     raw_text = data.get("text") or data.get("input") or ""
 
     if not isinstance(raw_text, str) or not raw_text.strip():
@@ -1256,7 +1265,6 @@ def process_intake():
     if blended_processor:
         result = blended_processor.process_intake(lang_code, raw_text)
     else:
-        # Graceful fallback if blended_engine is not yet loaded
         result = {
             "timestamp": "2026-09-27",
             "language_code": lang_code,
