@@ -157,6 +157,12 @@
     background: #f0fdf4;
   }
 
+  .ctx-card:focus-visible,
+  .lang-card:focus-visible {
+    outline: 3px solid #38bdf8;
+    outline-offset: 3px;
+  }
+
   .ctx-card.active {
     border-color: #0F6E56;
     background: #f0fdf4;
@@ -331,17 +337,17 @@
       <p class="card-hint">The selected context provides structured prompts; free-text input and Guided Touch remain available.</p>
       
       <div class="ctx-grid-enhanced">
-        <div class="ctx-card" data-ctx="Reception" onclick="selectCtx(this)">
+        <div class="ctx-card" data-ctx="Reception" role="button" tabindex="0" onclick="selectCtx(this)">
           <span class="icon">🏥</span>
           <span class="title">Reception &amp; Arrival</span>
           <span class="desc">Identification, appointment check-in, interpreter requests, and waiting lounge routing.</span>
         </div>
-        <div class="ctx-card" data-ctx="Appointment" onclick="selectCtx(this)">
+        <div class="ctx-card" data-ctx="Appointment" role="button" tabindex="0" onclick="selectCtx(this)">
           <span class="icon">📋</span>
           <span class="title">Appointment &amp; Admin</span>
           <span class="desc">Prescription administration, sample/document logistics, and routine appointment clarifications.</span>
         </div>
-        <div class="ctx-card" data-ctx="Reason for Contact" onclick="selectCtx(this)">
+        <div class="ctx-card" data-ctx="Reason for Contact" role="button" tabindex="0" onclick="selectCtx(this)">
           <span class="icon">🧭</span>
           <span class="title">Care Navigation &amp; Reason for Visit</span>
           <span class="desc">Captures patient-described reason for contact with staff review cues. Does not perform clinical triage.</span>
@@ -358,7 +364,7 @@
       <p class="card-hint">Displays native script beside English meaning for staff-led understanding checks.</p>
       
       <div class="lang-grid-enhanced">
-        <div class="lang-card" data-lang="Tamil" data-code="ta" onclick="selectLang(this)">
+        <div class="lang-card" data-lang="Tamil" data-code="ta" role="button" tabindex="0" onclick="selectLang(this)">
           <div>
             <span class="eng-name">Tamil</span>
             <span class="meta">LTR · Script &amp; Phonetic</span>
@@ -366,7 +372,7 @@
           <span class="native-name">தமிழ்</span>
         </div>
 
-        <div class="lang-card" data-lang="Hindi" data-code="hi" onclick="selectLang(this)">
+        <div class="lang-card" data-lang="Hindi" data-code="hi" role="button" tabindex="0" onclick="selectLang(this)">
           <div>
             <span class="eng-name">Hindi</span>
             <span class="meta">LTR · Devanagari</span>
@@ -374,7 +380,7 @@
           <span class="native-name">हिन्दी</span>
         </div>
 
-        <div class="lang-card" data-lang="Malayalam" data-code="ml" onclick="selectLang(this)">
+        <div class="lang-card" data-lang="Malayalam" data-code="ml" role="button" tabindex="0" onclick="selectLang(this)">
           <div>
             <span class="eng-name">Malayalam</span>
             <span class="meta">LTR · Malayalam Script</span>
@@ -382,7 +388,7 @@
           <span class="native-name">മലയാളം</span>
         </div>
 
-        <div class="lang-card" data-lang="Polish" data-code="pl" onclick="selectLang(this)">
+        <div class="lang-card" data-lang="Polish" data-code="pl" role="button" tabindex="0" onclick="selectLang(this)">
           <div>
             <span class="eng-name">Polish</span>
             <span class="meta">LTR · Latin Script</span>
@@ -390,7 +396,7 @@
           <span class="native-name">Polski</span>
         </div>
 
-        <div class="lang-card" data-lang="Arabic" data-code="ar" onclick="selectLang(this)">
+        <div class="lang-card" data-lang="Arabic" data-code="ar" role="button" tabindex="0" onclick="selectLang(this)">
           <div>
             <span class="eng-name">Arabic</span>
             <span class="meta">RTL · Arabic Script</span>
@@ -398,7 +404,7 @@
           <span class="native-name">العربية</span>
         </div>
 
-        <div class="lang-card" data-lang="Urdu" data-code="ur" onclick="selectLang(this)">
+        <div class="lang-card" data-lang="Urdu" data-code="ur" role="button" tabindex="0" onclick="selectLang(this)">
           <div>
             <span class="eng-name">Urdu</span>
             <span class="meta">RTL · Nastaliq</span>
@@ -406,7 +412,7 @@
           <span class="native-name">اردو</span>
         </div>
 
-        <div class="lang-card" data-lang="Bengali" data-code="bn" onclick="selectLang(this)">
+        <div class="lang-card" data-lang="Bengali" data-code="bn" role="button" tabindex="0" onclick="selectLang(this)">
           <div>
             <span class="eng-name">Bengali</span>
             <span class="meta">LTR · Bengali Script</span>
@@ -414,7 +420,7 @@
           <span class="native-name">বাংলা</span>
         </div>
 
-        <div class="lang-card" data-lang="Somali" data-code="so" onclick="selectLang(this)">
+        <div class="lang-card" data-lang="Somali" data-code="so" role="button" tabindex="0" onclick="selectLang(this)">
           <div>
             <span class="eng-name">Somali</span>
             <span class="meta">LTR · Latin Script</span>
@@ -422,7 +428,7 @@
           <span class="native-name">Soomaali</span>
         </div>
 
-        <div class="lang-card" data-lang="Romanian" data-code="ro" onclick="selectLang(this)">
+        <div class="lang-card" data-lang="Romanian" data-code="ro" role="button" tabindex="0" onclick="selectLang(this)">
           <div>
             <span class="eng-name">Romanian</span>
             <span class="meta">LTR · Latin Script</span>
@@ -632,6 +638,14 @@ function escapeHtml(str) {
   div.textContent = str;
   return div.innerHTML;
 }
+
+document.addEventListener("keydown", function(event) {
+  const selectable = event.target.closest('.ctx-card[role="button"], .lang-card[role="button"]');
+  if (selectable && (event.key === "Enter" || event.key === " ")) {
+    event.preventDefault();
+    selectable.click();
+  }
+});
 
 const VERIFY_CONFIG = {
   "Tamil": {
