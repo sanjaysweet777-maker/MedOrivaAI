@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ta">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>MedOriva — Guided Touch Terminal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>MedOriva — Patient Terminal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -14,220 +14,304 @@
     --primary-light: #14b8a6;
     --text-dark: #0f172a;
     --text-muted: #475569;
-    --bg-page: #f8fafc;
+    --bg-page: #f1f5f9;
     --card-bg: #ffffff;
     --border-color: #cbd5e1;
     --focus-ring: rgba(15, 110, 86, 0.25);
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
-  body { background: var(--bg-page); color: var(--text-dark); min-height: 100vh; display: flex; flex-direction: column; }
+  * { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
+    -webkit-tap-highlight-color: transparent;
+  }
 
-  /* Top Navigation & Language Selector */
+  body { 
+    background: var(--bg-page); 
+    color: var(--text-dark); 
+    min-height: 100vh; 
+    display: flex; 
+    flex-direction: column;
+    user-select: none;
+  }
+
+  /* Header Bar */
   .terminal-bar {
     background: var(--primary-dark);
     color: #ffffff;
-    padding: 12px 24px;
+    padding: 14px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
-  .terminal-brand { font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
-  .lang-select-group { display: flex; align-items: center; gap: 10px; }
+
+  .terminal-brand { 
+    font-size: 17px; 
+    font-weight: 800; 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    color: #ffffff;
+  }
+
+  .lang-select-group { 
+    display: flex; 
+    align-items: center; 
+  }
+
   .lang-dropdown {
     background: #0d3d33;
     color: #5eead4;
     border: 1.5px solid rgba(20, 184, 166, 0.5);
-    padding: 6px 12px;
+    padding: 8px 14px;
     border-radius: 8px;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 700;
     cursor: pointer;
     outline: none;
   }
-  .lang-dropdown:focus { border-color: #5eead4; box-shadow: 0 0 0 2px var(--focus-ring); }
 
-  /* Main Viewport Container */
+  /* Main Container */
   .terminal-container {
-    max-width: 860px;
+    max-width: 760px;
     width: 100%;
     margin: 0 auto;
-    padding: 24px 20px;
+    padding: 20px 16px 30px;
     flex: 1;
     display: flex;
     flex-direction: column;
+    gap: 16px;
   }
 
-  /* Prompt Header Tile */
+  /* Large Native Intake Prompt */
   .prompt-header {
     background: #ffffff;
-    border: 1.5px solid var(--border-color);
-    border-radius: 14px;
-    padding: 20px 24px;
-    margin-bottom: 22px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    border: 2px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 18px;
+    gap: 14px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
   }
-  .prompt-text-native { font-size: 21px; font-weight: 800; color: #0f172a; line-height: 1.4; }
-  .prompt-text-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+  .prompt-text-native { 
+    font-size: 22px; 
+    font-weight: 800; 
+    color: #0f172a; 
+    line-height: 1.4; 
+  }
+
   .tts-btn {
     background: #eff6ff;
-    border: 1.5px solid #bfdbfe;
+    border: 2px solid #bfdbfe;
     color: #1e40af;
-    border-radius: 8px;
-    padding: 10px 16px;
-    font-size: 13.5px;
-    font-weight: 700;
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-size: 15px;
+    font-weight: 800;
     cursor: pointer;
     white-space: nowrap;
     display: flex;
     align-items: center;
     gap: 8px;
-    transition: background 0.15s ease;
+    flex-shrink: 0;
   }
-  .tts-btn:hover { background: #dbeafe; }
+  .tts-btn:active { background: #dbeafe; transform: scale(0.98); }
 
-  /* 7 Administrative Touch Cards */
+  /* One-Handed Patient Touch Tiles (Stacked for Easy Thumb Reach) */
   .cards-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
   }
 
   .touch-tile {
     background: var(--card-bg);
-    border: 2px solid var(--border-color);
-    border-radius: 14px;
-    padding: 20px;
+    border: 2.5px solid var(--border-color);
+    border-radius: 16px;
+    padding: 18px 20px;
     cursor: pointer;
     text-align: left;
-    transition: all 0.15s ease-in-out;
     display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-height: 125px;
-  }
-  .touch-tile:hover {
-    border-color: var(--primary);
-    background: #f0fdf4;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(15, 110, 86, 0.12);
-  }
-  .tile-icon { font-size: 26px; margin-bottom: 8px; display: block; }
-  .tile-native { font-size: 16.5px; font-weight: 800; color: #0f172a; line-height: 1.35; }
-  .tile-eng { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-
-  /* Persistent Safety Bottom Bar */
-  .safety-bottom-bar {
-    margin-top: auto;
-    display: flex;
-    justify-content: space-between;
     align-items: center;
     gap: 16px;
-    padding-top: 16px;
-    border-top: 1px solid var(--border-color);
+    min-height: 74px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    transition: transform 0.1s ease, border-color 0.1s ease;
   }
+
+  .touch-tile:active {
+    border-color: var(--primary);
+    background: #f0fdf4;
+    transform: scale(0.99);
+  }
+
+  .tile-icon { 
+    font-size: 30px; 
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .tile-native { 
+    font-size: 18px; 
+    font-weight: 800; 
+    color: #0f172a; 
+    line-height: 1.35; 
+    flex: 1;
+  }
+
+  .tile-arrow {
+    font-size: 20px;
+    color: #94a3b8;
+    font-weight: 800;
+  }
+
+  /* Safety Interpreter Bar */
+  .safety-bottom-bar {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+  }
+
   .btn-esc {
-    background: #fee2e2;
-    border: 1.5px solid #fca5a5;
+    background: #fef2f2;
+    border: 2px solid #f87171;
     color: #991b1b;
-    padding: 13px 20px;
-    border-radius: 8px;
-    font-size: 13.5px;
-    font-weight: 700;
+    padding: 16px 20px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 800;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.1);
   }
-  .btn-esc:hover { background: #fecaca; }
+  .btn-esc:active { background: #fee2e2; }
 
-  /* Confirmation Modal */
+  /* Full Screen Confirmation Check Modal */
   .modal-overlay {
     display: none;
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(15, 23, 42, 0.75);
+    background: rgba(15, 23, 42, 0.8);
     backdrop-filter: blur(4px);
     z-index: 9999;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 18px;
   }
+
   .verify-card {
     background: #ffffff;
-    border: 2px solid var(--primary);
-    border-radius: 16px;
-    max-width: 540px;
+    border: 3px solid var(--primary);
+    border-radius: 20px;
+    max-width: 520px;
     width: 100%;
-    padding: 32px 28px;
+    padding: 30px 24px;
     text-align: center;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
   }
-  .verify-title { font-size: 13px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.6px; color: var(--primary); margin-bottom: 8px; }
-  .verify-text-native { font-size: 21px; font-weight: 800; color: #0f172a; margin-bottom: 6px; line-height: 1.4; }
-  .verify-text-eng { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; }
-  .verify-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .btn-confirm { background: var(--primary); color: #fff; border: none; padding: 14px; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; }
-  .btn-confirm:hover { background: #0b5744; }
-  .btn-change { background: #ffffff; color: #475569; border: 1.5px solid #cbd5e1; padding: 14px; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; }
-  .btn-change:hover { background: #f1f5f9; }
 
-  /* Toast Notification */
+  .verify-title { 
+    font-size: 15px; 
+    text-transform: uppercase; 
+    font-weight: 800; 
+    color: var(--primary); 
+    margin-bottom: 8px; 
+  }
+
+  .verify-text-native { 
+    font-size: 24px; 
+    font-weight: 800; 
+    color: #0f172a; 
+    margin: 16px 0 28px; 
+    line-height: 1.4;
+    background: #f8fafc;
+    border: 1.5px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .verify-actions { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 12px; 
+  }
+
+  .btn-confirm { 
+    background: var(--primary); 
+    color: #fff; 
+    border: none; 
+    padding: 18px; 
+    border-radius: 12px; 
+    font-size: 18px; 
+    font-weight: 800; 
+    cursor: pointer; 
+    box-shadow: 0 4px 12px rgba(15, 110, 86, 0.25);
+  }
+  .btn-confirm:active { background: #0b5744; }
+
+  .btn-change { 
+    background: #ffffff; 
+    color: #475569; 
+    border: 2px solid #cbd5e1; 
+    padding: 14px; 
+    border-radius: 12px; 
+    font-size: 16px; 
+    font-weight: 700; 
+    cursor: pointer; 
+  }
+  .btn-change:active { background: #f1f5f9; }
+
+  /* Toast Banner */
   .toast-banner {
     display: none;
     background: #dcfce7;
-    border: 1.5px solid #86efac;
+    border: 2px solid #4ade80;
     color: #14532d;
-    padding: 12px 18px;
-    border-radius: 8px;
-    font-size: 13.5px;
-    font-weight: 700;
-    margin-bottom: 16px;
+    padding: 16px 20px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 800;
     text-align: center;
+    box-shadow: 0 4px 12px rgba(20, 83, 45, 0.15);
   }
 
-  /* RTL Support */
+  /* RTL Support for Arabic and Urdu */
   .rtl-mode { direction: rtl; text-align: right; }
-  .rtl-mode .prompt-header, 
   .rtl-mode .touch-tile { text-align: right; }
-
-  @media(max-width: 680px) {
-    .cards-grid { grid-template-columns: 1fr; }
-    .safety-bottom-bar { flex-direction: column; align-items: stretch; }
-    .btn-esc { justify-content: center; }
-  }
+  .rtl-mode .tile-arrow { transform: rotate(180deg); }
 </style>
 </head>
 <body>
 
 <header class="terminal-bar">
   <div class="terminal-brand">
-    <svg width="22" height="22" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="24" height="24" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect width="36" height="36" rx="8" fill="#0F6E56"/>
       <path d="M8 22 Q13 12 18 18 Q23 24 28 14" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
       <circle cx="18" cy="10" r="3.5" fill="#14b8a6"/>
     </svg>
-    <span>MedOriva AI · Guided Touch Terminal</span>
+    <span>MedOriva</span>
   </div>
   
   <div class="lang-select-group">
-    <label for="langSelect" style="font-size: 12px; color: #cbd5e1; font-weight: 600;">Language:</label>
     <select id="langSelect" class="lang-dropdown" onchange="switchLanguage(this.value)">
-      <option value="Tamil">தமிழ் (Tamil)</option>
-      <option value="Hindi">हिन्दी (Hindi)</option>
-      <option value="Malayalam">മലയാളം (Malayalam)</option>
-      <option value="Polish">Polski (Polish)</option>
-      <option value="Arabic">العربية (Arabic)</option>
-      <option value="Urdu">اردو (Urdu)</option>
-      <option value="Bengali">বাংলা (Bengali)</option>
-      <option value="Somali">Soomaali (Somali)</option>
-      <option value="Romanian">Română (Romanian)</option>
+      <option value="Tamil">தமிழ்</option>
+      <option value="Hindi">हिन्दी</option>
+      <option value="Malayalam">മലയാളം</option>
+      <option value="Polish">Polski</option>
+      <option value="Arabic">العربية</option>
+      <option value="Urdu">اردو</option>
+      <option value="Bengali">বাংলা</option>
+      <option value="Somali">Soomaali</option>
+      <option value="Romanian">Română</option>
     </select>
   </div>
 </header>
@@ -236,290 +320,261 @@
 
   <div id="toastBanner" class="toast-banner" role="status" aria-live="polite"></div>
 
-  <!-- Native Prompt Card -->
+  <!-- Primary Voice & Visual Prompt (100% Native Language) -->
   <div class="prompt-header">
-    <div>
-      <div class="prompt-text-native" id="promptNativeText">வணக்கம். உங்களுக்கு இன்று எப்படி உதவ முடியும்?</div>
-      <div class="prompt-text-sub" id="promptEngSub">Welcome. How can our practice team help you today?</div>
-    </div>
+    <div class="prompt-text-native" id="promptNativeText">வணக்கம். உங்களுக்கு இன்று என்ன உதவி வேண்டும்?</div>
     <button type="button" class="tts-btn" onclick="speakCurrentPrompt()">
       <span>🔊</span>
-      <span id="ttsBtnLabel">Listen (Audio)</span>
+      <span id="ttsBtnLabel">கேளுங்கள்</span>
     </button>
   </div>
 
-  <!-- 7 Core Primary-Care Administrative Touch Tiles -->
+  <!-- Large, Single-Hand Touch Target Cards -->
   <div class="cards-grid">
-    <!-- Tile 1 -->
     <div class="touch-tile" onclick="openVerification(0)">
       <span class="tile-icon">🏛️</span>
-      <div class="tile-native" id="tileNative0">எனக்கு அப்பாயிண்ட்மென்ட் உள்ளது</div>
-      <div class="tile-eng" id="tileEng0">I have an appointment.</div>
+      <div class="tile-native" id="tileNative0">இன்று எனக்கு அப்பாயிண்ட்மென்ட் உள்ளது</div>
+      <span class="tile-arrow">›</span>
     </div>
 
-    <!-- Tile 2 -->
     <div class="touch-tile" onclick="openVerification(1)">
       <span class="tile-icon">📅</span>
-      <div class="tile-native" id="tileNative1">அப்பாயிண்ட்மென்ட் முன்பதிவு அல்லது மாற்றம்</div>
-      <div class="tile-eng" id="tileEng1">Book or change an appointment.</div>
+      <div class="tile-native" id="tileNative1">புதிய அப்பாயிண்ட்மென்ட் அல்லது நேரம் மாற்ற வேண்டும்</div>
+      <span class="tile-arrow">›</span>
     </div>
 
-    <!-- Tile 3 -->
     <div class="touch-tile" onclick="openVerification(2)">
       <span class="tile-icon">💊</span>
-      <div class="tile-native" id="tileNative2">மருந்துச் சீட்டு அல்லது மருந்துகள்</div>
-      <div class="tile-eng" id="tileEng2">Prescription query or collection.</div>
+      <div class="tile-native" id="tileNative2">மருந்துச் சீட்டு அல்லது மாத்திரைகள் பெற வந்தேன்</div>
+      <span class="tile-arrow">›</span>
     </div>
 
-    <!-- Tile 4 -->
     <div class="touch-tile" onclick="openVerification(3)">
       <span class="tile-icon">🧪</span>
-      <div class="tile-native" id="tileNative3">மாதிரி அல்லது படிவம் ஒப்படைக்க</div>
-      <div class="tile-eng" id="tileEng3">Sample or document handover.</div>
+      <div class="tile-native" id="tileNative3">பரிசோதனை மாதிரி அல்லது படிவம் ஒப்படைக்க</div>
+      <span class="tile-arrow">›</span>
     </div>
 
-    <!-- Tile 5 -->
     <div class="touch-tile" onclick="openVerification(4)">
       <span class="tile-icon">📋</span>
       <div class="tile-native" id="tileNative4">மருத்துவமனை கடிதம் அல்லது பரிசோதனை விவரம்</div>
-      <div class="tile-eng" id="tileEng4">Referral or test result logistics.</div>
+      <span class="tile-arrow">›</span>
     </div>
 
-    <!-- Tile 6 -->
     <div class="touch-tile" onclick="openVerification(5)">
       <span class="tile-icon">📝</span>
       <div class="tile-native" id="tileNative5">புதிய நோயாளி பதிவு அல்லது முகவரி மாற்றம்</div>
-      <div class="tile-eng" id="tileEng5">Registration or contact update.</div>
-    </div>
-
-    <!-- Tile 7 -->
-    <div class="touch-tile" style="grid-column: span 2;" onclick="openVerification(6)">
-      <span class="tile-icon">🗣️</span>
-      <div class="tile-native" id="tileNative6">எனக்கு தகுதிவாய்ந்த மொழிபெயர்ப்பாளர் தேவை</div>
-      <div class="tile-eng" id="tileEng6">I need a qualified interpreter for my appointment.</div>
+      <span class="tile-arrow">›</span>
     </div>
   </div>
 
-  <!-- Persistent Safety Bar -->
+  <!-- Immediate Human Help Option -->
   <footer class="safety-bottom-bar">
     <button type="button" class="btn-esc" onclick="openVerification(6)">
-      <span>⚠️</span>
-      <span id="escBtnLabel">I Need an Interpreter (Human Help)</span>
+      <span>🗣️</span>
+      <span id="escBtnLabel">எனக்கு மொழிபெயர்ப்பாளர் உதவி தேவை</span>
     </button>
-    <div style="font-size: 11.5px; color: #64748b;">
-      MedOriva Guided Touch · Non-clinical administrative intake · GMC/MHRA safety boundaries
-    </div>
   </footer>
 
 </main>
 
-<!-- Verification Modal (Confirm / Change Understanding Check) -->
+<!-- Verification Modal: Confirm / Change Check -->
 <div class="modal-overlay" id="verifyModal">
   <div class="verify-card" id="verifyCard">
-    <div class="verify-title" id="modalVerifyTitle">Understanding Check</div>
-    <div style="font-size: 13px; color: #475569; margin-bottom: 10px;" id="modalSelectedSubtitle">You selected:</div>
+    <div class="verify-title" id="modalVerifyTitle">உறுதிப்படுத்தவும்</div>
     <div class="verify-text-native" id="modalSelectedNative">—</div>
-    <div class="verify-text-eng" id="modalSelectedEng">—</div>
     
     <div class="verify-actions">
-      <button type="button" class="btn-change" onclick="closeVerification()">
-        ✕ <span id="btnChangeLabel">Change Answer</span>
-      </button>
       <button type="button" class="btn-confirm" onclick="submitConfirmedAnswer()">
-        ✓ <span id="btnConfirmLabel">Confirm</span>
+        ✓ <span id="btnConfirmLabel">ஆம், உறுதிப்படுத்துகிறேன்</span>
+      </button>
+      <button type="button" class="btn-change" onclick="closeVerification()">
+        ✕ <span id="btnChangeLabel">மாற்ற வேண்டும்</span>
       </button>
     </div>
   </div>
 </div>
 
 <script>
+// PURE NATIVE SCRIPT LEXICON (Zero English Mingling in Patient UI)
 const GUIDED_LEXICON = {
   "Tamil": {
     code: "ta", bcp47: "ta-IN", dir: "ltr",
-    prompt_native: "வணக்கம். உங்களுக்கு இன்று எப்படி உதவ முடியும்?",
-    prompt_eng: "Welcome. How can our practice team help you today?",
-    modal_title: "Understanding Check (உறுதிப்படுத்தவும்)",
-    modal_sub: "நீங்கள் தேர்ந்தெடுத்தது (You selected):",
-    btn_confirm: "சரி, உறுதிப்படுத்துகிறேன் (Confirm)",
-    btn_change: "மாற்ற வேண்டும் (Change answer)",
-    toast_msg: "✓ உங்கள் பதில் பதிவு செய்யப்பட்டது. தயவுசெய்து வரவேற்பாளரிடம் பேசவும்.",
-    esc_label: "எனக்கு மொழிபெயர்ப்பாளர் தேவை (Human Help)",
+    prompt_native: "வணக்கம். உங்களுக்கு இன்று என்ன உதவி வேண்டும்?",
+    listen_label: "கேளுங்கள்",
+    modal_title: "உங்கள் தேர்வை உறுதிப்படுத்தவும்",
+    btn_confirm: "ஆம், உறுதிப்படுத்துகிறேன்",
+    btn_change: "மாற்ற வேண்டும்",
+    toast_msg: "✓ உங்கள் தேர்வு பதிவு செய்யப்பட்டது. தயவுசெய்து வரவேற்பாளரிடம் பேசுங்கள்.",
+    esc_label: "எனக்கு மொழிபெயர்ப்பாளர் உதவி தேவை",
     tiles: [
-      { native: "எனக்கு அப்பாயிண்ட்மென்ட் உள்ளது", eng: "I have an appointment." },
-      { native: "அப்பாயிண்ட்மென்ட் முன்பதிவு அல்லது மாற்றம்", eng: "Book or change an appointment." },
-      { native: "மருந்துச் சீட்டு அல்லது மருந்துகள் எடுக்க வந்துள்ளேன்", eng: "Prescription query or collection." },
-      { native: "மாதிரி அல்லது படிவம் ஒப்படைக்க வந்துள்ளேன்", eng: "Sample or document handover." },
+      { native: "இன்று எனக்கு அப்பாயிண்ட்மென்ட் உள்ளது", eng: "I have an appointment today." },
+      { native: "புதிய அப்பாயிண்ட்மென்ட் அல்லது நேரம் மாற்ற வேண்டும்", eng: "Book or change an appointment." },
+      { native: "மருந்துச் சீட்டு அல்லது மாத்திரைகள் பெற வந்தேன்", eng: "Prescription query or collection." },
+      { native: "பரிசோதனை மாதிரி அல்லது படிவம் ஒப்படைக்க", eng: "Sample or document handover." },
       { native: "மருத்துவமனை கடிதம் அல்லது பரிசோதனை விவரம்", eng: "Referral or test result logistics." },
       { native: "புதிய நோயாளி பதிவு அல்லது முகவரி மாற்றம்", eng: "Registration or contact update." },
-      { native: "எனக்கு தகுதிவாய்ந்த மொழிபெயர்ப்பாளர் தேவை", eng: "I need a qualified interpreter for my appointment." }
+      { native: "எனக்கு மொழிபெயர்ப்பாளர் உதவி தேவை", eng: "I need a qualified interpreter." }
     ]
   },
 
   "Hindi": {
     code: "hi", bcp47: "hi-IN", dir: "ltr",
     prompt_native: "नमस्ते। आज हम आपकी क्या मदद कर सकते हैं?",
-    prompt_eng: "Welcome. How can our practice team help you today?",
-    modal_title: "Understanding Check (पुष्टि करें)",
-    modal_sub: "आपने चुना है (You selected):",
-    btn_confirm: "हाँ, यह सही है (Confirm)",
-    btn_change: "बदलना है (Change answer)",
-    toast_msg: "✓ आपकी जानकारी दर्ज कर ली गई है। कृपया रिसेप्शनिस्ट से बात करें।",
-    esc_label: "मुझे अनुवादक चाहिए (Human Help)",
+    listen_label: "सुनें",
+    modal_title: "अपने चयन की पुष्टि करें",
+    btn_confirm: "हाँ, पुष्टि करें",
+    btn_change: "बदलना है",
+    toast_msg: "✓ आपका विकल्प दर्ज हो गया है। कृपया रिसेप्शनिस्ट से संपर्क करें।",
+    esc_label: "मुझे अनुवादक (दुभाषिया) की सहायता चाहिए",
     tiles: [
-      { native: "मेरा अपॉइंटमेंट है", eng: "I have an appointment." },
-      { native: "नया अपॉइंटमेंट लेना या बदलना है", eng: "Book or change an appointment." },
-      { native: "दवाई या पर्ची से संबंधित जानकारी", eng: "Prescription query or collection." },
+      { native: "आज मेरी डॉक्टर से मिलने की अपॉइंटमेंट है", eng: "I have an appointment today." },
+      { native: "नई अपॉइंटमेंट लेना या समय बदलना है", eng: "Book or change an appointment." },
+      { native: "दवाई की पर्ची या दवाइयां लेने आया हूँ", eng: "Prescription query or collection." },
       { native: "जांच का सैंपल या दस्तावेज़ जमा करना है", eng: "Sample or document handover." },
-      { native: "अस्पताल का पत्र या जांच रिपोर्ट के बारे में", eng: "Referral or test result logistics." },
-      { native: "नया पंजीकरण या पता बदलना है", eng: "Registration or contact update." },
-      { native: "मुझे परामर्श के लिए दुभाषिया चाहिए", eng: "I need a qualified interpreter for my appointment." }
+      { native: "अस्पताल का पत्र या जांच रिपोर्ट की जानकारी", eng: "Referral or test result logistics." },
+      { native: "नया पंजीकरण या घर का पता बदलना है", eng: "Registration or contact update." },
+      { native: "मुझे अनुवादक की सहायता चाहिए", eng: "I need a qualified interpreter." }
     ]
   },
 
   "Malayalam": {
     code: "ml", bcp47: "ml-IN", dir: "ltr",
-    prompt_native: "നമസ്കാരം. ഇന്ന് ഞങ്ങൾക്ക് നിങ്ങളെ എങ്ങനെ സഹായിക്കാനാകും?",
-    prompt_eng: "Welcome. How can our practice team help you today?",
-    modal_title: "Understanding Check (സ്ഥിരീകരിക്കുക)",
-    modal_sub: "നിങ്ങൾ തിരഞ്ഞെടുത്തത് (You selected):",
-    btn_confirm: "അതെ, ശരിയാണ് (Confirm)",
-    btn_change: "മാറ്റണം (Change answer)",
-    toast_msg: "✓ നിങ്ങളുടെ വിവരം രേഖപ്പെടുത്തി. ദയവായി റിസപ്ഷനിസ്റ്റുമായി സംസാരിക്കുക.",
-    esc_label: "എനിക്ക് പരിഭാഷകനെ വേണം (Human Help)",
+    prompt_native: "നമസ്കാരം. ഇന്ന് നിങ്ങൾക്ക് എന്ത് സഹായമാണ് വേണ്ടത്?",
+    listen_label: "കേൾക്കുക",
+    modal_title: "വിവരങ്ങൾ സ്ഥിരീകരിക്കുക",
+    btn_confirm: "അതെ, സ്ഥിരീകരിക്കുന്നു",
+    btn_change: "മാറ്റണം",
+    toast_msg: "✓ നിങ്ങളുടെ വിവരം രേഖപ്പെടുത്തി. ദയവായി കൗണ്ടറിലേക്ക് സംസാരിക്കുക.",
+    esc_label: "എനിക്ക് പരിഭാഷകന്റെ സഹായം വേണം",
     tiles: [
-      { native: "എനിക്ക് അപ്പോയിന്റ്മെന്റ് ഉണ്ട്", eng: "I have an appointment." },
-      { native: "അപ്പോയിന്റ്മെന്റ് എടുക്കാനോ മാറ്റാനോ ആഗ്രഹിക്കുന്നു", eng: "Book or change an appointment." },
+      { native: "ഇന്ന് എനിക്ക് അപ്പോയിന്റ്മെന്റ് ഉണ്ട്", eng: "I have an appointment today." },
+      { native: "പുതിയ അപ്പോയിന്റ്മെന്റ് എടുക്കാനോ മാറ്റാനോ", eng: "Book or change an appointment." },
       { native: "മരുന്ന് കുറിപ്പടി അല്ലെങ്കിൽ മരുന്നുകൾ വാങ്ങാൻ", eng: "Prescription query or collection." },
-      { native: "ലാബ് സാമ്പിൾ അല്ലെങ്കിൽ രേഖകൾ നൽകാൻ വന്നിരിക്കുന്നു", eng: "Sample or document handover." },
-      { native: "റഫറൽ കത്ത് അല്ലെങ്കിൽ പരിശോധനാ ഫലങ്ങൾ അറിയാൻ", eng: "Referral or test result logistics." },
+      { native: "ലാബ് സാമ്പിൾ അല്ലെങ്കിൽ രേഖകൾ നൽകാൻ", eng: "Sample or document handover." },
+      { native: "ആശുപത്രി കത്ത് അല്ലെങ്കിൽ പരിശോധനാ ഫലങ്ങൾ", eng: "Referral or test result logistics." },
       { native: "പുതിയ രജിസ്ട്രേഷൻ അല്ലെങ്കിൽ വിലാസം മാറ്റാൻ", eng: "Registration or contact update." },
-      { native: "എനിക്ക് യോഗ്യതയുള്ള ഒരു പരിഭാഷകനെ വേണം", eng: "I need a qualified interpreter for my appointment." }
+      { native: "എനിക്ക് പരിഭാഷകന്റെ സഹായം വേണം", eng: "I need a qualified interpreter." }
     ]
   },
 
   "Polish": {
     code: "pl", bcp47: "pl-PL", dir: "ltr",
-    prompt_native: "Dzień dobry. W czym możemy dzisiaj Panu/Pani pomóc?",
-    prompt_eng: "Welcome. How can our practice team help you today?",
-    modal_title: "Understanding Check (Potwierdzenie)",
-    modal_sub: "Wybrano opcję (You selected):",
-    btn_confirm: "Tak, potwierdzam (Confirm)",
-    btn_change: "Zmień wybór (Change answer)",
-    toast_msg: "✓ Zgłoszenie zostało przyjęte. Proszę podejść do recepcji.",
-    esc_label: "Potrzebuję tłumacza (Human Help)",
+    prompt_native: "Dzień dobry. W czym możemy dzisiaj pomóc?",
+    listen_label: "Odsłuchaj",
+    modal_title: "Potwierdź swój wybór",
+    btn_confirm: "Tak, potwierdzam",
+    btn_change: "Zmień wybór",
+    toast_msg: "✓ Zgłoszenie przyjęte. Proszę podejść do recepcji.",
+    esc_label: "Potrzebuję pomocy tłumacza",
     tiles: [
-      { native: "Mam umówioną wizytę", eng: "I have an appointment." },
-      { native: "Chcę umówić lub zmienić termin wizyty", eng: "Book or change an appointment." },
-      { native: "Sprawa recepty lub odbiór leków", eng: "Prescription query or collection." },
+      { native: "Mam dzisiaj umówioną wizytę", eng: "I have an appointment today." },
+      { native: "Chcę zarejestrować lub przełożyć wizytę", eng: "Book or change an appointment." },
+      { native: "Odbiór recepty lub leków", eng: "Prescription query or collection." },
       { native: "Oddanie próbki do badań lub dokumentów", eng: "Sample or document handover." },
-      { native: "Zapytanie o skierowanie lub wyniki badań", eng: "Referral or test result logistics." },
+      { native: "Sprawa skierowania lub wyników badań", eng: "Referral or test result logistics." },
       { native: "Rejestracja nowego pacjenta lub zmiana adresu", eng: "Registration or contact update." },
-      { native: "Potrzebuję wykwalifikowanego tłumacza", eng: "I need a qualified interpreter for my appointment." }
+      { native: "Potrzebuję pomocy tłumacza", eng: "I need a qualified interpreter." }
     ]
   },
 
   "Arabic": {
     code: "ar", bcp47: "ar-SA", dir: "rtl",
-    prompt_native: "مرحباً بكم. كيف يمكن لفريق العيادة مساعدتكم اليوم؟",
-    prompt_eng: "Welcome. How can our practice team help you today?",
-    modal_title: "Understanding Check (تأكيد الاختيار)",
-    modal_sub: "لقد اخترت (You selected):",
-    btn_confirm: "نعم، هذا صحيح (Confirm)",
-    btn_change: "تغيير الاختيار (Change answer)",
-    toast_msg: "✓ تم تسجيل اختيارك بنجاح. يرجى التحدث مع موظف الاستقبال.",
-    esc_label: "أحتاج إلى مترجم فوري (Human Help)",
+    prompt_native: "مرحباً بكم. كيف يمكننا مساعدتكم اليوم؟",
+    listen_label: "استمع",
+    modal_title: "يرجى تأكيد اختياركم",
+    btn_confirm: "نعم، تأكيد الاختيار",
+    btn_change: "تعديل الاختيار",
+    toast_msg: "✓ تم تسجيل اختياركم. يرجى التحدث مع موظف الاستقبال.",
+    esc_label: "أحتاج إلى مساعدة مترجم فوري",
     tiles: [
-      { native: "لدي موعد محجوز مسبقاً", eng: "I have an appointment." },
-      { native: "أود حجز موعد جديد أو تعديل موعدي", eng: "Book or change an appointment." },
-      { native: "استفسار بخصوص وصفة طبية أو استلام دواء", eng: "Prescription query or collection." },
-      { native: "تسليم عينة فحص مخبري أو وثائق رسمية", eng: "Sample or document handover." },
-      { native: "استفسار عن تحويل مستشفى أو نتائج التحاليل", eng: "Referral or test result logistics." },
-      { native: "تسجيل مريض جديد أو تحديث العنوان ورقم الهاتف", eng: "Registration or contact update." },
-      { native: "أحتاج إلى مترجم فوري معتمد للاستشارة", eng: "I need a qualified interpreter for my appointment." }
+      { native: "لدي موعد محجوز اليوم", eng: "I have an appointment today." },
+      { native: "حجز موعد جديد أو تعديل موعد", eng: "Book or change an appointment." },
+      { native: "استفسار عن وصفة طبية أو استلام دواء", eng: "Prescription query or collection." },
+      { native: "تسليم عينات تحاليل أو وثائق طبية", eng: "Sample or document handover." },
+      { native: "تقارير المستشفى أو نتائج الفحوصات", eng: "Referral or test result logistics." },
+      { native: "تسجيل مريض جديد أو تحديث العنوان", eng: "Registration or contact update." },
+      { native: "أحتاج إلى مساعدة مترجم فوري", eng: "I need a qualified interpreter." }
     ]
   },
 
   "Urdu": {
     code: "ur", bcp47: "ur-PK", dir: "rtl",
-    prompt_native: "خوش آمدید۔ آج ہماری ٹیم آپ کی کیا مدد کر سکتی ہے؟",
-    prompt_eng: "Welcome. How can our practice team help you today?",
-    modal_title: "Understanding Check (تصدیق فرمائیں)",
-    modal_sub: "آپ کا انتخاب (You selected):",
-    btn_confirm: "جی ہاں، یہ درست ہے (Confirm)",
-    btn_change: "تبدیل کریں (Change answer)",
-    toast_msg: "✓ آپ کا انتخاب درج کر لیا گیا ہے۔ برائے کرم استقبالیہ عملے سے بات کریں۔",
-    esc_label: "مجھے مترجم کی ضرورت ہے (Human Help)",
+    prompt_native: "خوش آمدید۔ آج ہم آپ کی کیا مدد کر سکتے ہیں؟",
+    listen_label: "سنیں",
+    modal_title: "اپنے انتخاب کی تصدیق فرمائیں",
+    btn_confirm: "جی ہاں، تصدیق کریں",
+    btn_change: "تبدیل کریں",
+    toast_msg: "✓ آپ کا انتخاب درج ہو چکا ہے۔ برائے کرم استقبالیہ پر رجوع کریں۔",
+    esc_label: "مجھے باقاعدہ مترجم کی مدد درکار ہے",
     tiles: [
-      { native: "میرا پہلے سے اپائنٹمنٹ موجود ہے", eng: "I have an appointment." },
-      { native: "نیا اپائنٹمنٹ لینا یا وقت تبدیل کروانا ہے", eng: "Book or change an appointment." },
-      { native: "ادویات کے نسخے یا دوائی لینے کے بارے میں", eng: "Prescription query or collection." },
-      { native: "لیب ٹیسٹ کا نمونہ یا دستاویزات جمع کروانی ہیں", eng: "Sample or document handover." },
-      { native: "ہسپتال ریفرل یا ٹیسٹ رزلٹ کے بارے میں معلومات", eng: "Referral or test result logistics." },
+      { native: "آج میرا ڈاکٹر سے اپائنٹمنٹ ہے", eng: "I have an appointment today." },
+      { native: "نیا اپائنٹمنٹ بک کرنا یا وقت تبدیل کرنا", eng: "Book or change an appointment." },
+      { native: "ادویات کا نسخہ یا دوائی لینی ہے", eng: "Prescription query or collection." },
+      { native: "ٹیسٹ کا نمونہ یا دستاویزات جمع کروانی ہیں", eng: "Sample or document handover." },
+      { native: "ہسپتال ریفرل یا رپورٹس کے متعلق معلومات", eng: "Referral or test result logistics." },
       { native: "نئے مریض کا اندراج یا پتہ تبدیل کروانا", eng: "Registration or contact update." },
-      { native: "مجھے ڈاکٹر سے بات کے لیے باقاعدہ مترجم چاہیے", eng: "I need a qualified interpreter for my appointment." }
+      { native: "مجھے باقاعدہ مترجم کی مدد درکار ہے", eng: "I need a qualified interpreter." }
     ]
   },
 
   "Bengali": {
     code: "bn", bcp47: "bn-BD", dir: "ltr",
-    prompt_native: "স্বাগতম। আজ আমাদের প্র্যাকটিস টিম আপনাকে কীভাবে সাহায্য করতে পারে?",
-    prompt_eng: "Welcome. How can our practice team help you today?",
-    modal_title: "Understanding Check (নিশ্চিত করুন)",
-    modal_sub: "আপনি নির্বাচন করেছেন (You selected):",
-    btn_confirm: "হ্যাঁ, এটি সঠিক (Confirm)",
-    btn_change: "পরিবর্তন করুন (Change answer)",
-    toast_msg: "✓ আপনার তথ্য গ্রহণ করা হয়েছে। অনুগ্রহ করে রিসেপশনিস্টের সাথে কথা বলুন।",
-    esc_label: "আমার একজন দোভাষী প্রয়োজন (Human Help)",
+    prompt_native: "স্বাগতম। আজ আমরা আপনাকে কীভাবে সাহায্য করতে পারি?",
+    listen_label: "শুনুন",
+    modal_title: "আপনার নির্বাচন নিশ্চিত করুন",
+    btn_confirm: "হ্যাঁ, নিশ্চিত করছি",
+    btn_change: "পরিবর্তন করুন",
+    toast_msg: "✓ আপনার তথ্য গ্রহণ করা হয়েছে। অনুগ্রহ করে অভ্যর্থনায় যোগাযোগ করুন।",
+    esc_label: "আমার একজন দোভাষীর সাহায্য প্রয়োজন",
     tiles: [
-      { native: "আমার একটি অ্যাপয়েন্টমেন্ট আছে", eng: "I have an appointment." },
+      { native: "আজ আমার অ্যাপয়েন্টমেন্ট আছে", eng: "I have an appointment today." },
       { native: "নতুন অ্যাপয়েন্টমেন্ট বুক বা পরিবর্তন করতে চাই", eng: "Book or change an appointment." },
-      { native: "ওষুধের প্রেসক্রিপশন বা ওষুধ সংগ্রহ সংক্রান্ত", eng: "Prescription query or collection." },
-      { native: "টেস্টের নমুনা বা নথিপত্র জমা দিতে এসেছি", eng: "Sample or document handover." },
+      { native: "প্রেসক্রিপশন বা ওষুধ সংগ্রহ করতে এসেছি", eng: "Prescription query or collection." },
+      { native: "ল্যাব পরীক্ষার নমুনা বা নথিপত্র জমা দিতে এসেছি", eng: "Sample or document handover." },
       { native: "হাসপাতালের রেফারেল বা পরীক্ষার ফলাফল সম্পর্কিত", eng: "Referral or test result logistics." },
       { native: "নতুন রোগীর নিবন্ধন বা ঠিকানা পরিবর্তন", eng: "Registration or contact update." },
-      { native: "আমার পরামর্শের জন্য একজন প্রত্যয়িত দোভাষী প্রয়োজন", eng: "I need a qualified interpreter for my appointment." }
+      { native: "আমার একজন দোভাষীর সাহায্য প্রয়োজন", eng: "I need a qualified interpreter." }
     ]
   },
 
   "Somali": {
     code: "so", bcp47: "so-SO", dir: "ltr",
-    prompt_native: "Soo dhawoow. Sidee kooxdayada xaruntu maanta kuu caawin kartaa?",
-    prompt_eng: "Welcome. How can our practice team help you today?",
-    modal_title: "Understanding Check (Xaqiijin)",
-    modal_sub: "Waxaad dooratay (You selected):",
-    btn_confirm: "Haa, waa sax (Confirm)",
-    btn_change: "Beddel doorashada (Change answer)",
-    toast_msg: "✓ Xogtaada waa la qabtay. Fadlan la hadal qaabilaha xafiiska.",
-    esc_label: "Waxaan u baahanahay turjubaan (Human Help)",
+    prompt_native: "Soo dhawoow. Sideen maanta kuu caawin karnaa?",
+    listen_label: "Dhageyso",
+    modal_title: "Xaqiiji doorashadaada",
+    btn_confirm: "Haa, waan xaqiijinayaa",
+    btn_change: "Beddel",
+    toast_msg: "✓ Doorashadaada waa la qabtay. Fadlan la hadal qaabilaha.",
+    esc_label: "Waxaan u baahanahay caawimaad turjubaan",
     tiles: [
-      { native: "Waxaan leeyahay ballan hore loo qabsaday", eng: "I have an appointment." },
-      { native: "Waxaan rabaa inaan ballan qabsado ama beddelo", eng: "Book or change an appointment." },
-      { native: "Weydiin ku saabsan dawo ama qaadashada dawooyinka", eng: "Prescription query or collection." },
-      { native: "Keenista muunad baaris ah ama waraaqo caafimaad", eng: "Sample or document handover." },
-      { native: "Xog ku saabsan gudbinta cisbitaalka ama natiijooyin", eng: "Referral or test result logistics." },
-      { native: "Diiwaangelinta bukaanka cusub ama cinwaan beddel", eng: "Registration or contact update." },
-      { native: "Waxaan u baahanahay turjubaan xirfad leh", eng: "I need a qualified interpreter for my appointment." }
+      { native: "Maanta waxaan leeyahay ballan dhakhtar", eng: "I have an appointment today." },
+      { native: "Qabsashada ballan cusub ama beddelid", eng: "Book or change an appointment." },
+      { native: "Qaadashada daawo ama warqad dawo", eng: "Prescription query or collection." },
+      { native: "Keenista muunad baaris ah ama waraaqo", eng: "Sample or document handover." },
+      { native: "Natiijooyinka baarista ama warqadaha cisbitaalka", eng: "Referral or test result logistics." },
+      { native: "Diiwaangelin cusub ama cinwaan beddelid", eng: "Registration or contact update." },
+      { native: "Waxaan u baahanahay caawimaad turjubaan", eng: "I need a qualified interpreter." }
     ]
   },
 
   "Romanian": {
     code: "ro", bcp47: "ro-RO", dir: "ltr",
-    prompt_native: "Bună ziua. Cu ce vă poate ajuta echipa cabinetului astăzi?",
-    prompt_eng: "Welcome. How can our practice team help you today?",
-    modal_title: "Understanding Check (Confirmare)",
-    modal_sub: "Ați selectat opțiunea (You selected):",
-    btn_confirm: "Da, este corect (Confirm)",
-    btn_change: "Modifică răspunsul (Change answer)",
-    toast_msg: "✓ Răspunsul a fost înregistrat. Vă rugăm să discutați cu recepționerul.",
-    esc_label: "Am nevoie de un traducător (Human Help)",
+    prompt_native: "Bună ziua. Cu ce vă putem ajuta astăzi?",
+    listen_label: "Ascultă",
+    modal_title: "Confirmați opțiunea dumneavoastră",
+    btn_confirm: "Da, confirm",
+    btn_change: "Modifică",
+    toast_msg: "✓ Solicitarea a fost înregistrată. Vă rugăm să vă adresați recepției.",
+    esc_label: "Am nevoie de asistența unui interpret",
     tiles: [
-      { native: "Am o programare confirmată", eng: "I have an appointment." },
-      { native: "Doresc să fac sau să modific o programare", eng: "Book or change an appointment." },
-      { native: "Întrebare despre rețetă sau ridicarea medicamentelor", eng: "Prescription query or collection." },
+      { native: "Am o programare astăzi", eng: "I have an appointment today." },
+      { native: "Doresc o programare nouă sau reprogramare", eng: "Book or change an appointment." },
+      { native: "Ridicare rețetă sau medicamente", eng: "Prescription query or collection." },
       { native: "Predare probe de laborator sau documente", eng: "Sample or document handover." },
-      { native: "Informații despre trimitere spital sau rezultate analize", eng: "Referral or test result logistics." },
-      { native: "Înregistrare pacient nou sau actualizare adresă", eng: "Registration or contact update." },
-      { native: "Am nevoie de un interpret autorizat pentru consultație", eng: "I need a qualified interpreter for my appointment." }
+      { native: "Rezultate analize sau scrisori medicale", eng: "Referral or test result logistics." },
+      { native: "Înregistrare pacient nou sau schimbare adresă", eng: "Registration or contact update." },
+      { native: "Am nevoie de asistența unui interpret", eng: "I need a qualified interpreter." }
     ]
   }
 };
@@ -527,7 +582,7 @@ const GUIDED_LEXICON = {
 let currentLangKey = "Tamil";
 let currentSelectedIndex = null;
 
-// Initialise language from URL params or default to Tamil
+// Read selected language from URL params (?lang=Tamil or ?lang=ta)
 document.addEventListener("DOMContentLoaded", () => {
   const params = new URLSearchParams(window.location.search);
   const requestedLang = params.get("lang");
@@ -571,21 +626,19 @@ function renderLanguageView() {
     modal.classList.remove("rtl-mode");
   }
 
+  document.documentElement.lang = data.code;
   document.getElementById("promptNativeText").textContent = data.prompt_native;
-  document.getElementById("promptEngSub").textContent = data.prompt_eng;
+  document.getElementById("ttsBtnLabel").textContent = data.listen_label;
   document.getElementById("escBtnLabel").textContent = data.esc_label;
 
-  // Render 7 touch tiles
+  // Render purely native tiles (No English subtitles)
   data.tiles.forEach((t, i) => {
     const elNative = document.getElementById(`tileNative${i}`);
-    const elEng = document.getElementById(`tileEng${i}`);
     if (elNative) elNative.textContent = t.native;
-    if (elEng) elEng.textContent = t.eng;
   });
 
-  // Modal static labels
+  // Modal Text
   document.getElementById("modalVerifyTitle").textContent = data.modal_title;
-  document.getElementById("modalSelectedSubtitle").textContent = data.modal_sub;
   document.getElementById("btnConfirmLabel").textContent = data.btn_confirm;
   document.getElementById("btnChangeLabel").textContent = data.btn_change;
 }
@@ -598,7 +651,6 @@ function openVerification(index) {
   const tile = data.tiles[index];
 
   document.getElementById("modalSelectedNative").textContent = tile.native;
-  document.getElementById("modalSelectedEng").textContent = tile.eng;
   document.getElementById("verifyModal").style.display = "flex";
 }
 
@@ -614,7 +666,7 @@ function submitConfirmedAnswer() {
   const selectedTile = data.tiles[currentSelectedIndex];
   const toast = document.getElementById("toastBanner");
 
-  // Broadcast confirmed selection directly to the receptionist's screen
+  // Broadcast English meaning directly to the receptionist's screen in the background
   if (window.opener && !window.opener.closed) {
     window.opener.postMessage({
       type: "MEDORIVA_PATIENT_TOUCH",
@@ -624,7 +676,7 @@ function submitConfirmedAnswer() {
     }, window.location.origin);
   }
 
-  // Post confirmed administrative selection to the backend
+  // Record administrative interaction in the backend
   fetch("/api/process_intake", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -640,13 +692,13 @@ function submitConfirmedAnswer() {
     closeVerification();
     toast.textContent = data.toast_msg;
     toast.style.display = "block";
-    setTimeout(() => { toast.style.display = "none"; }, 6000);
+    setTimeout(() => { toast.style.display = "none"; }, 5000);
   })
   .catch(err => {
     closeVerification();
     toast.textContent = data.toast_msg;
     toast.style.display = "block";
-    setTimeout(() => { toast.style.display = "none"; }, 6000);
+    setTimeout(() => { toast.style.display = "none"; }, 5000);
   });
 }
 
