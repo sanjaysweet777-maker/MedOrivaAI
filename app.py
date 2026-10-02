@@ -1224,7 +1224,7 @@ def translate_patient():
             "clinical_urgency": None
         }), 200
 
-    # 2.5 Priority 2.5: Check Deterministic Blended Engine (663+ Multi-Script Tokens across 9 languages)
+    # 2.5 Priority 2.5: Check Deterministic Blended Engine (1,536 configured multi-script tokens across 9 languages)
     if blended_processor:
         b_res = blended_processor.process_intake(lang_code, raw_text)
         if b_res.get("extracted_meaning") and b_res.get("extracted_meaning") != raw_text:
