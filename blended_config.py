@@ -1,7 +1,7 @@
 # blended_config.py
 """
 MedOriva AI Ltd - Multi-Script Colloquial Lexicon & Negation Map
-Version: 2.7 Production Lexicon Seed (Comprehensive 1000+ Token Expansion)
+Version: 2.9.1 Production Lexicon Seed (Comprehensive 1000+ Token Expansion)
 Coverage: All 9 MVP Languages (Tamil, Hindi, Malayalam, Polish, Arabic, Urdu, Bengali, Somali, Romanian)
 Framework: Non-clinical administrative reception intake, care-navigation, and safety gating
 """
